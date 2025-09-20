@@ -3,19 +3,414 @@
  */
 package org.example;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 public class App extends Application {
+    private static final int BOARD_WIDTH = 10;
+    private static final int BOARD_HEIGHT = 20;
+    private static final int CELL_SIZE = 30;
+    
+    private TetrisGame game;
+    private Canvas canvas;
+    private GraphicsContext gc;
+    private long lastUpdate = 0;
+    
+    // UI components
+    private VBox root;
+    private VBox gameContainer;
+    private VBox menuContainer;
+    private VBox gameOverContainer;
+    private VBox infoPanel;
+    private Canvas nextPieceCanvas;
+    private GraphicsContext nextPieceGC;
+    private Label scoreLabel, levelLabel, linesLabel;
+    private Button startButton, restartButton;
+
     @Override
     public void start(Stage primaryStage) {
-        Label label = new Label("Hello, JavaFX!");
-        Scene scene = new Scene(label, 300, 200);
-        primaryStage.setTitle("JavaFX Window");
+        game = new TetrisGame(BOARD_WIDTH, BOARD_HEIGHT);
+        canvas = new Canvas(BOARD_WIDTH * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE);
+        gc = canvas.getGraphicsContext2D();
+        
+        initializeUI();
+        
+        Scene scene = new Scene(root, BOARD_WIDTH * CELL_SIZE + 250, BOARD_HEIGHT * CELL_SIZE + 100);
+        scene.setOnKeyPressed(this::handleKeyPress);
+        
+        primaryStage.setTitle("Tetris with SRS (Super Rotation System)");
         primaryStage.setScene(scene);
         primaryStage.show();
+        
+        // Print controls to console
+        System.out.println("=== Tetris Controls ===");
+        System.out.println("Arrow Keys: Move left/right/down");
+        System.out.println("Up Arrow / X: Rotate clockwise");
+        System.out.println("Z: Rotate counterclockwise");
+        System.out.println("Space: Hard drop");
+        System.out.println("Enter: Start/Restart game");
+        System.out.println("=====================");
+        
+        root.requestFocus();
+        root.setFocusTraversable(true);
+        
+        AnimationTimer gameLoop = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                long dropInterval = game.getDropInterval();
+                if (now - lastUpdate >= dropInterval) {
+                    game.update();
+                    lastUpdate = now;
+                }
+                updateUI();
+                render();
+            }
+        };
+        gameLoop.start();
+    }
+    
+    private void initializeUI() {
+        root = new VBox(10);
+        root.setAlignment(Pos.CENTER);
+        root.setStyle("-fx-background-color: #1a1a1a; -fx-padding: 20;");
+        
+        // Menu screen
+        menuContainer = createMenuScreen();
+        
+        // Game screen
+        gameContainer = createGameScreen();
+        
+        // Game over screen
+        gameOverContainer = createGameOverScreen();
+        
+        // Start with menu
+        root.getChildren().add(menuContainer);
+    }
+    
+    private VBox createMenuScreen() {
+        VBox menu = new VBox(30);
+        menu.setAlignment(Pos.CENTER);
+        
+        Label title = new Label("TETRIS");
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 48));
+        title.setTextFill(Color.CYAN);
+        
+        Label subtitle = new Label("with Super Rotation System");
+        subtitle.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
+        subtitle.setTextFill(Color.WHITE);
+        
+        startButton = new Button("START GAME");
+        startButton.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        startButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 15 30;");
+        startButton.setOnAction(e -> startNewGame());
+        
+        Label controls = new Label("Controls:\n↑/X: Rotate CW  Z: Rotate CCW\n←→: Move  ↓: Soft Drop  Space: Hard Drop");
+        controls.setFont(Font.font("Arial", 12));
+        controls.setTextFill(Color.LIGHTGRAY);
+        controls.setStyle("-fx-text-alignment: center;");
+        
+        menu.getChildren().addAll(title, subtitle, startButton, controls);
+        return menu;
+    }
+    
+    private VBox createGameScreen() {
+        VBox game = new VBox(10);
+        game.setAlignment(Pos.CENTER);
+        
+        HBox gameArea = new HBox(20);
+        gameArea.setAlignment(Pos.CENTER);
+        
+        // Game canvas
+        VBox canvasContainer = new VBox();
+        canvasContainer.getChildren().add(canvas);
+        
+        // Info panel
+        infoPanel = new VBox(15);
+        infoPanel.setAlignment(Pos.TOP_LEFT);
+        infoPanel.setStyle("-fx-background-color: #2a2a2a; -fx-padding: 15; -fx-background-radius: 10;");
+        infoPanel.setMinWidth(180);
+        
+        Label infoTitle = new Label("GAME INFO");
+        infoTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        infoTitle.setTextFill(Color.CYAN);
+        
+        scoreLabel = new Label("Score: 0");
+        scoreLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        scoreLabel.setTextFill(Color.WHITE);
+        
+        levelLabel = new Label("Level: 1");
+        levelLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        levelLabel.setTextFill(Color.WHITE);
+        
+        linesLabel = new Label("Lines: 0");
+        linesLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        linesLabel.setTextFill(Color.WHITE);
+        
+        // Next piece preview
+        Label nextLabel = new Label("NEXT");
+        nextLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        nextLabel.setTextFill(Color.CYAN);
+        
+        nextPieceCanvas = new Canvas(120, 120);
+        nextPieceGC = nextPieceCanvas.getGraphicsContext2D();
+        nextPieceCanvas.setStyle("-fx-background-color: #1a1a1a; -fx-background-radius: 5;");
+        
+        infoPanel.getChildren().addAll(infoTitle, scoreLabel, levelLabel, linesLabel, nextLabel, nextPieceCanvas);
+        
+        gameArea.getChildren().addAll(canvasContainer, infoPanel);
+        game.getChildren().add(gameArea);
+        
+        return game;
+    }
+    
+    private VBox createGameOverScreen() {
+        VBox gameOver = new VBox(30);
+        gameOver.setAlignment(Pos.CENTER);
+        
+        Label title = new Label("GAME OVER");
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
+        title.setTextFill(Color.RED);
+        
+        Label finalScore = new Label("Final Score: 0");
+        finalScore.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        finalScore.setTextFill(Color.WHITE);
+        finalScore.setId("finalScore"); // For easy access
+        
+        restartButton = new Button("PLAY AGAIN");
+        restartButton.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+        restartButton.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white; -fx-padding: 12 25;");
+        restartButton.setOnAction(e -> startNewGame());
+        
+        Button menuButton = new Button("MAIN MENU");
+        menuButton.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        menuButton.setStyle("-fx-background-color: #607D8B; -fx-text-fill: white; -fx-padding: 10 20;");
+        menuButton.setOnAction(e -> showMenu());
+        
+        gameOver.getChildren().addAll(title, finalScore, restartButton, menuButton);
+        return gameOver;
+    }
+    
+    private void startNewGame() {
+        game.startGame();
+        showGameScreen();
+    }
+    
+    private void showMenu() {
+        root.getChildren().clear();
+        root.getChildren().add(menuContainer);
+        root.requestFocus();
+    }
+    
+    private void showGameScreen() {
+        root.getChildren().clear();
+        root.getChildren().add(gameContainer);
+        root.requestFocus();
+    }
+    
+    private void showGameOver() {
+        // Update final score
+        Label finalScore = (Label) gameOverContainer.lookup("#finalScore");
+        finalScore.setText("Final Score: " + game.getScore());
+        
+        root.getChildren().clear();
+        root.getChildren().add(gameOverContainer);
+        root.requestFocus();
+    }
+    
+    private void updateUI() {
+        if (game.getGameState() == TetrisGame.GameState.PLAYING) {
+            scoreLabel.setText("Score: " + game.getScore());
+            levelLabel.setText("Level: " + game.getLevel());
+            linesLabel.setText("Lines: " + game.getLinesCleared());
+        } else if (game.getGameState() == TetrisGame.GameState.GAME_OVER) {
+            showGameOver();
+        }
+    }
+    
+    private void handleKeyPress(KeyEvent event) {
+        switch (game.getGameState()) {
+            case MENU -> {
+                if (event.getCode().toString().equals("ENTER") || event.getCode().toString().equals("SPACE")) {
+                    startNewGame();
+                }
+            }
+            case PLAYING -> {
+                switch (event.getCode()) {
+                    case LEFT -> game.moveLeft();
+                    case RIGHT -> game.moveRight();
+                    case DOWN -> game.moveDown();
+                    case UP -> game.rotate(); // Clockwise rotation
+                    case X -> game.rotate(true); // Clockwise rotation (alternative key)
+                    case Z -> game.rotate(false); // Counterclockwise rotation
+                    case SPACE -> game.hardDrop();
+                    case ENTER -> game.resetGame(); // Restart during game
+                }
+            }
+            case GAME_OVER -> {
+                if (event.getCode().toString().equals("ENTER") || event.getCode().toString().equals("SPACE")) {
+                    startNewGame();
+                } else if (event.getCode().toString().equals("ESCAPE")) {
+                    showMenu();
+                }
+            }
+        }
+        render();
+    }
+    
+    private void render() {
+        if (game.getGameState() != TetrisGame.GameState.PLAYING) {
+            return; // Don't render game when not playing
+        }
+        
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        
+        // Draw background
+        gc.setFill(Color.BLACK);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        
+        // Draw grid background
+        gc.setStroke(Color.DARKGRAY);
+        gc.setLineWidth(0.5);
+        for (int x = 0; x <= BOARD_WIDTH; x++) {
+            gc.strokeLine(x * CELL_SIZE, 0, x * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE);
+        }
+        for (int y = 0; y <= BOARD_HEIGHT; y++) {
+            gc.strokeLine(0, y * CELL_SIZE, BOARD_WIDTH * CELL_SIZE, y * CELL_SIZE);
+        }
+        
+        // Draw placed blocks
+        int[][] board = game.getBoard();
+        for (int y = 0; y < BOARD_HEIGHT; y++) {
+            for (int x = 0; x < BOARD_WIDTH; x++) {
+                if (board[y][x] != 0) {
+                    drawCell(x, y, getColorForBlock(board[y][x]));
+                }
+            }
+        }
+        
+        // Draw current piece
+        if (game.getCurrentPiece() != null) {
+            Tetromino piece = game.getCurrentPiece();
+            int[][] shape = piece.getShape();
+            Color color = getColorForBlock(piece.getType());
+            
+            for (int y = 0; y < shape.length; y++) {
+                for (int x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x] == 1) {
+                        int drawX = piece.getX() + x;
+                        int drawY = piece.getY() + y;
+                        if (drawY >= 0) { // Don't draw above visible area
+                            drawCell(drawX, drawY, color);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Draw border
+        gc.setStroke(Color.WHITE);
+        gc.setLineWidth(2);
+        gc.strokeRect(0, 0, BOARD_WIDTH * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE);
+        
+        // Render next piece preview
+        renderNextPiece();
+    }
+    
+    private void renderNextPiece() {
+        if (game.getGameState() != TetrisGame.GameState.PLAYING || game.getNextPiece() == null) {
+            return;
+        }
+        
+        // Clear the next piece canvas
+        nextPieceGC.clearRect(0, 0, nextPieceCanvas.getWidth(), nextPieceCanvas.getHeight());
+        nextPieceGC.setFill(Color.BLACK);
+        nextPieceGC.fillRect(0, 0, nextPieceCanvas.getWidth(), nextPieceCanvas.getHeight());
+        
+        Tetromino nextPiece = game.getNextPiece();
+        int[][] shape = nextPiece.getShape();
+        Color color = getColorForBlock(nextPiece.getType());
+        
+        // Calculate centering offset
+        int shapeWidth = shape[0].length;
+        int shapeHeight = shape.length;
+        double previewCellSize = 20;
+        double offsetX = (nextPieceCanvas.getWidth() - shapeWidth * previewCellSize) / 2;
+        double offsetY = (nextPieceCanvas.getHeight() - shapeHeight * previewCellSize) / 2;
+        
+        // Draw the next piece shape
+        for (int y = 0; y < shapeHeight; y++) {
+            for (int x = 0; x < shapeWidth; x++) {
+                if (shape[y][x] == 1) {
+                    drawNextPieceCell(x, y, color, offsetX, offsetY, previewCellSize);
+                }
+            }
+        }
+        
+        // Draw border for next piece preview
+        nextPieceGC.setStroke(Color.DARKGRAY);
+        nextPieceGC.setLineWidth(1);
+        nextPieceGC.strokeRect(0, 0, nextPieceCanvas.getWidth(), nextPieceCanvas.getHeight());
+    }
+    
+    private void drawNextPieceCell(int x, int y, Color color, double offsetX, double offsetY, double cellSize) {
+        double drawX = offsetX + x * cellSize;
+        double drawY = offsetY + y * cellSize;
+        
+        // Draw main block
+        nextPieceGC.setFill(color);
+        nextPieceGC.fillRect(drawX + 1, drawY + 1, cellSize - 2, cellSize - 2);
+        
+        // Draw highlight for 3D effect
+        nextPieceGC.setFill(color.brighter());
+        nextPieceGC.fillRect(drawX + 1, drawY + 1, cellSize - 2, 2);
+        nextPieceGC.fillRect(drawX + 1, drawY + 1, 2, cellSize - 2);
+        
+        // Draw shadow
+        nextPieceGC.setFill(color.darker());
+        nextPieceGC.fillRect(drawX + cellSize - 3, drawY + 1, 2, cellSize - 2);
+        nextPieceGC.fillRect(drawX + 1, drawY + cellSize - 3, cellSize - 2, 2);
+    }
+    
+    private void drawCell(int x, int y, Color color) {
+        // Draw main block
+        gc.setFill(color);
+        gc.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+        
+        // Draw highlight for 3D effect
+        gc.setFill(color.brighter());
+        gc.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, 3);
+        gc.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, 3, CELL_SIZE - 2);
+        
+        // Draw shadow
+        gc.setFill(color.darker());
+        gc.fillRect(x * CELL_SIZE + CELL_SIZE - 4, y * CELL_SIZE + 1, 3, CELL_SIZE - 2);
+        gc.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + CELL_SIZE - 4, CELL_SIZE - 2, 3);
+    }
+    
+    private Color getColorForBlock(int type) {
+        return switch (type) {
+            case 1 -> Color.CYAN;    // I
+            case 2 -> Color.BLUE;    // J
+            case 3 -> Color.ORANGE;  // L
+            case 4 -> Color.YELLOW;  // O
+            case 5 -> Color.GREEN;   // S
+            case 6 -> Color.PURPLE;  // T
+            case 7 -> Color.RED;     // Z
+            default -> Color.GRAY;
+        };
     }
 
     public static void main(String[] args) {
