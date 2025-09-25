@@ -1,0 +1,156 @@
+package org.example.game.state;
+
+import javafx.animation.AnimationTimer;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
+import org.example.game.logic.GameLogic;
+import org.example.game.logic.SRSRotationSystem;
+import org.example.ui.components.HoldPanel;
+import org.example.ui.components.NextPiecePanel;
+import org.example.ui.components.ScorePanel;
+import org.example.ui.components.TetrisCanvas;
+
+import java.util.HashSet;
+import java.util.Set;
+
+public class PlayState extends GameState {
+    private GameLogic gameLogic;
+    private TetrisCanvas gameCanvas;
+    private HoldPanel holdPanel;
+    private NextPiecePanel nextPanel;
+    private ScorePanel scorePanel;
+    private AnimationTimer gameTimer;
+    private long lastDropTime;
+    private Scene scene;
+    private final Set<KeyCode> pressedKeys = new HashSet<>();
+
+    public PlayState(GameStateManager stateManager) {
+        super(stateManager);
+    }
+
+    @Override
+    public void enter() {
+        gameLogic = new GameLogic();
+        lastDropTime = System.currentTimeMillis();
+
+        gameTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                update(now / 1_000_000_000.0);
+            }
+        };
+        gameTimer.start();
+    }
+
+    @Override
+    public void exit() {
+        if (gameTimer != null) {
+            gameTimer.stop();
+        }
+    }
+
+    @Override
+    public void update(double deltaTime) {
+        if (gameLogic == null) return;
+
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastDropTime >= gameLogic.getDropInterval()) {
+            gameLogic.update();
+            lastDropTime = currentTime;
+        }
+
+        // Update UI
+        updateDisplay();
+
+        // Check game over
+        if (gameLogic.isGameOver()) {
+            stateManager.setState("gameOver");
+        }
+    }
+
+    private void updateDisplay() {
+        if (gameCanvas != null && gameLogic != null) {
+            // Calculate ghost piece position
+            var ghostPiece = gameLogic.getCurrentPiece() != null ?
+                    SRSRotationSystem.hardDrop(gameLogic.getCurrentPiece(), gameLogic.getBoard()) : null;
+
+            gameCanvas.updateBoard(gameLogic.getBoard(), gameLogic.getCurrentPiece(), ghostPiece);
+            holdPanel.updateHoldPiece(gameLogic.getHoldPiece());
+            nextPanel.updateNextPieces(gameLogic.getNextQueue());
+            scorePanel.updateStats(gameLogic.getScore(), gameLogic.getLines(), gameLogic.getLevel());
+        }
+    }
+
+    @Override
+    public Scene createScene() {
+        BorderPane root = new BorderPane();
+        root.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
+
+        // Game canvas (center)
+        gameCanvas = new TetrisCanvas();
+        root.setCenter(gameCanvas);
+
+        // Left panel (Hold)
+        holdPanel = new HoldPanel();
+        root.setLeft(holdPanel);
+
+        // Right panel (Next pieces and score)
+        nextPanel = new NextPiecePanel();
+        scorePanel = new ScorePanel();
+
+        HBox rightPanel = new HBox(20);
+        rightPanel.getChildren().addAll(nextPanel, scorePanel);
+        rightPanel.setAlignment(Pos.TOP_CENTER);
+        root.setRight(rightPanel);
+
+        scene = new Scene(root, 1000, 700);
+
+        // Input handling
+        scene.setOnKeyPressed(event -> {
+            pressedKeys.add(event.getCode());
+            handleKeyPress(event.getCode());
+        });
+
+        scene.setOnKeyReleased(event -> {
+            pressedKeys.remove(event.getCode());
+        });
+
+        // Focus for keyboard input
+        scene.getRoot().setFocusTraversable(true);
+        scene.getRoot().requestFocus();
+
+        return scene;
+    }
+
+    private void handleKeyPress(KeyCode key) {
+        if (gameLogic == null || gameLogic.isGameOver()) return;
+
+        switch (key) {
+            case LEFT, A -> gameLogic.moveLeft();
+            case RIGHT, D -> gameLogic.moveRight();
+            case DOWN, S -> gameLogic.moveDown();
+            case SPACE -> gameLogic.hardDrop();
+            case Z -> gameLogic.rotateCounterClockwise();
+            case X, UP, W -> gameLogic.rotateClockwise();
+            case C -> gameLogic.hold();
+            case P -> stateManager.setState("pause");
+            case ESCAPE -> stateManager.setState("start");
+            default -> {}
+        }
+    }
+
+    @Override
+    public void handleInput() {
+        // Input handled in scene key events
+    }
+
+    public GameLogic getGameLogic() {
+        return gameLogic;
+    }
+}
