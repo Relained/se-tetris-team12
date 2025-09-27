@@ -1,9 +1,10 @@
 package org.example.game.state;
 
+import org.example.ui.NavigableButtonSystem;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
@@ -28,12 +29,7 @@ public class StartState extends GameState {
 
     @Override
     public void resume() {
-        
-    }
 
-    @Override
-    public void update(double deltaTime) {
-        // Start state doesn't need updates
     }
 
     @Override
@@ -50,15 +46,9 @@ public class StartState extends GameState {
         subtitle.setFill(Color.LIGHTGRAY);
         subtitle.setFont(Font.font("Arial", 16));
 
-        Button startButton = new Button("Start Game");
-        startButton.setPrefSize(200, 50);
-        startButton.setStyle("-fx-font-size: 18px; -fx-background-color: #4a4a4a; -fx-text-fill: white;");
-        startButton.setOnAction(e -> stateManager.setState("play"));
-
-        Button exitButton = new Button("Exit");
-        exitButton.setPrefSize(200, 50);
-        exitButton.setStyle("-fx-font-size: 18px; -fx-background-color: #4a4a4a; -fx-text-fill: white;");
-        exitButton.setOnAction(e -> System.exit(0));
+        NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
+        var startButton = buttonSystem.createNavigableButton("Start Game", () -> stateManager.setState("play"));
+        var exitButton = buttonSystem.createNavigableButton("Exit", () -> System.exit(0));
 
         Text controls = new Text("Controls:\n" +
                 "← → Move\n" +
@@ -72,22 +62,10 @@ public class StartState extends GameState {
 
         root.getChildren().addAll(title, subtitle, startButton, exitButton, controls);
 
-        scene = new Scene(root, 800, 600);
+        scene = new Scene(root, 1000, 700);
 
-        // Handle keyboard input
-        scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
-                stateManager.setState("play");
-            } else if (event.getCode() == KeyCode.ESCAPE) {
-                System.exit(0);
-            }
-        });
+        scene.setOnKeyPressed(event -> buttonSystem.handleInput(event));
 
         return scene;
-    }
-
-    @Override
-    public void handleInput() {
-        // Input handled in scene key events
     }
 }

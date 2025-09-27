@@ -41,7 +41,6 @@ public class GameStateManager {
         if (newState == null) {
             throw new IllegalArgumentException("State not found: " + stateName);
         }
-
         if (currentState != null) {
             currentState.exit();
             stateStack.push(currentState);
@@ -58,10 +57,11 @@ public class GameStateManager {
         if (newState == null) {
             throw new IllegalArgumentException("State not found: " + stateName);
         }
-
         if (currentState != null) {
             currentState.exit();
         }
+        stateStack.clear();
+
         newState.enter(); 
         //반드시 enter를 먼저 호출하고 currentState를 변경 해야함.
         //그렇지 않으면 이전 state가 뭔지 잃어버려서 enter할 때 문제가 생김

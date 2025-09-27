@@ -1,5 +1,7 @@
 package org.example.game.state;
 
+import org.example.ui.NavigableButtonSystem;
+
 import javafx.scene.Scene;
 
 public abstract class GameState {
@@ -12,8 +14,6 @@ public abstract class GameState {
 
     public abstract void enter();
     public abstract void exit();
-    public abstract void update(double deltaTime);
     public abstract Scene createScene();
-    public abstract void handleInput();
     public abstract void resume();
 }

@@ -1,5 +1,7 @@
 package org.example.game.state;
 
+import org.example.ui.NavigableButtonSystem;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -32,11 +34,6 @@ public class PauseState extends GameState {
     }
 
     @Override
-    public void update(double deltaTime) {
-        // Pause state doesn't need updates
-    }
-
-    @Override
     public Scene createScene() {
         VBox root = new VBox(30);
         root.setAlignment(Pos.CENTER);
@@ -46,55 +43,23 @@ public class PauseState extends GameState {
         title.setFill(Color.WHITE);
         title.setFont(Font.font("Arial", 36));
 
-        Button resumeButton = new Button("Resume (P)");
-        resumeButton.setPrefSize(200, 50);
-        resumeButton.setStyle("-fx-font-size: 18px; -fx-background-color: #4a4a4a; -fx-text-fill: white;");
-        resumeButton.setOnAction(e -> stateManager.setState("play"));
+        NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
 
-        Button restartButton = new Button("Restart (R)");
-        restartButton.setPrefSize(200, 50);
-        restartButton.setStyle("-fx-font-size: 18px; -fx-background-color: #4a4a4a; -fx-text-fill: white;");
-        restartButton.setOnAction(e -> {
-            // Reset the game and go to play state
-            PlayState playState = (PlayState) stateManager.getCurrentState();
-            if (playState != null && playState.getGameLogic() != null) {
-                playState.getGameLogic().reset();
-            }
-            stateManager.setState("play");
-        });
+        var resumeButton = buttonSystem.createNavigableButton("Resume", () -> stateManager.popState());
+        var restartButton = buttonSystem.createNavigableButton("Restart", () -> stateManager.setState("play"));
+        var mainMenuButton = buttonSystem.createNavigableButton("Main Menu", () -> stateManager.setState("start"));
 
-        Button mainMenuButton = new Button("Main Menu (ESC)");
-        mainMenuButton.setPrefSize(200, 50);
-        mainMenuButton.setStyle("-fx-font-size: 18px; -fx-background-color: #4a4a4a; -fx-text-fill: white;");
-        mainMenuButton.setOnAction(e -> stateManager.setState("start"));
+        root.getChildren().addAll(title, resumeButton, restartButton, mainMenuButton);
 
-        Text instructions = new Text("Press P to resume\nPress R to restart\nPress ESC for main menu");
-        instructions.setFill(Color.LIGHTGRAY);
-        instructions.setFont(Font.font("Arial", 14));
-
-        root.getChildren().addAll(title, resumeButton, restartButton, mainMenuButton, instructions);
-
-        scene = new Scene(root, 800, 600);
+        scene = new Scene(root, 1000, 700);
 
         // Handle keyboard input
-        scene.setOnKeyPressed(event -> {
-            switch (event.getCode()) {
-                case P -> stateManager.popState();
-                case R -> stateManager.setState("play");
-                case ESCAPE -> stateManager.setState("start");
-                default -> {}
-            }
-        });
+        scene.setOnKeyPressed(event -> buttonSystem.handleInput(event));
 
         // Focus for keyboard input
         scene.getRoot().setFocusTraversable(true);
         scene.getRoot().requestFocus();
 
         return scene;
-    }
-
-    @Override
-    public void handleInput() {
-        // Input handled in scene key events
     }
 }

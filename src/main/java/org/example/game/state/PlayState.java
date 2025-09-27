@@ -61,7 +61,6 @@ public class PlayState extends GameState {
         }
     }
 
-    @Override
     public void update(double deltaTime) {
         if (gameLogic == null) return;
 
@@ -145,15 +144,9 @@ public class PlayState extends GameState {
             case Z -> gameLogic.rotateCounterClockwise();
             case X, UP, W -> gameLogic.rotateClockwise();
             case C -> gameLogic.hold();
-            case P -> stateManager.stackState("pause");
-            case ESCAPE -> stateManager.setState("start");
+            case ESCAPE -> stateManager.stackState("pause");
             default -> {}
         }
-    }
-
-    @Override
-    public void handleInput() {
-        // Input handled in scene key events
     }
 
     public GameLogic getGameLogic() {
