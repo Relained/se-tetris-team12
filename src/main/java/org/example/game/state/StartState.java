@@ -12,8 +12,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 public class StartState extends GameState {
-    private Scene scene;
-
     public StartState(GameStateManager stateManager) {
         super(stateManager);
     }
@@ -26,6 +24,11 @@ public class StartState extends GameState {
     @Override
     public void exit() {
         // Cleanup if needed
+    }
+
+    @Override
+    public void resume() {
+        
     }
 
     @Override

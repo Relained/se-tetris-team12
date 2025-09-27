@@ -12,8 +12,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 public class PauseState extends GameState {
-    private Scene scene;
-
     public PauseState(GameStateManager stateManager) {
         super(stateManager);
     }
@@ -26,6 +24,11 @@ public class PauseState extends GameState {
     @Override
     public void exit() {
         // Cleanup if needed
+    }
+
+    @Override
+    public void resume() {
+        // 설정창 -> 일시정지 창으로 돌아올 때 사용
     }
 
     @Override
@@ -76,17 +79,8 @@ public class PauseState extends GameState {
         // Handle keyboard input
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
-                case P -> stateManager.setState("play");
-                case R -> {
-                    // Get current play state and reset game
-                    GameState currentPlayState = stateManager.getCurrentState();
-                    if (currentPlayState instanceof PlayState playState) {
-                        if (playState.getGameLogic() != null) {
-                            playState.getGameLogic().reset();
-                        }
-                    }
-                    stateManager.setState("play");
-                }
+                case P -> stateManager.popState();
+                case R -> stateManager.setState("play");
                 case ESCAPE -> stateManager.setState("start");
                 default -> {}
             }

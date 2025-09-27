@@ -12,7 +12,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 public class GameOverState extends GameState {
-    private Scene scene;
     private int finalScore;
     private int finalLines;
     private int finalLevel;
@@ -35,6 +34,11 @@ public class GameOverState extends GameState {
     @Override
     public void exit() {
         // Cleanup if needed
+    }
+
+    @Override
+    public void resume() {
+        // Not applicable for game over state
     }
 
     @Override

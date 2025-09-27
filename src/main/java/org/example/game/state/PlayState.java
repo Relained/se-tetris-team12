@@ -10,7 +10,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import org.example.game.logic.GameLogic;
-import org.example.game.logic.SRSRotationSystem;
+import org.example.game.logic.SuperRotationSystem;
 import org.example.ui.components.HoldPanel;
 import org.example.ui.components.NextPiecePanel;
 import org.example.ui.components.ScorePanel;
@@ -27,7 +27,6 @@ public class PlayState extends GameState {
     private ScorePanel scorePanel;
     private AnimationTimer gameTimer;
     private long lastDropTime;
-    private Scene scene;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
 
     public PlayState(GameStateManager stateManager) {
@@ -56,6 +55,13 @@ public class PlayState extends GameState {
     }
 
     @Override
+    public void resume() {
+        if (gameTimer != null) {
+            gameTimer.start();
+        }
+    }
+
+    @Override
     public void update(double deltaTime) {
         if (gameLogic == null) return;
 
@@ -78,7 +84,7 @@ public class PlayState extends GameState {
         if (gameCanvas != null && gameLogic != null) {
             // Calculate ghost piece position
             var ghostPiece = gameLogic.getCurrentPiece() != null ?
-                    SRSRotationSystem.hardDrop(gameLogic.getCurrentPiece(), gameLogic.getBoard()) : null;
+                    SuperRotationSystem.hardDrop(gameLogic.getCurrentPiece(), gameLogic.getBoard()) : null;
 
             gameCanvas.updateBoard(gameLogic.getBoard(), gameLogic.getCurrentPiece(), ghostPiece);
             holdPanel.updateHoldPiece(gameLogic.getHoldPiece());
@@ -139,7 +145,7 @@ public class PlayState extends GameState {
             case Z -> gameLogic.rotateCounterClockwise();
             case X, UP, W -> gameLogic.rotateClockwise();
             case C -> gameLogic.hold();
-            case P -> stateManager.setState("pause");
+            case P -> stateManager.stackState("pause");
             case ESCAPE -> stateManager.setState("start");
             default -> {}
         }

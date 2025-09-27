@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class SRSRotationSystemTest {
+class SuperRotationSystemTest {
 
     private GameBoard gameBoard;
 
@@ -19,7 +19,7 @@ class SRSRotationSystemTest {
     @Test
     void testBasicRotation() {
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 5, 10, 0);
-        TetrominoPosition rotated = SRSRotationSystem.attemptRotation(tPos, gameBoard, true);
+        TetrominoPosition rotated = SuperRotationSystem.attemptRotation(tPos, gameBoard, true);
 
         assertNotNull(rotated);
         assertEquals(1, rotated.getRotation());
@@ -31,7 +31,7 @@ class SRSRotationSystemTest {
     void testWallKick() {
         // Place T piece near right wall where it needs wall kick to rotate
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 8, 10, 0);
-        TetrominoPosition rotated = SRSRotationSystem.attemptRotation(tPos, gameBoard, true);
+        TetrominoPosition rotated = SuperRotationSystem.attemptRotation(tPos, gameBoard, true);
 
         assertNotNull(rotated);
         assertEquals(1, rotated.getRotation());
@@ -43,7 +43,7 @@ class SRSRotationSystemTest {
     void testIPieceWallKick() {
         // Test I piece specific wall kicks
         TetrominoPosition iPos = new TetrominoPosition(Tetromino.I, 7, 10, 0);
-        TetrominoPosition rotated = SRSRotationSystem.attemptRotation(iPos, gameBoard, true);
+        TetrominoPosition rotated = SuperRotationSystem.attemptRotation(iPos, gameBoard, true);
 
         assertNotNull(rotated);
         assertEquals(1, rotated.getRotation());
@@ -53,7 +53,7 @@ class SRSRotationSystemTest {
     void testOPieceRotation() {
         // O piece should always succeed without kicks
         TetrominoPosition oPos = new TetrominoPosition(Tetromino.O, 5, 10, 0);
-        TetrominoPosition rotated = SRSRotationSystem.attemptRotation(oPos, gameBoard, true);
+        TetrominoPosition rotated = SuperRotationSystem.attemptRotation(oPos, gameBoard, true);
 
         assertNotNull(rotated);
         assertEquals(1, rotated.getRotation());
@@ -67,7 +67,7 @@ class SRSRotationSystemTest {
         // Create scenario where rotation is impossible
         fillBoardAroundPosition(5, 10);
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 5, 10, 0);
-        TetrominoPosition rotated = SRSRotationSystem.attemptRotation(tPos, gameBoard, true);
+        TetrominoPosition rotated = SuperRotationSystem.attemptRotation(tPos, gameBoard, true);
 
         assertNull(rotated);
     }
@@ -75,7 +75,7 @@ class SRSRotationSystemTest {
     @Test
     void testCounterClockwiseRotation() {
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 5, 10, 1);
-        TetrominoPosition rotated = SRSRotationSystem.attemptRotation(tPos, gameBoard, false);
+        TetrominoPosition rotated = SuperRotationSystem.attemptRotation(tPos, gameBoard, false);
 
         assertNotNull(rotated);
         assertEquals(0, rotated.getRotation());
@@ -87,7 +87,7 @@ class SRSRotationSystemTest {
         setupTSpinBoard();
 
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 4, 18, 2);
-        SRSRotationSystem.RotationResult result = SRSRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
+        SuperRotationSystem.RotationResult result = SuperRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
 
         assertNotNull(result.getPosition());
         // Should detect T-spin due to wall kick usage and corner blocking
@@ -99,19 +99,19 @@ class SRSRotationSystemTest {
         TetrominoPosition pos = new TetrominoPosition(Tetromino.T, 5, 10, 0);
 
         // Test moveLeft
-        TetrominoPosition left = SRSRotationSystem.moveLeft(pos, gameBoard);
+        TetrominoPosition left = SuperRotationSystem.moveLeft(pos, gameBoard);
         assertNotNull(left);
         assertEquals(4, left.getX());
         assertEquals(10, left.getY());
 
         // Test moveRight
-        TetrominoPosition right = SRSRotationSystem.moveRight(pos, gameBoard);
+        TetrominoPosition right = SuperRotationSystem.moveRight(pos, gameBoard);
         assertNotNull(right);
         assertEquals(6, right.getX());
         assertEquals(10, right.getY());
 
         // Test moveDown
-        TetrominoPosition down = SRSRotationSystem.moveDown(pos, gameBoard);
+        TetrominoPosition down = SuperRotationSystem.moveDown(pos, gameBoard);
         assertNotNull(down);
         assertEquals(5, down.getX());
         assertEquals(11, down.getY());
@@ -120,7 +120,7 @@ class SRSRotationSystemTest {
     @Test
     void testHardDrop() {
         TetrominoPosition pos = new TetrominoPosition(Tetromino.T, 5, 4, 0);
-        TetrominoPosition dropped = SRSRotationSystem.hardDrop(pos, gameBoard);
+        TetrominoPosition dropped = SuperRotationSystem.hardDrop(pos, gameBoard);
 
         assertNotNull(dropped);
         assertEquals(5, dropped.getX());
@@ -131,11 +131,11 @@ class SRSRotationSystemTest {
     void testMovementBlocked() {
         // Test movement blocked by walls
         TetrominoPosition leftWall = new TetrominoPosition(Tetromino.T, 0, 10, 0);
-        TetrominoPosition blocked = SRSRotationSystem.moveLeft(leftWall, gameBoard);
+        TetrominoPosition blocked = SuperRotationSystem.moveLeft(leftWall, gameBoard);
         assertNull(blocked);
 
         TetrominoPosition rightWall = new TetrominoPosition(Tetromino.T, 9, 10, 0);
-        blocked = SRSRotationSystem.moveRight(rightWall, gameBoard);
+        blocked = SuperRotationSystem.moveRight(rightWall, gameBoard);
         assertNull(blocked);
     }
 
@@ -146,7 +146,7 @@ class SRSRotationSystemTest {
 
         for (Tetromino piece : pieces) {
             TetrominoPosition pos = new TetrominoPosition(piece, 5, 10, 0);
-            TetrominoPosition rotated = SRSRotationSystem.attemptRotation(pos, gameBoard, true);
+            TetrominoPosition rotated = SuperRotationSystem.attemptRotation(pos, gameBoard, true);
 
             assertNotNull(rotated, "Failed to rotate " + piece);
             assertEquals(1, rotated.getRotation());
@@ -158,7 +158,7 @@ class SRSRotationSystemTest {
         TetrominoPosition pos = new TetrominoPosition(Tetromino.T, 5, 10, 0);
 
         for (int i = 0; i < 4; i++) {
-            pos = SRSRotationSystem.attemptRotation(pos, gameBoard, true);
+            pos = SuperRotationSystem.attemptRotation(pos, gameBoard, true);
             assertNotNull(pos);
             assertEquals((i + 1) % 4, pos.getRotation());
         }
