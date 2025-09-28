@@ -28,6 +28,7 @@ public class PlayState extends GameState {
     private AnimationTimer gameTimer;
     private long lastDropTime;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
+    private final Set<KeyCode> justPressedKeys = new HashSet<>();
 
     public PlayState(GameStateManager stateManager) {
         super(stateManager);
@@ -117,9 +118,15 @@ public class PlayState extends GameState {
         scene = new Scene(root, 1000, 700);
 
         // Input handling
+        // Synced with OS's key repeating rate
         scene.setOnKeyPressed(event -> {
-            pressedKeys.add(event.getCode());
-            handleKeyPress(event.getCode());
+            KeyCode key = event.getCode();
+            if (!pressedKeys.contains(key)) {
+                justPressedKeys.add(key);
+            } // Newly pressed keys only added to justPressedKeys
+            pressedKeys.add(key);
+            handleInputs();
+            justPressedKeys.clear();
         });
 
         scene.setOnKeyReleased(event -> {
@@ -133,19 +140,29 @@ public class PlayState extends GameState {
         return scene;
     }
 
-    private void handleKeyPress(KeyCode key) {
+    private void handleInputs() {
         if (gameLogic == null || gameLogic.isGameOver()) return;
 
-        switch (key) {
-            case LEFT, A -> gameLogic.moveLeft();
-            case RIGHT, D -> gameLogic.moveRight();
-            case DOWN, S -> gameLogic.moveDown();
-            case SPACE -> gameLogic.hardDrop();
-            case Z -> gameLogic.rotateCounterClockwise();
-            case X, UP, W -> gameLogic.rotateClockwise();
-            case C -> gameLogic.hold();
-            case ESCAPE -> stateManager.stackState("pause");
-            default -> {}
+        // key events handler for just ONE execution
+        for (KeyCode key : justPressedKeys) {
+            switch (key) {
+                case SPACE -> gameLogic.hardDrop();
+                case Z -> gameLogic.rotateCounterClockwise();
+                case X, UP, W -> gameLogic.rotateClockwise();
+                case C, TAB -> gameLogic.hold();
+                case ESCAPE -> stateManager.stackState("pause");
+                default -> {}
+            }
+        }
+
+        // key events handler for CONTINUOUS execution
+        for (KeyCode key : pressedKeys) {
+            switch (key) {
+                case LEFT, A -> gameLogic.moveLeft();
+                case RIGHT, D -> gameLogic.moveRight();
+                case DOWN, S -> gameLogic.moveDown();
+                default -> {}
+            }
         }
     }
 
