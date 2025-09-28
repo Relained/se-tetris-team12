@@ -1,5 +1,7 @@
 package org.example.game.state;
 
+import org.example.ui.NavigableButtonSystem;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -12,7 +14,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 public class GameOverState extends GameState {
-    private Scene scene;
     private int finalScore;
     private int finalLines;
     private int finalLevel;
@@ -38,8 +39,8 @@ public class GameOverState extends GameState {
     }
 
     @Override
-    public void update(double deltaTime) {
-        // Game over state doesn't need updates
+    public void resume() {
+        // Not applicable for game over state
     }
 
     @Override
@@ -64,27 +65,11 @@ public class GameOverState extends GameState {
         levelText.setFill(Color.LIGHTGRAY);
         levelText.setFont(Font.font("Arial", 20));
 
-        Button playAgainButton = new Button("Play Again (ENTER)");
-        playAgainButton.setPrefSize(220, 50);
-        playAgainButton.setStyle("-fx-font-size: 18px; -fx-background-color: #4a4a4a; -fx-text-fill: white;");
-        playAgainButton.setOnAction(e -> {
-            // Create new game and go to play state
-            stateManager.setState("play");
-        });
+        NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
 
-        Button mainMenuButton = new Button("Main Menu (ESC)");
-        mainMenuButton.setPrefSize(220, 50);
-        mainMenuButton.setStyle("-fx-font-size: 18px; -fx-background-color: #4a4a4a; -fx-text-fill: white;");
-        mainMenuButton.setOnAction(e -> stateManager.setState("start"));
-
-        Button exitButton = new Button("Exit Game (Q)");
-        exitButton.setPrefSize(220, 50);
-        exitButton.setStyle("-fx-font-size: 18px; -fx-background-color: #4a4a4a; -fx-text-fill: white;");
-        exitButton.setOnAction(e -> System.exit(0));
-
-        Text instructions = new Text("Press ENTER to play again\nPress ESC for main menu\nPress Q to exit");
-        instructions.setFill(Color.LIGHTGRAY);
-        instructions.setFont(Font.font("Arial", 14));
+        var playAgainButton = buttonSystem.createNavigableButton("Play Again", () -> stateManager.setState("play"));
+        var mainMenuButton = buttonSystem.createNavigableButton("Main Menu", () -> stateManager.setState("start"));
+        var exitButton = buttonSystem.createNavigableButton("Exit Game", () -> System.exit(0));
 
         root.getChildren().addAll(
                 title,
@@ -93,31 +78,18 @@ public class GameOverState extends GameState {
                 levelText,
                 playAgainButton,
                 mainMenuButton,
-                exitButton,
-                instructions
+                exitButton
         );
 
-        scene = new Scene(root, 800, 600);
+        scene = new Scene(root, 1000, 700);
 
         // Handle keyboard input
-        scene.setOnKeyPressed(event -> {
-            switch (event.getCode()) {
-                case ENTER, SPACE -> stateManager.setState("play");
-                case ESCAPE -> stateManager.setState("start");
-                case Q -> System.exit(0);
-                default -> {}
-            }
-        });
+        scene.setOnKeyPressed(event -> buttonSystem.handleInput(event));
 
         // Focus for keyboard input
         scene.getRoot().setFocusTraversable(true);
         scene.getRoot().requestFocus();
 
         return scene;
-    }
-
-    @Override
-    public void handleInput() {
-        // Input handled in scene key events
     }
 }

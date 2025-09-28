@@ -73,7 +73,7 @@ public class GameLogic {
     public boolean moveLeft() {
         if (gameOver || currentPiece == null) return false;
 
-        TetrominoPosition newPos = SRSRotationSystem.moveLeft(currentPiece, board);
+        TetrominoPosition newPos = SuperRotationSystem.moveLeft(currentPiece, board);
         if (newPos != null) {
             currentPiece = newPos;
             return true;
@@ -84,7 +84,7 @@ public class GameLogic {
     public boolean moveRight() {
         if (gameOver || currentPiece == null) return false;
 
-        TetrominoPosition newPos = SRSRotationSystem.moveRight(currentPiece, board);
+        TetrominoPosition newPos = SuperRotationSystem.moveRight(currentPiece, board);
         if (newPos != null) {
             currentPiece = newPos;
             return true;
@@ -95,7 +95,7 @@ public class GameLogic {
     public boolean moveDown() {
         if (gameOver || currentPiece == null) return false;
 
-        TetrominoPosition newPos = SRSRotationSystem.moveDown(currentPiece, board);
+        TetrominoPosition newPos = SuperRotationSystem.moveDown(currentPiece, board);
         if (newPos != null) {
             currentPiece = newPos;
             score += SOFT_DROP_SCORE;
@@ -110,7 +110,7 @@ public class GameLogic {
     public boolean rotateClockwise() {
         if (gameOver || currentPiece == null) return false;
 
-        TetrominoPosition newPos = SRSRotationSystem.attemptRotation(currentPiece, board, true);
+        TetrominoPosition newPos = SuperRotationSystem.attemptRotation(currentPiece, board, true);
         if (newPos != null) {
             currentPiece = newPos;
             return true;
@@ -121,7 +121,7 @@ public class GameLogic {
     public boolean rotateCounterClockwise() {
         if (gameOver || currentPiece == null) return false;
 
-        TetrominoPosition newPos = SRSRotationSystem.attemptRotation(currentPiece, board, false);
+        TetrominoPosition newPos = SuperRotationSystem.attemptRotation(currentPiece, board, false);
         if (newPos != null) {
             currentPiece = newPos;
             return true;
@@ -132,7 +132,7 @@ public class GameLogic {
     public void hardDrop() {
         if (gameOver || currentPiece == null) return;
 
-        TetrominoPosition dropPos = SRSRotationSystem.hardDrop(currentPiece, board);
+        TetrominoPosition dropPos = SuperRotationSystem.hardDrop(currentPiece, board);
         int dropDistance = dropPos.getY() - currentPiece.getY();
         score += dropDistance * HARD_DROP_SCORE;
 

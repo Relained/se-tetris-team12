@@ -19,7 +19,7 @@ class TSpinTest {
     @Test
     void testRotationResultClass() {
         TetrominoPosition pos = new TetrominoPosition(Tetromino.T, 5, 10, 0);
-        SRSRotationSystem.RotationResult result = new SRSRotationSystem.RotationResult(pos, true, 2);
+        SuperRotationSystem.RotationResult result = new SuperRotationSystem.RotationResult(pos, true, 2);
 
         assertEquals(pos, result.getPosition());
         assertTrue(result.isTSpin());
@@ -29,10 +29,10 @@ class TSpinTest {
     @Test
     void testNonTSpinRotation() {
         TetrominoPosition iPos = new TetrominoPosition(Tetromino.I, 5, 10, 0);
-        assertFalse(SRSRotationSystem.isTSpinRotation(iPos, gameBoard));
+        assertFalse(SuperRotationSystem.isTSpinRotation(iPos, gameBoard));
 
         TetrominoPosition oPos = new TetrominoPosition(Tetromino.O, 5, 10, 0);
-        assertFalse(SRSRotationSystem.isTSpinRotation(oPos, gameBoard));
+        assertFalse(SuperRotationSystem.isTSpinRotation(oPos, gameBoard));
     }
 
     @Test
@@ -41,7 +41,7 @@ class TSpinTest {
         setupTSpinSingleBoard();
 
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 4, 17, 2); // T pointing down
-        SRSRotationSystem.RotationResult result = SRSRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
+        SuperRotationSystem.RotationResult result = SuperRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
 
         assertNotNull(result.getPosition());
         // Test may not always result in T-spin depending on board setup
@@ -54,7 +54,7 @@ class TSpinTest {
         setupTSpinDoubleBoard();
 
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 4, 16, 0); // T pointing up
-        SRSRotationSystem.RotationResult result = SRSRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
+        SuperRotationSystem.RotationResult result = SuperRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
 
         assertNotNull(result.getPosition());
         // Test rotation succeeded
@@ -67,7 +67,7 @@ class TSpinTest {
         setupTSpinTripleBoard();
 
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 7, 15, 0); // T pointing up
-        SRSRotationSystem.RotationResult result = SRSRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
+        SuperRotationSystem.RotationResult result = SuperRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
 
         assertNotNull(result.getPosition());
         // Test rotation succeeded
@@ -80,7 +80,7 @@ class TSpinTest {
         setupInsufficientBlockedCorners();
 
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 5, 18, 0);
-        assertFalse(SRSRotationSystem.isTSpinRotation(tPos, gameBoard));
+        assertFalse(SuperRotationSystem.isTSpinRotation(tPos, gameBoard));
     }
 
     @Test
@@ -89,7 +89,7 @@ class TSpinTest {
         setupNonFrontBlockedCorners();
 
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 5, 18, 0); // T pointing up
-        assertFalse(SRSRotationSystem.isTSpinRotation(tPos, gameBoard));
+        assertFalse(SuperRotationSystem.isTSpinRotation(tPos, gameBoard));
     }
 
     @Test
@@ -98,7 +98,7 @@ class TSpinTest {
         setupTSpinMiniBoard();
 
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 1, 18, 1); // T pointing right
-        SRSRotationSystem.RotationResult result = SRSRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
+        SuperRotationSystem.RotationResult result = SuperRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
 
         // Even mini T-spins should be detected as T-spins
         assertNotNull(result.getPosition());
@@ -119,7 +119,7 @@ class TSpinTest {
         };
 
         for (TetrominoPosition pos : positions) {
-            boolean isTSpin = SRSRotationSystem.isTSpinRotation(pos, gameBoard);
+            boolean isTSpin = SuperRotationSystem.isTSpinRotation(pos, gameBoard);
             // Result depends on the specific board setup
             assertNotNull(isTSpin); // Just verify the method doesn't crash
         }
@@ -129,7 +129,7 @@ class TSpinTest {
     void testRegularRotationNoTSpin() {
         // Empty board - regular rotation should not be T-spin
         TetrominoPosition tPos = new TetrominoPosition(Tetromino.T, 5, 10, 0);
-        SRSRotationSystem.RotationResult result = SRSRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
+        SuperRotationSystem.RotationResult result = SuperRotationSystem.attemptRotationWithTSpinCheck(tPos, gameBoard, true);
 
         assertNotNull(result.getPosition());
         assertFalse(result.isTSpin());

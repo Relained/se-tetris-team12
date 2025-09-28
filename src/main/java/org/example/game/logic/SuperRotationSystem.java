@@ -4,7 +4,7 @@ import org.example.model.GameBoard;
 import org.example.model.TetrominoPosition;
 import org.example.model.Tetromino;
 
-public class SRSRotationSystem {
+public class SuperRotationSystem {
     // SRS Wall Kick Data - kicks for J,L,S,T,Z pieces
     private static final int[][][] JLSTZ_KICKS = {
         // 0->R (0->1)
