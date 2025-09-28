@@ -20,6 +20,7 @@ public class App extends Application {
         stateManager.addState("start", new StartState(stateManager));
         stateManager.addState("play", new PlayState(stateManager));
         stateManager.addState("pause", new PauseState(stateManager));
+        stateManager.addState("setting", new SettingState(stateManager));
         stateManager.addState("gameOver", new GameOverState(stateManager));
 
         // Start with the start screen

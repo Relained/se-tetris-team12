@@ -2,6 +2,7 @@ package org.example.ui;
 
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyEvent;
+import javafx.util.Pair;
 import java.util.ArrayList;
 
 public class NavigableButtonSystem {
@@ -15,6 +16,10 @@ public class NavigableButtonSystem {
     public void resetSystem() {
         buttons.clear();
         selectedButtonIndex = 0;
+    }
+
+    public ArrayList<Button> getButtons() {
+        return buttons;
     }
 
     public Button createNavigableButton(String text, Runnable action) {
@@ -35,6 +40,27 @@ public class NavigableButtonSystem {
         }
 
         return button;
+    }
+
+    public void handleInput(KeyEvent event) {
+        int newIdx;
+        switch (event.getCode()) {
+            case UP:
+                newIdx = (selectedButtonIndex - 1 + buttons.size()) % buttons.size();
+                updateSelectedButton(newIdx);
+                break;
+            case DOWN:
+                newIdx = (selectedButtonIndex + 1) % buttons.size();
+                updateSelectedButton(newIdx);
+                break;
+            case ENTER:
+            case SPACE:
+                executeSelectedButton();
+                break;
+            default:
+                // 다른 키들은 무시
+                break;
+        }
     }
 
     private void updateSelectedButton(int newSelectedIndex) {
@@ -65,26 +91,5 @@ public class NavigableButtonSystem {
         Button selectedButton = buttons.get(selectedButtonIndex);
         Runnable action = (Runnable) selectedButton.getUserData();
         action.run();
-    }
-
-    public void handleInput(KeyEvent event) {
-        int newIdx;
-        switch (event.getCode()) {
-            case UP:
-                newIdx = (selectedButtonIndex - 1 + buttons.size()) % buttons.size();
-                updateSelectedButton(newIdx);
-                break;
-            case DOWN:
-                newIdx = (selectedButtonIndex + 1) % buttons.size();
-                updateSelectedButton(newIdx);
-                break;
-            case ENTER:
-            case SPACE:
-                executeSelectedButton();
-                break;
-            default:
-                // 다른 키들은 무시
-                break;
-        }
     }
 }

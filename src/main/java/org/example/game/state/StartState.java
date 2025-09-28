@@ -56,7 +56,7 @@ public class StartState extends GameState {
                 "Space Hard Drop\n" +
                 "Z/X Rotate\n" +
                 "C Hold\n" +
-                "P Pause");
+                "ESC Pause");
         controls.setFill(Color.LIGHTGRAY);
         controls.setFont(Font.font("Arial", 14));
 

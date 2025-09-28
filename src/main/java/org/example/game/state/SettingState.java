@@ -4,8 +4,6 @@ import org.example.ui.NavigableButtonSystem;
 
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
@@ -13,24 +11,24 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class PauseState extends GameState {
-    public PauseState(GameStateManager stateManager) {
+public class SettingState extends GameState {
+    public SettingState(GameStateManager stateManager) {
         super(stateManager);
     }
 
     @Override
     public void enter() {
-        // Setup complete when scene is created
+        // 설정창 진입 시 필요한 초기화 작업 수행
     }
 
     @Override
     public void exit() {
-        // Cleanup if needed
+        // 설정창 종료 시 필요한 정리 작업 수행
     }
 
     @Override
     public void resume() {
-        // 설정창 -> 일시정지 창으로 돌아올 때 사용
+        // 일시정지 창 -> 설정창으로 돌아올 때 사용
     }
 
     @Override
@@ -39,16 +37,18 @@ public class PauseState extends GameState {
         root.setAlignment(Pos.CENTER);
         root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
 
-        Text title = new Text("PAUSED");
+        Text title = new Text("Settings");
         title.setFill(Color.WHITE);
         title.setFont(Font.font("Arial", 36));
 
         NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
 
-        buttonSystem.createNavigableButton("Resume", () -> stateManager.popState());
-        buttonSystem.createNavigableButton("Restart", () -> stateManager.setState("play"));
-        buttonSystem.createNavigableButton("Settings", () -> stateManager.stackState("setting"));
-        buttonSystem.createNavigableButton("Main Menu", () -> stateManager.setState("start"));
+        buttonSystem.createNavigableButton("Screen Size", () -> System.err.println("Set Screen Size"));
+        buttonSystem.createNavigableButton("Controls", () -> System.err.println("Set Controls"));
+        buttonSystem.createNavigableButton("Reset Score Board", () -> System.err.println("Reset Score Board"));
+        buttonSystem.createNavigableButton("Color Blind Setting", () -> System.err.println("Set Color Blind Setting"));
+        buttonSystem.createNavigableButton("Reset All Setting", () -> System.err.println("Reset All Setting"));
+        buttonSystem.createNavigableButton("Go Back", () -> stateManager.popState());
 
         root.getChildren().add(title);
         root.getChildren().addAll(buttonSystem.getButtons());
