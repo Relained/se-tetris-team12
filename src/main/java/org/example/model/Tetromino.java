@@ -51,7 +51,7 @@ public enum Tetromino {
     }, 0xff8000);
 
     private final int[][][] rotations;
-    private final int color;
+    private int color;
 
     Tetromino(int[][][] rotations, int color) {
         this.rotations = rotations;
@@ -60,6 +60,10 @@ public enum Tetromino {
 
     public int[][] getShape() {
         return rotations[0];
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 
     public int getColor() {
