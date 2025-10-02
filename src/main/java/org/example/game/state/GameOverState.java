@@ -1,11 +1,10 @@
 package org.example.game.state;
 
 import org.example.ui.NavigableButtonSystem;
+import org.example.ui.components.ScoreboardUI;
 
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
@@ -17,6 +16,7 @@ public class GameOverState extends GameState {
     private int finalScore;
     private int finalLines;
     private int finalLevel;
+    private ScoreboardUI scoreboardUI;
 
     public GameOverState(GameStateManager stateManager) {
         super(stateManager);
@@ -24,12 +24,19 @@ public class GameOverState extends GameState {
 
     @Override
     public void enter() {
-        // Get final game stats from the previous play state
+        // Get final game stats from ScoreInputState if available
         GameState previousState = stateManager.getCurrentState();
-        if (previousState instanceof PlayState playState && playState.getGameLogic() != null) {
-            finalScore = playState.getGameLogic().getScore();
-            finalLines = playState.getGameLogic().getLines();
-            finalLevel = playState.getGameLogic().getLevel();
+        if (previousState instanceof ScoreInputState scoreInputState) {
+            finalScore = scoreInputState.getFinalScore();
+            finalLines = scoreInputState.getFinalLines();
+            finalLevel = scoreInputState.getFinalLevel();
+        } else {
+            // Fallback to PlayState if directly accessed
+            if (previousState instanceof PlayState playState && playState.getGameLogic() != null) {
+                finalScore = playState.getGameLogic().getScore();
+                finalLines = playState.getGameLogic().getLines();
+                finalLevel = playState.getGameLogic().getLevel();
+            }
         }
     }
 
@@ -65,8 +72,10 @@ public class GameOverState extends GameState {
         levelText.setFill(Color.LIGHTGRAY);
         levelText.setFont(Font.font("Arial", 20));
 
-        NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
+        // Scoreboard UI component
+        scoreboardUI = new ScoreboardUI();
 
+        NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
         var playAgainButton = buttonSystem.createNavigableButton("Play Again", () -> stateManager.setState("play"));
         var mainMenuButton = buttonSystem.createNavigableButton("Main Menu", () -> stateManager.setState("start"));
         var exitButton = buttonSystem.createNavigableButton("Exit Game", () -> System.exit(0));
@@ -76,6 +85,7 @@ public class GameOverState extends GameState {
                 scoreText,
                 linesText,
                 levelText,
+                scoreboardUI,
                 playAgainButton,
                 mainMenuButton,
                 exitButton

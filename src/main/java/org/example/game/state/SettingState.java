@@ -1,9 +1,11 @@
 package org.example.game.state;
 
 import org.example.ui.NavigableButtonSystem;
+import org.example.game.state.ScoreManager;
 
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
@@ -45,7 +47,14 @@ public class SettingState extends GameState {
 
         buttonSystem.createNavigableButton("Screen Size", () -> System.err.println("Set Screen Size"));
         buttonSystem.createNavigableButton("Controls", () -> System.err.println("Set Controls"));
-        buttonSystem.createNavigableButton("Reset Score Board", () -> System.err.println("Reset Score Board"));
+        buttonSystem.createNavigableButton("Reset Score Board", () -> {
+            ScoreManager.getInstance().clearScores();
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Scores Cleared");
+            alert.setHeaderText(null);
+            alert.setContentText("High scores have been cleared.");
+            alert.showAndWait();
+        });
         buttonSystem.createNavigableButton("Color Blind Setting", () -> System.err.println("Set Color Blind Setting"));
         buttonSystem.createNavigableButton("Reset All Setting", () -> System.err.println("Reset All Setting"));
         buttonSystem.createNavigableButton("Go Back", () -> stateManager.popState());
