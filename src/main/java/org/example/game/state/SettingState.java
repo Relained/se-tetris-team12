@@ -1,6 +1,5 @@
 package org.example.game.state;
 
-import org.example.game.logic.SettingManager;
 import org.example.ui.NavigableButtonSystem;
 
 import javafx.geometry.Pos;

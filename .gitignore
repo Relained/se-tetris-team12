@@ -87,3 +87,4 @@ $RECYCLE.BIN/
 # ===========================
 bin
 .claude
+*.ser

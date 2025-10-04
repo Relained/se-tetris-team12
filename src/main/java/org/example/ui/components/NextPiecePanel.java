@@ -41,8 +41,8 @@ public class NextPiecePanel extends VBox {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        int[][] shape = tetromino.getShape();
-        Color color = Color.web(String.format("#%06X", tetromino.getColor()));
+        int[][] shape = tetromino.getShape(0);
+        Color color = tetromino.getColor();
 
         // Center the piece in the canvas
         double offsetX = (canvas.getWidth() - shape[0].length * CELL_SIZE) / 2;

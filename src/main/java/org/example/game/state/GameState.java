@@ -1,7 +1,5 @@
 package org.example.game.state;
 
-import org.example.ui.NavigableButtonSystem;
-
 import javafx.scene.Scene;
 
 public abstract class GameState {

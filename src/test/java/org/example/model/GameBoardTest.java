@@ -58,7 +58,7 @@ class GameBoardTest {
         TetrominoPosition position = new TetrominoPosition(Tetromino.O, 4, 22, 0);
         gameBoard.placeTetromino(position);
 
-        int color = position.getType().getColor();
+        int color = position.getType().getColorIndex();
         assertEquals(color, gameBoard.getCellColor(22, 5));
         assertEquals(color, gameBoard.getCellColor(22, 6));
         assertEquals(color, gameBoard.getCellColor(23, 5));
@@ -95,7 +95,7 @@ class GameBoardTest {
         assertEquals(GameBoard.HEIGHT, visibleBoard.length);
         assertEquals(GameBoard.WIDTH, visibleBoard[0].length);
 
-        int color = position.getType().getColor();
+        int color = position.getType().getColorIndex();
         // I piece placed at y=20, shape has blocks at [1] row, visible board starts from BUFFER_ZONE (4)
         // So y=20 becomes visible row 16, and I piece's [1] row has the blocks
         assertEquals(color, visibleBoard[17][0]);
@@ -109,7 +109,7 @@ class GameBoardTest {
         TetrominoPosition position = new TetrominoPosition(Tetromino.T, 5, 20, 0);
         gameBoard.placeTetromino(position);
 
-        int color = position.getType().getColor();
+        int color = position.getType().getColorIndex();
         assertEquals(color, gameBoard.getCellColor(20, 6));
         assertEquals(color, gameBoard.getCellColor(21, 5));
         assertEquals(color, gameBoard.getCellColor(21, 6));
