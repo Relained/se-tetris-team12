@@ -13,7 +13,17 @@ public class App extends Application {
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Tetris - Team 12");
-        primaryStage.setResizable(false);
+        
+        // 창 크기 조정 가능하도록 설정
+        primaryStage.setResizable(true);
+        
+        // 최소 크기 설정 (게임이 정상적으로 표시될 수 있는 최소 크기)
+        primaryStage.setMinWidth(650);
+        primaryStage.setMinHeight(800);
+        
+        // 기본 크기 설정
+        primaryStage.setWidth(650);
+        primaryStage.setHeight(800);
 
         // Initialize state manager
         settingManager = new SettingManager();

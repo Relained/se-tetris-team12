@@ -1,13 +1,15 @@
 package org.example.game.state;
 
 import javafx.animation.AnimationTimer;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.example.game.logic.GameLogic;
 import org.example.game.logic.SuperRotationSystem;
@@ -96,27 +98,43 @@ public class PlayState extends GameState {
 
     @Override
     public Scene createScene() {
-        BorderPane root = new BorderPane();
+        // 메인 컨테이너 (좌우 분할)
+        HBox root = new HBox(5);
         root.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
+        root.setPadding(new Insets(20));
 
-        // Game canvas (center)
+        // 좌측: 게임 캔버스 영역
+        VBox leftContainer = new VBox();
+        leftContainer.setAlignment(Pos.CENTER);
+        
         gameCanvas = new TetrisCanvas();
-        root.setCenter(gameCanvas);
-
-        // Left panel (Hold)
+        leftContainer.getChildren().add(gameCanvas);
+        
+        // 우측: 모든 UI 패널들을 VBox로 세로 배치 (Hold, Next, Score 순서)
+        VBox rightContainer = new VBox(5);
+        rightContainer.setAlignment(Pos.TOP_CENTER);
+        rightContainer.setPadding(new Insets(0, 0, 0, 20));
+        
+        // Hold, Next, Score 패널들 생성 및 추가
         holdPanel = new HoldPanel();
-        root.setLeft(holdPanel);
-
-        // Right panel (Next pieces and score)
         nextPanel = new NextPiecePanel();
         scorePanel = new ScorePanel();
-
-        HBox rightPanel = new HBox(20);
-        rightPanel.getChildren().addAll(nextPanel, scorePanel);
-        rightPanel.setAlignment(Pos.TOP_CENTER);
-        root.setRight(rightPanel);
+        
+        rightContainer.getChildren().addAll(holdPanel, nextPanel, scorePanel);
+        
+        // 좌측 영역이 더 많은 공간을 차지하도록 설정
+        HBox.setHgrow(leftContainer, Priority.ALWAYS);
+        
+        root.getChildren().addAll(leftContainer, rightContainer);
 
         scene = new Scene(root, 1000, 700);
+
+        // 높이와 너비 변경 시 캔버스 크기 비율에 맞게 자동 조정
+        scene.heightProperty().addListener((_, _, _) -> updateCanvasSize());
+        scene.widthProperty().addListener((_, _, _) -> updateCanvasSize());
+        
+        // 초기 캔버스 크기 설정
+        updateCanvasSize();
 
         // Input handling
         // Synced with OS's key repeating rate
@@ -139,6 +157,21 @@ public class PlayState extends GameState {
         scene.getRoot().requestFocus();
 
         return scene;
+    }
+    
+    private void updateCanvasSize() {
+        if (gameCanvas == null || scene == null) return;
+        
+        // 사용 가능한 공간 계산 (여백 고려)
+        double availableWidth = scene.getWidth() * 0.65 - 40; // 좌측 65% 영역에서 여백 제외
+        double availableHeight = scene.getHeight() - 40; // 상하 여백 제외
+        
+        // 최소 크기 보장
+        availableWidth = Math.max(300, availableWidth);
+        availableHeight = Math.max(400, availableHeight);
+        
+        // 캔버스 크기를 비율에 맞게 조정
+        gameCanvas.setCanvasSize(availableWidth, availableHeight);
     }
 
     private void handleInputs() {
