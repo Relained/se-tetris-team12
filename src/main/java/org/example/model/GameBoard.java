@@ -37,7 +37,7 @@ public class GameBoard {
         int[][] shape = position.getCurrentShape();
         int startX = position.getX();
         int startY = position.getY();
-        int color = position.getType().getColor();
+        int color = position.getType().getColorIndex();
 
         for (int row = 0; row < shape.length; row++) {
             for (int col = 0; col < shape[row].length; col++) {

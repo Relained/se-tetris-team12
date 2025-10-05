@@ -17,6 +17,7 @@ import org.example.ui.components.HoldPanel;
 import org.example.ui.components.NextPiecePanel;
 import org.example.ui.components.ScorePanel;
 import org.example.ui.components.TetrisCanvas;
+import org.example.game.logic.ControlData;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -176,25 +177,31 @@ public class PlayState extends GameState {
     private void handleInputs() {
         if (gameLogic == null || gameLogic.isGameOver()) return;
 
+        ControlData data = stateManager.settingManager.getCurrentSettings().controlData;
+
         // key events handler for just ONE execution
         for (KeyCode key : justPressedKeys) {
-            switch (key) {
-                case SPACE -> gameLogic.hardDrop();
-                case Z -> gameLogic.rotateCounterClockwise();
-                case X, UP, W -> gameLogic.rotateClockwise();
-                case C, TAB -> gameLogic.hold();
-                case ESCAPE -> stateManager.stackState("pause");
-                default -> {}
+            if (key == data.hardDrop) {
+                gameLogic.hardDrop();
+            } else if (key == data.rotateCounterClockwise) {
+                gameLogic.rotateCounterClockwise();
+            } else if (key == data.rotateClockwise) {
+                gameLogic.rotateClockwise();
+            } else if (key == data.hold) {
+                gameLogic.hold();
+            } else if (key == data.pause) {
+                stateManager.stackState("pause");
             }
         }
 
         // key events handler for CONTINUOUS execution
         for (KeyCode key : pressedKeys) {
-            switch (key) {
-                case LEFT, A -> gameLogic.moveLeft();
-                case RIGHT, D -> gameLogic.moveRight();
-                case DOWN, S -> gameLogic.moveDown();
-                default -> {}
+            if (key == data.moveLeft) {
+                gameLogic.moveLeft();
+            } else if (key == data.moveRight) {
+                gameLogic.moveRight();
+            } else if (key == data.softDrop) {
+                gameLogic.moveDown();
             }
         }
     }

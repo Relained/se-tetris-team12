@@ -3,6 +3,8 @@ package org.example.ui.components;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+
+import org.example.model.ColorModel;
 import org.example.model.GameBoard;
 import org.example.model.TetrominoPosition;
 
@@ -74,9 +76,10 @@ public class TetrisCanvas extends Canvas {
         int[][] visibleBoard = board.getVisibleBoard();
         for (int row = 0; row < GameBoard.HEIGHT; row++) {
             for (int col = 0; col < GameBoard.WIDTH; col++) {
-                if (visibleBoard[row][col] != 0) {
-                    drawCell(gc, col, row, Color.web(String.format("#%06X", visibleBoard[row][col])));
-                }
+                if (visibleBoard[row][col] == 0) 
+                    continue;
+                Color color = ColorModel.getColorFromIndex(visibleBoard[row][col]);
+                drawCell(gc, col, row, color);
             }
         }
 
@@ -87,7 +90,7 @@ public class TetrisCanvas extends Canvas {
 
         // Draw current piece
         if (currentPiece != null) {
-            Color pieceColor = Color.web(String.format("#%06X", currentPiece.getType().getColor()));
+            Color pieceColor = currentPiece.getType().getColor();
             drawPiece(gc, currentPiece, pieceColor, false);
         }
 

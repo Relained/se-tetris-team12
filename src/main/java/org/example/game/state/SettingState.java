@@ -28,7 +28,7 @@ public class SettingState extends GameState {
 
     @Override
     public void resume() {
-        // 일시정지 창 -> 설정창으로 돌아올 때 사용
+        
     }
 
     @Override
@@ -45,10 +45,17 @@ public class SettingState extends GameState {
 
         buttonSystem.createNavigableButton("Screen Size", () -> System.err.println("Set Screen Size"));
         buttonSystem.createNavigableButton("Controls", () -> System.err.println("Set Controls"));
+        buttonSystem.createNavigableButton("Color Blind Setting", () -> stateManager.stackState("color_setting"));
         buttonSystem.createNavigableButton("Reset Score Board", () -> System.err.println("Reset Score Board"));
-        buttonSystem.createNavigableButton("Color Blind Setting", () -> System.err.println("Set Color Blind Setting"));
-        buttonSystem.createNavigableButton("Reset All Setting", () -> System.err.println("Reset All Setting"));
-        buttonSystem.createNavigableButton("Go Back", () -> stateManager.popState());
+        buttonSystem.createNavigableButton("Reset All Setting", () -> {
+            System.err.println("All Setting Reset to Default");
+            stateManager.settingManager.resetToDefault();
+        });
+        buttonSystem.createNavigableButton("Go Back", () -> {
+            stateManager.settingManager.applyColorSetting();
+            stateManager.settingManager.saveSettingData();
+            stateManager.popState();
+        });
 
         root.getChildren().add(title);
         root.getChildren().addAll(buttonSystem.getButtons());

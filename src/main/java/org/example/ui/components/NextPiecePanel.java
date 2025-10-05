@@ -60,8 +60,8 @@ public class NextPiecePanel extends VBox {
             gc.strokeRoundRect(1, 1, canvas.getWidth() - 2, canvas.getHeight() - 2, 5, 5);
         }
 
-        int[][] shape = tetromino.getShape();
-        Color color = Color.web(String.format("#%06X", tetromino.getColor()));
+        int[][] shape = tetromino.getShape(0);
+        Color color = tetromino.getColor();
 
         // 인덱스에 따라 다른 셀 크기 사용
         double cellSize = (index == 0) ? CELL_SIZE : SMALL_CELL_SIZE;

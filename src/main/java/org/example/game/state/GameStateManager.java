@@ -7,16 +7,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
+import org.example.game.logic.SettingManager;
+
 public class GameStateManager {
     private final Stage primaryStage;
     private final Map<String, GameState> states;
     private GameState currentState;
     private Stack<GameState> stateStack;
+    public SettingManager settingManager;
 
-    public GameStateManager(Stage primaryStage) {
+    public GameStateManager(Stage primaryStage, SettingManager settingManager) {
         this.primaryStage = primaryStage;
         this.states = new HashMap<>();
         this.stateStack = new Stack<>();
+        this.settingManager = settingManager;
     }
 
     public void addState(String name, GameState state) {

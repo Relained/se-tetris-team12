@@ -59,8 +59,8 @@ public class GameLogic {
         fillNextQueue();
 
         // Spawn position (top-center of board, accounting for buffer zone)
-        int spawnX = (GameBoard.WIDTH - nextType.getShape()[0].length) / 2;
-        int spawnY = GameBoard.BUFFER_ZONE - nextType.getShape().length;
+        int spawnX = (GameBoard.WIDTH - nextType.getShape(0)[0].length) / 2;
+        int spawnY = GameBoard.BUFFER_ZONE - nextType.getShape(0).length;
 
         currentPiece = new TetrominoPosition(nextType, spawnX, spawnY, 0);
         canHold = true;
@@ -151,8 +151,8 @@ public class GameLogic {
             holdPiece = currentPiece;
 
             // Reset held piece to spawn position
-            int spawnX = (GameBoard.WIDTH - temp.getType().getShape()[0].length) / 2;
-            int spawnY = GameBoard.BUFFER_ZONE - temp.getType().getShape().length;
+            int spawnX = (GameBoard.WIDTH - temp.getType().getShape(0)[0].length) / 2;
+            int spawnY = GameBoard.BUFFER_ZONE - temp.getType().getShape(0).length;
             currentPiece = new TetrominoPosition(temp.getType(), spawnX, spawnY, 0);
 
             if (!board.isValidPosition(currentPiece)) {

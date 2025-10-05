@@ -1,5 +1,6 @@
 package org.example.game.state;
 
+import org.example.game.logic.SettingData.ColorBlindMode;
 import org.example.ui.NavigableButtonSystem;
 
 import javafx.geometry.Pos;
@@ -11,24 +12,32 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class PauseState extends GameState {
-    public PauseState(GameStateManager stateManager) {
+public class ColorSettingState extends GameState {
+    private ColorBlindMode selectedMode;
+    private Text title;
+    
+    public ColorSettingState(GameStateManager stateManager) {
         super(stateManager);
     }
 
     @Override
     public void enter() {
-        // Setup complete when scene is created
+        selectedMode = stateManager.settingManager.getCurrentSettings().colorBlindMode;
     }
 
     @Override
     public void exit() {
-        // Cleanup if needed
+        stateManager.settingManager.setColorSetting(selectedMode);
     }
 
     @Override
     public void resume() {
-        // 설정창 -> 일시정지 창으로 돌아올 때 사용
+        // 일시정지 창 -> 설정창으로 돌아올 때 사용
+    }
+
+    private void setColor(ColorBlindMode mode) {
+        selectedMode = mode;
+        title.setText("Color Settings\nCurrent: " + selectedMode.name());
     }
 
     @Override
@@ -37,16 +46,17 @@ public class PauseState extends GameState {
         root.setAlignment(Pos.CENTER);
         root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
 
-        Text title = new Text("PAUSED");
+        title = new Text("Color Settings\nCurrent: " + selectedMode.name());
         title.setFill(Color.WHITE);
         title.setFont(Font.font("Arial", 36));
 
         NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
 
-        buttonSystem.createNavigableButton("Resume", () -> stateManager.popState());
-        buttonSystem.createNavigableButton("Restart", () -> stateManager.setState("play"));
-        buttonSystem.createNavigableButton("Settings", () -> stateManager.stackState("setting"));
-        buttonSystem.createNavigableButton("Main Menu", () -> stateManager.setState("start"));
+        buttonSystem.createNavigableButton("Default", () -> setColor(ColorBlindMode.Default));
+        buttonSystem.createNavigableButton("PROTANOPIA", () -> setColor(ColorBlindMode.PROTANOPIA));
+        buttonSystem.createNavigableButton("DEUTERANOPIA", () -> setColor(ColorBlindMode.DEUTERANOPIA));
+        buttonSystem.createNavigableButton("TRITANOPIA", () -> setColor(ColorBlindMode.TRITANOPIA));
+        buttonSystem.createNavigableButton("Go Back", () -> stateManager.popState());
 
         root.getChildren().add(title);
         root.getChildren().addAll(buttonSystem.getButtons());
