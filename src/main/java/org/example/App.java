@@ -3,13 +3,13 @@ package org.example;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-import org.example.service.GameStateManager;
+import org.example.service.StateManager;
 import org.example.service.SettingManager;
 import org.example.state.*;
 
 public class App extends Application {
 
-    private GameStateManager stateManager;
+    private StateManager stateManager;
     private SettingManager settingManager;
 
     @Override
@@ -29,7 +29,7 @@ public class App extends Application {
 
         // Initialize state manager
         settingManager = new SettingManager();
-        stateManager = new GameStateManager(primaryStage, settingManager);
+        stateManager = new StateManager(primaryStage, settingManager);
 
         // Add all game states
         stateManager.addState("start", new StartState(stateManager));
