@@ -1,4 +1,4 @@
-package org.example.game.logic;
+package org.example.service;
 
 import org.example.model.GameBoard;
 import org.example.model.TetrominoPosition;

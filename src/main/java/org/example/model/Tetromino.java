@@ -63,7 +63,7 @@ public enum Tetromino {
     }
 
     public Color getColor() {
-        return ColorModel.getColorFromIndex(ordinal() + 1);
+        return org.example.service.ColorManager.getInstance().getColorFromIndex(ordinal() + 1);
     }
 
     public int getColorIndex() {

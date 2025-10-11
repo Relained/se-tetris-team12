@@ -1,4 +1,4 @@
-package org.example.ui.components;
+package org.example.view.component.play;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;

@@ -1,7 +1,7 @@
 package org.example.model;
 
+import org.example.service.ColorManager;
 import org.junit.jupiter.api.Test;
-import javafx.scene.paint.Color;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TetrominoTest {
@@ -12,7 +12,7 @@ class TetrominoTest {
         int[][] expectedShape = {{0,0,0,0}, {1,1,1,1}, {0,0,0,0}, {0,0,0,0}};
 
         assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorModel.getColorFromIndex(1), tetromino.getColor());
+        assertEquals(ColorManager.getInstance().getColorFromIndex(1), tetromino.getColor());
     }
 
     @Test
@@ -21,7 +21,7 @@ class TetrominoTest {
         int[][] expectedShape = {{0,1,1,0}, {0,1,1,0}, {0,0,0,0}, {0,0,0,0}};
 
         assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorModel.getColorFromIndex(2), tetromino.getColor());
+        assertEquals(ColorManager.getInstance().getColorFromIndex(2), tetromino.getColor());
     }
 
     @Test
@@ -30,7 +30,7 @@ class TetrominoTest {
         int[][] expectedShape = {{0,1,0,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}};
 
         assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorModel.getColorFromIndex(3), tetromino.getColor());
+        assertEquals(ColorManager.getInstance().getColorFromIndex(3), tetromino.getColor());
     }
 
     @Test
@@ -39,7 +39,7 @@ class TetrominoTest {
         int[][] expectedShape = {{0,1,1,0}, {1,1,0,0}, {0,0,0,0}, {0,0,0,0}};
 
         assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorModel.getColorFromIndex(4), tetromino.getColor());
+        assertEquals(ColorManager.getInstance().getColorFromIndex(4), tetromino.getColor());
     }
 
     @Test
@@ -48,7 +48,7 @@ class TetrominoTest {
         int[][] expectedShape = {{1,1,0,0}, {0,1,1,0}, {0,0,0,0}, {0,0,0,0}};
 
         assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorModel.getColorFromIndex(5), tetromino.getColor());
+        assertEquals(ColorManager.getInstance().getColorFromIndex(5), tetromino.getColor());
     }
 
     @Test
@@ -57,7 +57,7 @@ class TetrominoTest {
         int[][] expectedShape = {{1,0,0,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}};
 
         assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorModel.getColorFromIndex(6), tetromino.getColor());
+        assertEquals(ColorManager.getInstance().getColorFromIndex(6), tetromino.getColor());
     }
 
     @Test
@@ -66,7 +66,7 @@ class TetrominoTest {
         int[][] expectedShape = {{0,0,1,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}};
 
         assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorModel.getColorFromIndex(7), tetromino.getColor());
+        assertEquals(ColorManager.getInstance().getColorFromIndex(7), tetromino.getColor());
     }
 
     @Test

@@ -1,4 +1,4 @@
-package org.example.game.logic;
+package org.example.model;
 
 import javafx.scene.input.KeyCode;
 

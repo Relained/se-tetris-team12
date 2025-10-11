@@ -1,4 +1,4 @@
-package org.example.game.logic;
+package org.example.service;
 
 import org.example.model.GameBoard;
 import org.example.model.Tetromino;
@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class GameLogic {
+public class TetrisSystem {
     private final GameBoard board;
     private TetrominoPosition currentPiece;
     private TetrominoPosition holdPiece;
@@ -27,7 +27,7 @@ public class GameLogic {
     private static final int SOFT_DROP_SCORE = 1;
     private static final int HARD_DROP_SCORE = 2;
 
-    public GameLogic() {
+    public TetrisSystem() {
         this.board = new GameBoard();
         this.nextQueue = new ArrayList<>();
         this.random = new Random();

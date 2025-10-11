@@ -2,17 +2,19 @@ package org.example;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import org.example.game.state.*;
-import org.example.game.logic.SettingManager;
+
+import org.example.service.StateManager;
+import org.example.service.SettingManager;
+import org.example.state.*;
 
 public class App extends Application {
 
-    private GameStateManager stateManager;
+    private StateManager stateManager;
     private SettingManager settingManager;
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Tetris - Team 12");
+        primaryStage.setTitle("Tetris");
         
         // 창 크기 조정 가능하도록 설정
         primaryStage.setResizable(true);
@@ -27,7 +29,7 @@ public class App extends Application {
 
         // Initialize state manager
         settingManager = new SettingManager();
-        stateManager = new GameStateManager(primaryStage, settingManager);
+        stateManager = new StateManager(primaryStage, settingManager);
 
         // Add all game states
         stateManager.addState("start", new StartState(stateManager));
@@ -35,7 +37,7 @@ public class App extends Application {
         stateManager.addState("pause", new PauseState(stateManager));
         stateManager.addState("setting", new SettingState(stateManager));
         stateManager.addState("color_setting", new ColorSettingState(stateManager));
-        stateManager.addState("gameOver", new GameOverState(stateManager));
+        stateManager.addState("gameover", new GameOverState(stateManager));
 
         // Start with the start screen
         stateManager.setState("start");
