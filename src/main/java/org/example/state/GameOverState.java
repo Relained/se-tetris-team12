@@ -1,18 +1,21 @@
 package org.example.state;
 
-import org.example.service.StateManager;
-import org.example.view.component.NavigableButtonSystem;
-
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
+import org.example.controller.GameOverController;
+import org.example.service.StateManager;
+import org.example.view.GameOverView;
+
+/**
+ * 게임 오버 화면 State
+ * MVC 패턴을 따라 View와 Controller를 사용하여 구성됩니다.
+ */
 public class GameOverState extends State {
+    
+    private GameOverView gameOverView;
+    private GameOverController controller;
     private int finalScore;
     private int finalLines;
     private int finalLevel;
@@ -30,6 +33,10 @@ public class GameOverState extends State {
             finalLines = playState.getGameLogic().getLines();
             finalLevel = playState.getGameLogic().getLevel();
         }
+        
+        // State 진입 시 View와 Controller 초기화
+        gameOverView = new GameOverView();
+        controller = new GameOverController(stateManager, gameOverView);
     }
 
     @Override
@@ -44,48 +51,23 @@ public class GameOverState extends State {
 
     @Override
     public Scene createScene() {
-        VBox root = new VBox(25);
-        root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(Color.DARKRED, null, null)));
-
-        Text title = new Text("GAME OVER");
-        title.setFill(Color.WHITE);
-        title.setFont(Font.font("Arial", 42));
-
-        Text scoreText = new Text("Final Score: " + finalScore);
-        scoreText.setFill(Color.LIGHTGRAY);
-        scoreText.setFont(Font.font("Arial", 20));
-
-        Text linesText = new Text("Lines Cleared: " + finalLines);
-        linesText.setFill(Color.LIGHTGRAY);
-        linesText.setFont(Font.font("Arial", 20));
-
-        Text levelText = new Text("Level Reached: " + finalLevel);
-        levelText.setFill(Color.LIGHTGRAY);
-        levelText.setFont(Font.font("Arial", 20));
-
-        NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
-
-        var playAgainButton = buttonSystem.createNavigableButton("Play Again", () -> stateManager.setState("play"));
-        var mainMenuButton = buttonSystem.createNavigableButton("Main Menu", () -> stateManager.setState("start"));
-        var exitButton = buttonSystem.createNavigableButton("Exit Game", () -> System.exit(0));
-
-        root.getChildren().addAll(
-                title,
-                scoreText,
-                linesText,
-                levelText,
-                playAgainButton,
-                mainMenuButton,
-                exitButton
+        // View로부터 UI 구성 요소를 받아옴
+        // Controller의 핸들러를 콜백으로 전달
+        VBox root = gameOverView.createView(
+            finalScore,
+            finalLines,
+            finalLevel,
+            () -> controller.handlePlayAgain(),    // Play Again 버튼
+            () -> controller.handleMainMenu(),     // Main Menu 버튼
+            () -> controller.handleExit()          // Exit Game 버튼
         );
 
         scene = new Scene(root, 1000, 700);
         // Scene 레벨에서 배경색 설정하여 플리커링 방지
         scene.setFill(Color.DARKRED);
 
-        // Handle keyboard input
-        scene.setOnKeyPressed(event -> buttonSystem.handleInput(event));
+        // 키보드 입력은 Controller를 통해 처리
+        scene.setOnKeyPressed(event -> controller.handleKeyInput(event));
 
         // Focus for keyboard input
         scene.getRoot().setFocusTraversable(true);

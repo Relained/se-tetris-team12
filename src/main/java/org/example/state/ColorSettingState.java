@@ -1,21 +1,22 @@
 package org.example.state;
 
-import org.example.model.SettingData.ColorBlindMode;
-import org.example.service.StateManager;
-import org.example.view.component.NavigableButtonSystem;
-
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
+import org.example.controller.ColorSettingController;
+import org.example.model.SettingData.ColorBlindMode;
+import org.example.service.StateManager;
+import org.example.view.ColorSettingView;
+
+/**
+ * 색상 설정 화면 State
+ * MVC 패턴을 따라 View와 Controller를 사용하여 구성됩니다.
+ */
 public class ColorSettingState extends State {
-    private ColorBlindMode selectedMode;
-    private Text title;
+    
+    private ColorSettingView colorSettingView;
+    private ColorSettingController controller;
     
     public ColorSettingState(StateManager stateManager) {
         super(stateManager);
@@ -23,51 +24,44 @@ public class ColorSettingState extends State {
 
     @Override
     public void enter() {
-        selectedMode = stateManager.settingManager.getCurrentSettings().colorBlindMode;
+        // State 진입 시 View와 Controller 초기화
+        colorSettingView = new ColorSettingView();
+        controller = new ColorSettingController(stateManager, colorSettingView);
     }
 
     @Override
     public void exit() {
-        stateManager.settingManager.setColorSetting(selectedMode);
+        // 설정 화면 종료 시 선택된 색맹 모드를 저장
+        stateManager.settingManager.setColorSetting(controller.getSelectedMode());
     }
 
     @Override
     public void resume() {
-        // 일시정지 창 -> 설정창으로 돌아올 때 사용
-    }
-
-    private void setColor(ColorBlindMode mode) {
-        selectedMode = mode;
-        title.setText("Color Settings\nCurrent: " + selectedMode.name());
+        // 설정창에서 돌아올 때 필요한 작업
     }
 
     @Override
     public Scene createScene() {
-        VBox root = new VBox(30);
-        root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
-
-        title = new Text("Color Settings\nCurrent: " + selectedMode.name());
-        title.setFill(Color.WHITE);
-        title.setFont(Font.font("Arial", 36));
-
-        NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
-
-        buttonSystem.createNavigableButton("Default", () -> setColor(ColorBlindMode.Default));
-        buttonSystem.createNavigableButton("PROTANOPIA", () -> setColor(ColorBlindMode.PROTANOPIA));
-        buttonSystem.createNavigableButton("DEUTERANOPIA", () -> setColor(ColorBlindMode.DEUTERANOPIA));
-        buttonSystem.createNavigableButton("TRITANOPIA", () -> setColor(ColorBlindMode.TRITANOPIA));
-        buttonSystem.createNavigableButton("Go Back", () -> stateManager.popState());
-
-        root.getChildren().add(title);
-        root.getChildren().addAll(buttonSystem.getButtons());
+        // 현재 설정된 색맹 모드 가져오기
+        ColorBlindMode currentMode = stateManager.settingManager.getCurrentSettings().colorBlindMode;
+        
+        // View로부터 UI 구성 요소를 받아옴
+        // Controller의 핸들러를 콜백으로 전달
+        VBox root = colorSettingView.createView(
+            currentMode,
+            () -> controller.handleDefault(),        // Default 버튼
+            () -> controller.handleProtanopia(),     // PROTANOPIA 버튼
+            () -> controller.handleDeuteranopia(),   // DEUTERANOPIA 버튼
+            () -> controller.handleTritanopia(),     // TRITANOPIA 버튼
+            () -> controller.handleGoBack()          // Go Back 버튼
+        );
 
         scene = new Scene(root, 1000, 700);
         // Scene 레벨에서 배경색 설정하여 플리커링 방지
         scene.setFill(Color.BLACK);
 
-        // Handle keyboard input
-        scene.setOnKeyPressed(event -> buttonSystem.handleInput(event));
+        // 키보드 입력은 Controller를 통해 처리
+        scene.setOnKeyPressed(event -> controller.handleKeyInput(event));
 
         // Focus for keyboard input
         scene.getRoot().setFocusTraversable(true);
