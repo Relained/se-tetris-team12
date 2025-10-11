@@ -21,9 +21,14 @@ public class ScoreboardUI extends VBox {
     private static final int MAX_DISPLAY_SCORES = 10;
     private VBox scoresContainer;
     private Text titleLabel;
-    private Text instructionLabel;
+    private boolean showNewlyAddedHighlight = true; // 새로 추가된 점수 하이라이트 표시 여부
 
     public ScoreboardUI() {
+        this(true); // 기본적으로 하이라이트 표시
+    }
+    
+    public ScoreboardUI(boolean showNewlyAddedHighlight) {
+        this.showNewlyAddedHighlight = showNewlyAddedHighlight;
         initializeUI();
         updateScoreboard();
     }
@@ -47,12 +52,7 @@ public class ScoreboardUI extends VBox {
         scoresContainer = new VBox(8);
         scoresContainer.setAlignment(Pos.CENTER);
 
-        // Instructions
-        instructionLabel = new Text("Press ESC to return");
-        instructionLabel.setFill(Color.LIGHTGRAY);
-        instructionLabel.setFont(Font.font("Arial", 12));
-
-        getChildren().addAll(titleLabel, headerBox, scoresContainer, instructionLabel);
+        getChildren().addAll(titleLabel, headerBox, scoresContainer);
     }
 
     private HBox createHeaderRow() {
@@ -130,6 +130,17 @@ public class ScoreboardUI extends VBox {
         dateText.setFill(textColor);
 
         Font font = Font.font("Courier New", 13);
+        
+        // Apply underline for newly added scores if highlighting is enabled
+        if (showNewlyAddedHighlight && record.isNewlyAdded()) {
+            font = Font.font("Courier New", FontWeight.BOLD, 13);
+            rankText.setUnderline(true);
+            nameText.setUnderline(true);
+            scoreText.setUnderline(true);
+            levelText.setUnderline(true);
+            dateText.setUnderline(true);
+        }
+        
         rankText.setFont(font);
         nameText.setFont(font);
         scoreText.setFont(font);

@@ -7,8 +7,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 점수 관리를 위한 서비스 클래스
- * 게임 상태와 함께 관리되는 점수 시스템
+ * Service class for score management
+ * Score system managed with game state
  */
 public class ScoreManager {
         private static final String SAVE_FILE = System.getProperty("user.home") 
@@ -35,12 +35,17 @@ public class ScoreManager {
             return false;
         }
         
+        // Mark all existing scores as not newly added
+        for (ScoreRecord existingRecord : scores) {
+            existingRecord.setNewlyAdded(false);
+        }
+        
         scores.add(record);
         Collections.sort(scores);
         
-        // 상위 점수만 유지
+        // Keep only top scores
         if (scores.size() > MAX_SCORES) {
-            scores = scores.subList(0, MAX_SCORES);
+            scores = new ArrayList<>(scores.subList(0, MAX_SCORES));
         }
         
         saveScores();
@@ -66,6 +71,22 @@ public class ScoreManager {
             return true;
         }
         return score > scores.get(scores.size() - 1).getScore();
+    }
+
+    /**
+     * 상위 10개 점수에 저장 가능 여부 확인, 10개 미만이면 무조건 저장 가능
+     * @param score Score to check
+     * @return true if saveable, false otherwise
+     */
+    public boolean isScoreEligibleForSaving(int score) {
+        // If less than 10 scores saved, always saveable
+        if (scores.size() < MAX_SCORES) {
+            return true;
+        }
+        
+        // If 10 scores saved, check if higher than lowest score
+        ScoreRecord lowestScore = scores.get(scores.size() - 1);
+        return score > lowestScore.getScore();
     }
 
     public int getScoreRank(int score) {
@@ -99,13 +120,29 @@ public class ScoreManager {
                     new FileInputStream(file))) {
                 scores = (List<ScoreRecord>) ois.readObject();
                 Collections.sort(scores);
-            } catch (IOException | ClassNotFoundException e) {
+                
+                // Mark all loaded scores as not newly added
+                for (ScoreRecord record : scores) {
+                    record.setNewlyAdded(false);
+                }
+            }
+             
+            // 버전 불일치로 인한 InvalidClassException
+
+            /* catch (InvalidClassException e) {
+                // Version mismatch - delete old file and start fresh
+                System.out.println("Score file version mismatch. Creating new scoreboard.");
+                if (file.delete()) {
+                    System.out.println("Old score file deleted successfully.");
+                }
+                scores = new ArrayList<>();
+                saveScores(); // Create new compatible file
+            } 
+            */
+            catch (IOException | ClassNotFoundException e) {
                 System.err.println("Failed to load scores: " + e.getMessage());
                 scores = new ArrayList<>();
             }
         }
     }
-
-    // 통계 기능은 현재 프로젝트에서 사용하지 않으므로 제거
-    // 필요시 나중에 추가 가능
 }
