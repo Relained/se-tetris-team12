@@ -1,7 +1,6 @@
 package org.example.view;
 
 import org.example.model.SettingData.ColorBlindMode;
-import org.example.view.component.NavigableButtonSystem;
 
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
@@ -14,13 +13,12 @@ import javafx.scene.text.Text;
 /**
  * Color Setting 화면의 UI를 담당하는 View 클래스
  */
-public class ColorSettingView {
+public class ColorSettingView extends BaseView {
     
-    private NavigableButtonSystem buttonSystem;
     private Text title;
     
     public ColorSettingView() {
-        this.buttonSystem = new NavigableButtonSystem();
+        super(true); // NavigableButtonSystem 사용
     }
     
     /**
@@ -73,13 +71,5 @@ public class ColorSettingView {
         if (title != null) {
             title.setText("Color Settings\nCurrent: " + mode.name());
         }
-    }
-    
-    /**
-     * NavigableButtonSystem을 반환합니다.
-     * Controller에서 키보드 입력을 처리하는 데 사용됩니다.
-     */
-    public NavigableButtonSystem getButtonSystem() {
-        return buttonSystem;
     }
 }

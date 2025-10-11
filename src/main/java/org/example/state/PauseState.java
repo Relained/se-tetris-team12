@@ -11,7 +11,7 @@ import org.example.view.PauseView;
  * 일시정지 화면 State
  * MVC 패턴을 따라 View와 Controller를 사용하여 구성됩니다.
  */
-public class PauseState extends State {
+public class PauseState extends BaseState {
     
     private PauseView pauseView;
     private PauseController controller;

@@ -1,8 +1,5 @@
 package org.example.view;
 
-import org.example.service.ColorManager;
-import org.example.view.component.NavigableButtonSystem;
-
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -10,14 +7,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class StartView {
-    
-    private NavigableButtonSystem buttonSystem;
-    private ColorManager colorManager;
+public class StartView extends BaseView {
     
     public StartView() {
-        this.buttonSystem = new NavigableButtonSystem();
-        this.colorManager = ColorManager.getInstance();
+        super(true); // NavigableButtonSystem 사용
     }
     
     /**
@@ -59,13 +52,5 @@ public class StartView {
         root.getChildren().addAll(title, subtitle, startButton, settingButton, exitButton, controls);
 
         return root;
-    }
-    
-    /**
-     * NavigableButtonSystem을 반환합니다.
-     * Controller에서 키보드 입력을 처리하는 데 사용됩니다.
-     */
-    public NavigableButtonSystem getButtonSystem() {
-        return buttonSystem;
     }
 }

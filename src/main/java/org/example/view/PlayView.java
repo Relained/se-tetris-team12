@@ -9,7 +9,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import org.example.service.ColorManager;
 import org.example.view.component.play.HoldPanel;
 import org.example.view.component.play.NextPiecePanel;
 import org.example.view.component.play.ScorePanel;
@@ -18,16 +17,15 @@ import org.example.view.component.play.TetrisCanvas;
 /**
  * Play 화면의 UI를 담당하는 View 클래스
  */
-public class PlayView {
+public class PlayView extends BaseView {
     
     private TetrisCanvas gameCanvas;
     private HoldPanel holdPanel;
     private NextPiecePanel nextPanel;
     private ScorePanel scorePanel;
-    private ColorManager colorManager;
     
     public PlayView() {
-        this.colorManager = ColorManager.getInstance();
+        super(false); // NavigableButtonSystem 사용하지 않음
     }
     
     /**

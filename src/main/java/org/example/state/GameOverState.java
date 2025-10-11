@@ -12,7 +12,7 @@ import org.example.view.GameOverView;
  * 게임 오버 화면 State
  * MVC 패턴을 따라 View와 Controller를 사용하여 구성됩니다.
  */
-public class GameOverState extends State {
+public class GameOverState extends BaseState {
     
     private GameOverView gameOverView;
     private GameOverController controller;
@@ -27,7 +27,7 @@ public class GameOverState extends State {
     @Override
     public void enter() {
         // Get final game stats from the previous play state
-        State previousState = stateManager.getCurrentState();
+        BaseState previousState = stateManager.getCurrentState();
         if (previousState instanceof PlayState playState && playState.getGameLogic() != null) {
             finalScore = playState.getGameLogic().getScore();
             finalLines = playState.getGameLogic().getLines();

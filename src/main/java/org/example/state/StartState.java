@@ -11,7 +11,7 @@ import javafx.scene.layout.VBox;
  * 시작 화면 State
  * MVC 패턴을 따라 View와 Controller를 사용하여 구성됩니다.
  */
-public class StartState extends State {
+public class StartState extends BaseState {
     
     private StartView startView;
     private StartController controller;

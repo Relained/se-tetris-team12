@@ -7,20 +7,13 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-import org.example.service.ColorManager;
-import org.example.view.component.NavigableButtonSystem;
-
 /**
  * Pause 화면의 UI를 담당하는 View 클래스
  */
-public class PauseView {
-    
-    private NavigableButtonSystem buttonSystem;
-    private ColorManager colorManager;
+public class PauseView extends BaseView {
     
     public PauseView() {
-        this.buttonSystem = new NavigableButtonSystem();
-        this.colorManager = ColorManager.getInstance();
+        super(true); // NavigableButtonSystem 사용
     }
     
     /**
@@ -52,21 +45,5 @@ public class PauseView {
         root.getChildren().addAll(resumeButton, restartButton, settingsButton, mainMenuButton);
 
         return root;
-    }
-    
-    /**
-     * NavigableButtonSystem을 반환합니다.
-     * Controller에서 키보드 입력을 처리하는 데 사용됩니다.
-     */
-    public NavigableButtonSystem getButtonSystem() {
-        return buttonSystem;
-    }
-    
-    /**
-     * 색상 설정이 변경되었을 때 호출하여 UI를 갱신합니다.
-     */
-    public void refreshColors() {
-        // 색상이 변경되면 ColorManager에서 자동으로 새 색상을 가져옴
-        // 필요시 UI 컴포넌트 재생성
     }
 }

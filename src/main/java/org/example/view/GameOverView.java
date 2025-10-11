@@ -1,7 +1,5 @@
 package org.example.view;
 
-import org.example.view.component.NavigableButtonSystem;
-
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -13,12 +11,10 @@ import javafx.scene.text.Text;
 /**
  * Game Over 화면의 UI를 담당하는 View 클래스
  */
-public class GameOverView {
-    
-    private NavigableButtonSystem buttonSystem;
+public class GameOverView extends BaseView {
     
     public GameOverView() {
-        this.buttonSystem = new NavigableButtonSystem();
+        super(true); // NavigableButtonSystem 사용
     }
     
     /**
@@ -72,13 +68,5 @@ public class GameOverView {
         );
 
         return root;
-    }
-    
-    /**
-     * NavigableButtonSystem을 반환합니다.
-     * Controller에서 키보드 입력을 처리하는 데 사용됩니다.
-     */
-    public NavigableButtonSystem getButtonSystem() {
-        return buttonSystem;
     }
 }

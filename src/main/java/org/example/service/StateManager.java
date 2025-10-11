@@ -7,13 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-import org.example.state.State;
+import org.example.state.BaseState;
 
 public class StateManager {
     private final Stage primaryStage;
-    private final Map<String, State> states;
-    private State currentState;
-    private Stack<State> stateStack;
+    private final Map<String, BaseState> states;
+    private BaseState currentState;
+    private Stack<BaseState> stateStack;
     public SettingManager settingManager;
 
     public StateManager(Stage primaryStage, SettingManager settingManager) {
@@ -23,7 +23,7 @@ public class StateManager {
         this.settingManager = settingManager;
     }
 
-    public void addState(String name, State state) {
+    public void addState(String name, BaseState state) {
         states.put(name, state);
     }
 
@@ -41,7 +41,7 @@ public class StateManager {
     }
 
     public void stackState(String stateName) {
-        State newState = states.get(stateName);
+        BaseState newState = states.get(stateName);
         if (newState == null) {
             throw new IllegalArgumentException("State not found: " + stateName);
         }
@@ -57,7 +57,7 @@ public class StateManager {
     }
 
     public void setState(String stateName) {
-        State newState = states.get(stateName);
+        BaseState newState = states.get(stateName);
         if (newState == null) {
             throw new IllegalArgumentException("State not found: " + stateName);
         }
@@ -74,7 +74,7 @@ public class StateManager {
         primaryStage.setScene(scene);
     }
 
-    public State getCurrentState() {
+    public BaseState getCurrentState() {
         return currentState;
     }
 

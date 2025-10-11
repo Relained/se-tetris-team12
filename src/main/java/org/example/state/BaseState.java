@@ -3,11 +3,11 @@ package org.example.state;
 import javafx.scene.Scene;
 import org.example.service.StateManager;
 
-public abstract class State {
+public abstract class BaseState {
     protected Scene scene;
     protected StateManager stateManager;
     
-    public State(StateManager stateManager) {
+    public BaseState(StateManager stateManager) {
         this.stateManager = stateManager;
     }
 

@@ -13,7 +13,7 @@ import org.example.view.ColorSettingView;
  * 색상 설정 화면 State
  * MVC 패턴을 따라 View와 Controller를 사용하여 구성됩니다.
  */
-public class ColorSettingState extends State {
+public class ColorSettingState extends BaseState {
     
     private ColorSettingView colorSettingView;
     private ColorSettingController controller;

@@ -13,7 +13,7 @@ import org.example.view.PlayView;
  * 게임 플레이 화면 State
  * MVC 패턴을 따라 View와 Controller를 사용하여 구성됩니다.
  */
-public class PlayState extends State {
+public class PlayState extends BaseState {
     
     private PlayView playView;
     private PlayController controller;
