@@ -2,8 +2,10 @@ package org.example;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import org.example.game.state.*;
-import org.example.game.logic.SettingManager;
+
+import org.example.service.GameStateManager;
+import org.example.service.SettingManager;
+import org.example.state.*;
 
 public class App extends Application {
 

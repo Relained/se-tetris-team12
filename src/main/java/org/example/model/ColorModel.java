@@ -1,6 +1,7 @@
 package org.example.model;
 
-import org.example.game.logic.SettingData.ColorBlindMode;
+import org.example.model.SettingData.ColorBlindMode;
+
 import javafx.scene.paint.Color;
 
 public class ColorModel {
