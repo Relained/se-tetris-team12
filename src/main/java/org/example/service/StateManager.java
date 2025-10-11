@@ -7,11 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
+import org.example.state.State;
+
 public class StateManager {
     private final Stage primaryStage;
-    private final Map<String, GameState> states;
-    private GameState currentState;
-    private Stack<GameState> stateStack;
+    private final Map<String, State> states;
+    private State currentState;
+    private Stack<State> stateStack;
     public SettingManager settingManager;
 
     public StateManager(Stage primaryStage, SettingManager settingManager) {
@@ -21,7 +23,7 @@ public class StateManager {
         this.settingManager = settingManager;
     }
 
-    public void addState(String name, GameState state) {
+    public void addState(String name, State state) {
         states.put(name, state);
     }
 
@@ -35,11 +37,11 @@ public class StateManager {
         }
         currentState = stateStack.pop();
         currentState.resume();
-        primaryStage.setScene(currentState.scene);
+        primaryStage.setScene(currentState.getScene());
     }
 
     public void stackState(String stateName) {
-        GameState newState = states.get(stateName);
+        State newState = states.get(stateName);
         if (newState == null) {
             throw new IllegalArgumentException("State not found: " + stateName);
         }
@@ -55,7 +57,7 @@ public class StateManager {
     }
 
     public void setState(String stateName) {
-        GameState newState = states.get(stateName);
+        State newState = states.get(stateName);
         if (newState == null) {
             throw new IllegalArgumentException("State not found: " + stateName);
         }
@@ -72,7 +74,7 @@ public class StateManager {
         primaryStage.setScene(scene);
     }
 
-    public GameState getCurrentState() {
+    public State getCurrentState() {
         return currentState;
     }
 

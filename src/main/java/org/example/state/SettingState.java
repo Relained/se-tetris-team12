@@ -12,7 +12,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class SettingState extends GameState {
+public class SettingState extends State {
     public SettingState(StateManager stateManager) {
         super(stateManager);
     }

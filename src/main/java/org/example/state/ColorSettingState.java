@@ -13,7 +13,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class ColorSettingState extends GameState {
+public class ColorSettingState extends State {
     private ColorBlindMode selectedMode;
     private Text title;
     

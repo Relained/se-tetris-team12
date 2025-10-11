@@ -1,25 +1,30 @@
 package org.example.state;
 
+import org.example.controller.StartController;
 import org.example.service.StateManager;
-import org.example.view.component.NavigableButtonSystem;
+import org.example.view.StartView;
 
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
-public class StartState extends GameState {
+/**
+ * 시작 화면 State
+ * MVC 패턴을 따라 View와 Controller를 사용하여 구성됩니다.
+ */
+public class StartState extends State {
+    
+    private StartView startView;
+    private StartController controller;
+    
     public StartState(StateManager stateManager) {
         super(stateManager);
     }
 
     @Override
     public void enter() {
-        // Setup complete when scene is created
+        // State 진입 시 View와 Controller 초기화
+        startView = new StartView();
+        controller = new StartController(stateManager, startView);
     }
 
     @Override
@@ -34,37 +39,18 @@ public class StartState extends GameState {
 
     @Override
     public Scene createScene() {
-        VBox root = new VBox(40);
-        root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
-
-        Text title = new Text("TETRIS");
-        title.setFill(Color.WHITE);
-        title.setFont(Font.font("Arial", 48));
-
-        Text subtitle = new Text("Team 12 Edition");
-        subtitle.setFill(Color.LIGHTGRAY);
-        subtitle.setFont(Font.font("Arial", 16));
-
-        NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
-        var startButton = buttonSystem.createNavigableButton("Start Game", () -> stateManager.setState("play"));
-        var exitButton = buttonSystem.createNavigableButton("Exit", () -> System.exit(0));
-
-        Text controls = new Text("Controls:\n" +
-                "← → Move\n" +
-                "↓ Soft Drop\n" +
-                "Space Hard Drop\n" +
-                "Z/X Rotate\n" +
-                "C Hold\n" +
-                "ESC Pause");
-        controls.setFill(Color.LIGHTGRAY);
-        controls.setFont(Font.font("Arial", 14));
-
-        root.getChildren().addAll(title, subtitle, startButton, exitButton, controls);
+        // View로부터 UI 구성 요소를 받아옴
+        // Controller의 핸들러를 콜백으로 전달
+        VBox root = startView.createView(
+            () -> controller.handleStartGame(),  // Start Game 버튼 콜백
+            () -> controller.handleSetting(),      // Setting 버튼 콜백
+            () -> controller.handleExit()        // Exit 버튼 콜백
+        );
 
         scene = new Scene(root, 1000, 700);
 
-        scene.setOnKeyPressed(event -> buttonSystem.handleInput(event));
+        // 키보드 입력은 Controller를 통해 처리
+        scene.setOnKeyPressed(event -> controller.handleKeyInput(event));
 
         return scene;
     }

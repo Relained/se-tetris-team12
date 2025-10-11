@@ -12,7 +12,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class GameOverState extends GameState {
+public class GameOverState extends State {
     private int finalScore;
     private int finalLines;
     private int finalLevel;
@@ -24,7 +24,7 @@ public class GameOverState extends GameState {
     @Override
     public void enter() {
         // Get final game stats from the previous play state
-        GameState previousState = stateManager.getCurrentState();
+        State previousState = stateManager.getCurrentState();
         if (previousState instanceof PlayState playState && playState.getGameLogic() != null) {
             finalScore = playState.getGameLogic().getScore();
             finalLines = playState.getGameLogic().getLines();
