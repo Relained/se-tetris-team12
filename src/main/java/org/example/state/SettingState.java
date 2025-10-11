@@ -1,25 +1,30 @@
 package org.example.state;
 
-import org.example.service.StateManager;
-import org.example.view.component.NavigableButtonSystem;
-
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
+import org.example.controller.SettingController;
+import org.example.service.StateManager;
+import org.example.view.SettingView;
+
+/**
+ * 설정 화면 State
+ * MVC 패턴을 따라 View와 Controller를 사용하여 구성됩니다.
+ */
 public class SettingState extends State {
+    
+    private SettingView settingView;
+    private SettingController controller;
+    
     public SettingState(StateManager stateManager) {
         super(stateManager);
     }
 
     @Override
     public void enter() {
-        // 설정창 진입 시 필요한 초기화 작업 수행
+        // State 진입 시 View와 Controller 초기화
+        settingView = new SettingView();
+        controller = new SettingController(stateManager, settingView);
     }
 
     @Override
@@ -29,42 +34,28 @@ public class SettingState extends State {
 
     @Override
     public void resume() {
-        
+        // 색상 설정 화면에서 돌아올 때 필요한 작업
     }
 
     @Override
     public Scene createScene() {
-        VBox root = new VBox(30);
-        root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
-
-        Text title = new Text("Settings");
-        title.setFill(Color.WHITE);
-        title.setFont(Font.font("Arial", 36));
-
-        NavigableButtonSystem buttonSystem = new NavigableButtonSystem();
-
-        buttonSystem.createNavigableButton("Screen Size", () -> System.err.println("Set Screen Size"));
-        buttonSystem.createNavigableButton("Controls", () -> System.err.println("Set Controls"));
-        buttonSystem.createNavigableButton("Color Blind Setting", () -> stateManager.stackState("color_setting"));
-        buttonSystem.createNavigableButton("Reset Score Board", () -> System.err.println("Reset Score Board"));
-        buttonSystem.createNavigableButton("Reset All Setting", () -> {
-            System.err.println("All Setting Reset to Default");
-            stateManager.settingManager.resetToDefault();
-        });
-        buttonSystem.createNavigableButton("Go Back", () -> {
-            stateManager.settingManager.applyColorSetting();
-            stateManager.settingManager.saveSettingData();
-            stateManager.popState();
-        });
-
-        root.getChildren().add(title);
-        root.getChildren().addAll(buttonSystem.getButtons());
+        // View로부터 UI 구성 요소를 받아옴
+        // Controller의 핸들러를 콜백으로 전달
+        VBox root = settingView.createView(
+            () -> controller.handleScreenSize(),           // Screen Size 버튼
+            () -> controller.handleControls(),             // Controls 버튼
+            () -> controller.handleColorBlindSetting(),    // Color Blind Setting 버튼
+            () -> controller.handleResetScoreBoard(),      // Reset Score Board 버튼
+            () -> controller.handleResetAllSetting(),      // Reset All Setting 버튼
+            () -> controller.handleGoBack()                // Go Back 버튼
+        );
 
         scene = new Scene(root, 1000, 700);
+        // Scene 레벨에서 배경색 설정하여 플리커링 방지
+        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
 
-        // Handle keyboard input
-        scene.setOnKeyPressed(event -> buttonSystem.handleInput(event));
+        // 키보드 입력은 Controller를 통해 처리
+        scene.setOnKeyPressed(event -> controller.handleKeyInput(event));
 
         // Focus for keyboard input
         scene.getRoot().setFocusTraversable(true);

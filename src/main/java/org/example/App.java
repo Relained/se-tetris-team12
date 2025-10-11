@@ -14,7 +14,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Tetris - Team 12");
+        primaryStage.setTitle("Tetris");
         
         // 창 크기 조정 가능하도록 설정
         primaryStage.setResizable(true);
@@ -37,7 +37,7 @@ public class App extends Application {
         stateManager.addState("pause", new PauseState(stateManager));
         stateManager.addState("setting", new SettingState(stateManager));
         stateManager.addState("color_setting", new ColorSettingState(stateManager));
-        stateManager.addState("gameOver", new GameOverState(stateManager));
+        stateManager.addState("gameover", new GameOverState(stateManager));
 
         // Start with the start screen
         stateManager.setState("start");

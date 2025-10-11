@@ -8,8 +8,8 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 
+import org.example.service.ColorManager;
 import org.example.view.component.play.HoldPanel;
 import org.example.view.component.play.NextPiecePanel;
 import org.example.view.component.play.ScorePanel;
@@ -24,6 +24,11 @@ public class PlayView {
     private HoldPanel holdPanel;
     private NextPiecePanel nextPanel;
     private ScorePanel scorePanel;
+    private ColorManager colorManager;
+    
+    public PlayView() {
+        this.colorManager = ColorManager.getInstance();
+    }
     
     /**
      * Play 화면의 UI를 구성하고 반환합니다.
@@ -32,7 +37,9 @@ public class PlayView {
     public HBox createView() {
         // 메인 컨테이너 (좌우 분할)
         HBox root = new HBox(5);
-        root.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
+        root.setBackground(new Background(
+            new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)
+        ));
         root.setPadding(new Insets(20));
 
         // 좌측: 게임 캔버스 영역

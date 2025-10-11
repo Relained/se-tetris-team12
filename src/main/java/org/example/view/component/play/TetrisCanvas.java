@@ -4,7 +4,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-import org.example.model.ColorModel;
+import org.example.service.ColorManager;
 import org.example.model.GameBoard;
 import org.example.model.TetrominoPosition;
 
@@ -15,7 +15,8 @@ import org.example.model.TetrominoPosition;
 public class TetrisCanvas extends Canvas {
     private double cellSize = 30;
     private static final Color BORDER_COLOR = Color.DARKGRAY;
-    private static final Color BACKGROUND_COLOR = Color.BLACK;
+    private final ColorManager colorManager;
+    private final Color BACKGROUND_COLOR;
     private static final Color GHOST_COLOR = Color.GRAY;
 
     private GameBoard board;
@@ -24,6 +25,8 @@ public class TetrisCanvas extends Canvas {
 
     public TetrisCanvas() {
         super(GameBoard.WIDTH * 30, GameBoard.HEIGHT * 30);
+        this.colorManager = ColorManager.getInstance();
+        this.BACKGROUND_COLOR = colorManager.getBackgroundColor();
         
         // 높이 변경 시 자동으로 cell size 재계산
         heightProperty().addListener((_, _, newHeight) -> {
@@ -78,7 +81,7 @@ public class TetrisCanvas extends Canvas {
             for (int col = 0; col < GameBoard.WIDTH; col++) {
                 if (visibleBoard[row][col] == 0) 
                     continue;
-                Color color = ColorModel.getColorFromIndex(visibleBoard[row][col]);
+                Color color = colorManager.getColorFromIndex(visibleBoard[row][col]);
                 drawCell(gc, col, row, color);
             }
         }

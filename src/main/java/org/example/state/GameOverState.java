@@ -81,6 +81,8 @@ public class GameOverState extends State {
         );
 
         scene = new Scene(root, 1000, 700);
+        // Scene 레벨에서 배경색 설정하여 플리커링 방지
+        scene.setFill(Color.DARKRED);
 
         // Handle keyboard input
         scene.setOnKeyPressed(event -> buttonSystem.handleInput(event));

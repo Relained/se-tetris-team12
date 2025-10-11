@@ -63,6 +63,8 @@ public class ColorSettingState extends State {
         root.getChildren().addAll(buttonSystem.getButtons());
 
         scene = new Scene(root, 1000, 700);
+        // Scene 레벨에서 배경색 설정하여 플리커링 방지
+        scene.setFill(Color.BLACK);
 
         // Handle keyboard input
         scene.setOnKeyPressed(event -> buttonSystem.handleInput(event));

@@ -61,6 +61,8 @@ public class PlayState extends State {
         HBox root = playView.createView();
 
         scene = new Scene(root, 1000, 700);
+        // Scene 레벨에서 배경색 설정하여 플리커링 방지
+        scene.setFill(org.example.service.ColorManager.getInstance().getGameBackgroundColor());
 
         // 높이와 너비 변경 시 캔버스 크기 비율에 맞게 자동 조정
         scene.heightProperty().addListener((_, _, _) -> playView.updateCanvasSize(scene));

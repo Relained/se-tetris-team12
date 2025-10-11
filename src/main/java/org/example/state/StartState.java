@@ -48,6 +48,8 @@ public class StartState extends State {
         );
 
         scene = new Scene(root, 1000, 700);
+        // Scene 레벨에서 배경색 설정하여 플리커링 방지
+        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
 
         // 키보드 입력은 Controller를 통해 처리
         scene.setOnKeyPressed(event -> controller.handleKeyInput(event));

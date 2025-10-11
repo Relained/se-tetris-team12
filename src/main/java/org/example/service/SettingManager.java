@@ -7,14 +7,15 @@ import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.io.ObjectInputStream;
 import java.io.FileNotFoundException;
-import org.example.model.ColorModel;
 import org.example.model.SettingData;
 
 public class SettingManager {
     final String fileName = "setting.ser";
     SettingData currentSettings;
+    private ColorManager colorManager;
 
     public SettingManager() {
+        this.colorManager = ColorManager.getInstance();
         boolean success = loadSettingData();
         if (!success) {
             currentSettings = new SettingData();
@@ -35,7 +36,7 @@ public class SettingManager {
     }
 
     public void applyColorSetting() {
-        ColorModel.setColorSet(currentSettings.colorBlindMode);
+        colorManager.setColorMode(currentSettings.colorBlindMode);
     }
 
     public void saveSettingData() {
