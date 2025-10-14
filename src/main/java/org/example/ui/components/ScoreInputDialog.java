@@ -55,13 +55,13 @@ public class ScoreInputDialog extends VBox {
         scoreText.setFont(Font.font("Arial", 16));
         
         // Instruction
-        instructionText = new Text("Enter your name to save this score:");
+        instructionText = new Text("Enter your name (max 3 characters):");
         instructionText.setFill(Color.LIGHTGRAY);
         instructionText.setFont(Font.font("Arial", 14));
         
         // Name input
         nameInput = new TextField();
-        nameInput.setPromptText("Player Name");
+        nameInput.setPromptText("ABC");
         nameInput.setMaxWidth(300);
         nameInput.setFont(Font.font("Arial", 14));
         nameInput.setStyle("-fx-background-color: white; -fx-text-fill: black;");
@@ -90,8 +90,15 @@ public class ScoreInputDialog extends VBox {
         
         nameInput.setOnAction(e -> handleSubmit()); // Enter key on text field
         
-        // Update submit button state based on input
+        // 3글자 제한 및 버튼 상태 관리
         nameInput.textProperty().addListener((obs, oldText, newText) -> {
+            // 3글자를 초과하면 잘라내기
+            if (newText.length() > 3) {
+                nameInput.setText(newText.substring(0, 3));
+                return;
+            }
+            
+            // 버튼 활성화/비활성화
             submitButton.setDisable(newText.trim().isEmpty());
         });
         

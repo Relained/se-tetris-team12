@@ -76,14 +76,14 @@ public class PlayState extends GameState {
 
         // Check game over
         if (gameLogic.isGameOver()) {
-            // Create ScoreInputState with final game stats
-            ScoreInputState scoreInputState = new ScoreInputState(
+            // Create ScoreState with final game stats
+            ScoreState scoreState = new ScoreState(
                 stateManager,
                 gameLogic.getScore(),
                 gameLogic.getLines(),
                 gameLogic.getLevel()
             );
-            stateManager.addState("scoreInput", scoreInputState);
+            stateManager.addState("scoreInput", scoreState);
             stateManager.setState("scoreInput");
         }
     }

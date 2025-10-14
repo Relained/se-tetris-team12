@@ -24,12 +24,12 @@ public class GameOverState extends GameState {
 
     @Override
     public void enter() {
-        // Get final game stats from ScoreInputState if available
+        // Get final game stats from ScoreState if available
         GameState previousState = stateManager.getCurrentState();
-        if (previousState instanceof ScoreInputState scoreInputState) {
-            finalScore = scoreInputState.getFinalScore();
-            finalLines = scoreInputState.getFinalLines();
-            finalLevel = scoreInputState.getFinalLevel();
+        if (previousState instanceof ScoreState scoreState) {
+            finalScore = scoreState.getFinalScore();
+            finalLines = scoreState.getFinalLines();
+            finalLevel = scoreState.getFinalLevel();
         } else {
             // Fallback to PlayState if directly accessed
             if (previousState instanceof PlayState playState && playState.getGameLogic() != null) {

@@ -2,7 +2,6 @@ package org.example.ui.components;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
@@ -38,7 +37,8 @@ public class ScoreboardUI extends VBox {
         setSpacing(15);
         setPadding(new Insets(20));
         setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
-        setMaxWidth(600);
+        setMaxWidth(550); // 이름이 3글자로 제한되어 전체 폭 축소
+        setPrefWidth(550);
 
         // Title
         titleLabel = new Text("HIGH SCORES");
@@ -56,9 +56,10 @@ public class ScoreboardUI extends VBox {
     }
 
     private HBox createHeaderRow() {
-        HBox headerBox = new HBox();
-        headerBox.setAlignment(Pos.CENTER);
+        HBox headerBox = new HBox(10); // 컬럼 간격 추가
+        headerBox.setAlignment(Pos.CENTER_LEFT);
         headerBox.setPadding(new Insets(0, 0, 10, 0));
+        headerBox.setMaxWidth(500); // 전체 폭 축소
 
         Text rankHeader = new Text("RANK");
         rankHeader.setFill(Color.WHITE);
@@ -80,15 +81,28 @@ public class ScoreboardUI extends VBox {
         dateHeader.setFill(Color.WHITE);
         dateHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
 
-        // Set fixed widths for alignment
-        rankHeader.setWrappingWidth(50);
-        nameHeader.setWrappingWidth(120);
-        scoreHeader.setWrappingWidth(100);
-        levelHeader.setWrappingWidth(60);
-        dateHeader.setWrappingWidth(120);
+        // 3글자 이름에 맞춘 컬럼 폭 조정
+        VBox rankBox = createAlignedTextBox(rankHeader, 60, Pos.CENTER);
+        VBox nameBox = createAlignedTextBox(nameHeader, 80, Pos.CENTER); // 140 → 80으로 축소
+        VBox scoreBox = createAlignedTextBox(scoreHeader, 120, Pos.CENTER_RIGHT);
+        VBox levelBox = createAlignedTextBox(levelHeader, 80, Pos.CENTER);
+        VBox dateBox = createAlignedTextBox(dateHeader, 120, Pos.CENTER);
 
-        headerBox.getChildren().addAll(rankHeader, nameHeader, scoreHeader, levelHeader, dateHeader);
+        headerBox.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, dateBox);
         return headerBox;
+    }
+
+    /**
+     * 텍스트를 정렬된 박스에 넣는 헬퍼 메서드
+     */
+    private VBox createAlignedTextBox(Text text, double width, Pos alignment) {
+        VBox box = new VBox();
+        box.setAlignment(alignment);
+        box.setPrefWidth(width);
+        box.setMaxWidth(width);
+        box.setMinWidth(width);
+        box.getChildren().add(text);
+        return box;
     }
 
     public void updateScoreboard() {
@@ -112,8 +126,9 @@ public class ScoreboardUI extends VBox {
     }
 
     private HBox createScoreRow(int rank, ScoreRecord record) {
-        HBox row = new HBox();
+        HBox row = new HBox(10); // 컬럼 간격 추가
         row.setAlignment(Pos.CENTER_LEFT);
+        row.setMaxWidth(500); // 전체 폭 축소
 
         Text rankText = new Text(String.valueOf(rank));
         Text nameText = new Text(record.getPlayerName());
@@ -147,14 +162,14 @@ public class ScoreboardUI extends VBox {
         levelText.setFont(font);
         dateText.setFont(font);
 
-        // Set fixed widths for alignment
-        rankText.setWrappingWidth(50);
-        nameText.setWrappingWidth(120);
-        scoreText.setWrappingWidth(100);
-        levelText.setWrappingWidth(60);
-        dateText.setWrappingWidth(120);
+        // 3글자 이름에 맞춘 정렬된 박스로 각 컬럼 생성
+        VBox rankBox = createAlignedTextBox(rankText, 60, Pos.CENTER);
+        VBox nameBox = createAlignedTextBox(nameText, 80, Pos.CENTER); // 140 → 80으로 축소
+        VBox scoreBox = createAlignedTextBox(scoreText, 120, Pos.CENTER_RIGHT);
+        VBox levelBox = createAlignedTextBox(levelText, 80, Pos.CENTER);
+        VBox dateBox = createAlignedTextBox(dateText, 120, Pos.CENTER);
 
-        row.getChildren().addAll(rankText, nameText, scoreText, levelText, dateText);
+        row.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, dateBox);
         return row;
     }
 

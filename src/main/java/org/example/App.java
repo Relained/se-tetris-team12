@@ -21,9 +21,9 @@ public class App extends Application {
         stateManager.addState("play", new PlayState(stateManager));
         stateManager.addState("pause", new PauseState(stateManager));
         stateManager.addState("setting", new SettingState(stateManager));
-        stateManager.addState("scoreboard", new ScoreboardState(stateManager));
+        stateManager.addState("scoreboard", new ScoreState(stateManager)); // Unified ScoreState for scoreboard viewing
         stateManager.addState("gameOver", new GameOverState(stateManager));
-        // Note: ScoreInputState is created dynamically in PlayState when game ends
+        // Note: ScoreState for input is created dynamically in PlayState when game ends
 
         // Start with the start screen
         stateManager.setState("start");
