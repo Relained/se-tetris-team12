@@ -19,10 +19,12 @@ public class TetrominoPosition {
 
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
-    public void setRotation(int rotation) { this.rotation = rotation; }
+    public void setRotation(int rotation) { 
+        this.rotation = Math.floorMod(rotation, 4);
+    }
 
     public int[][] getCurrentShape() {
-        return type.getAllRotations()[Math.floorMod(rotation, 4)];
+        return type.getShape(rotation);
     }
 
     public TetrominoPosition copy() {

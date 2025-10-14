@@ -1,4 +1,4 @@
-package org.example.game.state;
+package org.example.service;
 
 import javafx.stage.Stage;
 import javafx.scene.Scene;
@@ -7,19 +7,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-public class GameStateManager {
-    private final Stage primaryStage;
-    private final Map<String, GameState> states;
-    private GameState currentState;
-    private Stack<GameState> stateStack;
+import org.example.state.BaseState;
 
-    public GameStateManager(Stage primaryStage) {
+public class StateManager {
+    private final Stage primaryStage;
+    private final Map<String, BaseState> states;
+    private BaseState currentState;
+    private Stack<BaseState> stateStack;
+    public SettingManager settingManager;
+
+    public StateManager(Stage primaryStage, SettingManager settingManager) {
         this.primaryStage = primaryStage;
         this.states = new HashMap<>();
         this.stateStack = new Stack<>();
+        this.settingManager = settingManager;
     }
 
-    public void addState(String name, GameState state) {
+    public void addState(String name, BaseState state) {
         states.put(name, state);
     }
 
@@ -33,11 +37,11 @@ public class GameStateManager {
         }
         currentState = stateStack.pop();
         currentState.resume();
-        primaryStage.setScene(currentState.scene);
+        primaryStage.setScene(currentState.getScene());
     }
 
     public void stackState(String stateName) {
-        GameState newState = states.get(stateName);
+        BaseState newState = states.get(stateName);
         if (newState == null) {
             throw new IllegalArgumentException("State not found: " + stateName);
         }
@@ -53,7 +57,7 @@ public class GameStateManager {
     }
 
     public void setState(String stateName) {
-        GameState newState = states.get(stateName);
+        BaseState newState = states.get(stateName);
         if (newState == null) {
             throw new IllegalArgumentException("State not found: " + stateName);
         }
@@ -70,7 +74,7 @@ public class GameStateManager {
         primaryStage.setScene(scene);
     }
 
-    public GameState getCurrentState() {
+    public BaseState getCurrentState() {
         return currentState;
     }
 

@@ -1,15 +1,22 @@
-package org.example.ui.components;
+package org.example.view.component.play;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+
+import org.example.service.ColorManager;
 import org.example.model.GameBoard;
 import org.example.model.TetrominoPosition;
 
+/**
+ * 테트리스 메인 컴포넌트입니다.
+ * 창의 높이에 따라 동적으로 크기가 조정됩니다.
+ */
 public class TetrisCanvas extends Canvas {
-    private static final int CELL_SIZE = 30;
+    private double cellSize = 30;
     private static final Color BORDER_COLOR = Color.DARKGRAY;
-    private static final Color BACKGROUND_COLOR = Color.BLACK;
+    private final ColorManager colorManager;
+    private final Color BACKGROUND_COLOR;
     private static final Color GHOST_COLOR = Color.GRAY;
 
     private GameBoard board;
@@ -17,7 +24,38 @@ public class TetrisCanvas extends Canvas {
     private TetrominoPosition ghostPiece;
 
     public TetrisCanvas() {
-        super(GameBoard.WIDTH * CELL_SIZE, GameBoard.HEIGHT * CELL_SIZE);
+        super(GameBoard.WIDTH * 30, GameBoard.HEIGHT * 30);
+        this.colorManager = ColorManager.getInstance();
+        this.BACKGROUND_COLOR = colorManager.getBackgroundColor();
+        
+        // 높이 변경 시 자동으로 cell size 재계산
+        heightProperty().addListener((_, _, newHeight) -> {
+            cellSize = newHeight.doubleValue() / GameBoard.HEIGHT;
+            setWidth(GameBoard.WIDTH * cellSize);
+            draw(); // 크기 변경 시 다시 그리기
+        });
+    }
+    
+    public void setCanvasHeight(double height) {
+        setHeight(height);
+    }
+    
+    public void setCanvasSize(double width, double height) {
+        // 테트리스 비율 (가로:세로 = 1:2) 유지
+        double widthBasedHeight = width * 2;
+        double heightBasedWidth = height * 0.5;
+        
+        // 더 작은 값으로 조정하여 비율 유지
+        if (widthBasedHeight <= height) {
+            setWidth(width);
+            setHeight(widthBasedHeight);
+            cellSize = width / GameBoard.WIDTH;
+        } else {
+            setWidth(heightBasedWidth);
+            setHeight(height);
+            cellSize = height / GameBoard.HEIGHT;
+        }
+        draw();
     }
 
     public void updateBoard(GameBoard board, TetrominoPosition currentPiece, TetrominoPosition ghostPiece) {
@@ -41,9 +79,10 @@ public class TetrisCanvas extends Canvas {
         int[][] visibleBoard = board.getVisibleBoard();
         for (int row = 0; row < GameBoard.HEIGHT; row++) {
             for (int col = 0; col < GameBoard.WIDTH; col++) {
-                if (visibleBoard[row][col] != 0) {
-                    drawCell(gc, col, row, Color.web(String.format("#%06X", visibleBoard[row][col])));
-                }
+                if (visibleBoard[row][col] == 0) 
+                    continue;
+                Color color = colorManager.getColorFromIndex(visibleBoard[row][col]);
+                drawCell(gc, col, row, color);
             }
         }
 
@@ -54,7 +93,7 @@ public class TetrisCanvas extends Canvas {
 
         // Draw current piece
         if (currentPiece != null) {
-            Color pieceColor = Color.web(String.format("#%06X", currentPiece.getType().getColor()));
+            Color pieceColor = currentPiece.getType().getColor();
             drawPiece(gc, currentPiece, pieceColor, false);
         }
 
@@ -85,24 +124,24 @@ public class TetrisCanvas extends Canvas {
     }
 
     private void drawCell(GraphicsContext gc, int x, int y, Color color) {
-        double pixelX = x * CELL_SIZE;
-        double pixelY = y * CELL_SIZE;
+        double pixelX = x * cellSize;
+        double pixelY = y * cellSize;
 
         gc.setFill(color);
-        gc.fillRect(pixelX, pixelY, CELL_SIZE, CELL_SIZE);
+        gc.fillRect(pixelX, pixelY, cellSize, cellSize);
 
         gc.setStroke(BORDER_COLOR);
         gc.setLineWidth(1);
-        gc.strokeRect(pixelX, pixelY, CELL_SIZE, CELL_SIZE);
+        gc.strokeRect(pixelX, pixelY, cellSize, cellSize);
     }
 
     private void drawGhostCell(GraphicsContext gc, int x, int y) {
-        double pixelX = x * CELL_SIZE;
-        double pixelY = y * CELL_SIZE;
+        double pixelX = x * cellSize;
+        double pixelY = y * cellSize;
 
         gc.setStroke(GHOST_COLOR);
         gc.setLineWidth(2);
-        gc.strokeRect(pixelX + 2, pixelY + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+        gc.strokeRect(pixelX + 2, pixelY + 2, cellSize - 4, cellSize - 4);
     }
 
     private void drawGrid(GraphicsContext gc) {
@@ -110,12 +149,12 @@ public class TetrisCanvas extends Canvas {
         gc.setLineWidth(0.5);
 
         for (int i = 0; i <= GameBoard.WIDTH; i++) {
-            double x = i * CELL_SIZE;
+            double x = i * cellSize;
             gc.strokeLine(x, 0, x, getHeight());
         }
 
         for (int i = 0; i <= GameBoard.HEIGHT; i++) {
-            double y = i * CELL_SIZE;
+            double y = i * cellSize;
             gc.strokeLine(0, y, getWidth(), y);
         }
     }

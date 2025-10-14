@@ -1,8 +1,7 @@
-package org.example.ui;
+package org.example.view.component;
 
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyEvent;
-import javafx.util.Pair;
 import java.util.ArrayList;
 
 public class NavigableButtonSystem {

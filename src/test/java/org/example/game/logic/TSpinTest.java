@@ -3,6 +3,7 @@ package org.example.game.logic;
 import org.example.model.GameBoard;
 import org.example.model.Tetromino;
 import org.example.model.TetrominoPosition;
+import org.example.service.SuperRotationSystem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

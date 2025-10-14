@@ -1,4 +1,4 @@
-package org.example.ui.components;
+package org.example.view.component.play;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -30,8 +30,8 @@ public class HoldPanel extends VBox {
 
         if (holdPiece == null) return;
 
-        int[][] shape = holdPiece.getType().getShape();
-        Color color = Color.web(String.format("#%06X", holdPiece.getType().getColor()));
+        int[][] shape = holdPiece.getType().getShape(0);
+        Color color = holdPiece.getType().getColor();
 
         // Center the piece in the canvas
         double offsetX = (holdCanvas.getWidth() - shape[0].length * CELL_SIZE) / 2;

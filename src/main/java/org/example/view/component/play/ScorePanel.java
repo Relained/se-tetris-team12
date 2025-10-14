@@ -1,4 +1,4 @@
-package org.example.ui.components;
+package org.example.view.component.play;
 
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;

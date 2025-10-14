@@ -1,4 +1,4 @@
-package org.example.game.logic;
+package org.example.service;
 
 import org.example.model.GameBoard;
 import org.example.model.Tetromino;
@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class GameLogic {
+public class TetrisSystem {
     private final GameBoard board;
     private TetrominoPosition currentPiece;
     private TetrominoPosition holdPiece;
@@ -27,7 +27,7 @@ public class GameLogic {
     private static final int SOFT_DROP_SCORE = 1;
     private static final int HARD_DROP_SCORE = 2;
 
-    public GameLogic() {
+    public TetrisSystem() {
         this.board = new GameBoard();
         this.nextQueue = new ArrayList<>();
         this.random = new Random();
@@ -59,8 +59,8 @@ public class GameLogic {
         fillNextQueue();
 
         // Spawn position (top-center of board, accounting for buffer zone)
-        int spawnX = (GameBoard.WIDTH - nextType.getShape()[0].length) / 2;
-        int spawnY = GameBoard.BUFFER_ZONE - nextType.getShape().length;
+        int spawnX = (GameBoard.WIDTH - nextType.getShape(0)[0].length) / 2;
+        int spawnY = GameBoard.BUFFER_ZONE - nextType.getShape(0).length;
 
         currentPiece = new TetrominoPosition(nextType, spawnX, spawnY, 0);
         canHold = true;
@@ -151,8 +151,8 @@ public class GameLogic {
             holdPiece = currentPiece;
 
             // Reset held piece to spawn position
-            int spawnX = (GameBoard.WIDTH - temp.getType().getShape()[0].length) / 2;
-            int spawnY = GameBoard.BUFFER_ZONE - temp.getType().getShape().length;
+            int spawnX = (GameBoard.WIDTH - temp.getType().getShape(0)[0].length) / 2;
+            int spawnY = GameBoard.BUFFER_ZONE - temp.getType().getShape(0).length;
             currentPiece = new TetrominoPosition(temp.getType(), spawnX, spawnY, 0);
 
             if (!board.isValidPosition(currentPiece)) {
