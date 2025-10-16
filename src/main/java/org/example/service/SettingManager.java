@@ -30,6 +30,10 @@ public class SettingManager {
     public void resetToDefault() {
         currentSettings = new SettingData();
     }
+    
+    public void resetScoreboard() {
+        ScoreManager.getInstance().clearScores();
+    }
 
     public void setColorSetting(SettingData.ColorBlindMode mode) {
         currentSettings.colorBlindMode = mode;

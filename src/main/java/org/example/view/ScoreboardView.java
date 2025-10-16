@@ -1,44 +1,65 @@
-package org.example;
+package org.example.view;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import org.example.ScoreManager;
-import org.example.ScoreRecord;
+import org.example.model.ScoreRecord;
+import org.example.service.ScoreManager;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class ScoreboardUI extends VBox {
+/**
+ * Scoreboard 화면의 UI를 담당하는 View 클래스
+ */
+public class ScoreboardView extends BaseView {
     private static final int MAX_DISPLAY_SCORES = 10;
     private VBox scoresContainer;
     private Text titleLabel;
-    private boolean showNewlyAddedHighlight = true; // 새로 추가된 점수 하이라이트 표시 여부
+    private boolean showNewlyAddedHighlight;
 
-    public ScoreboardUI() {
-        this(true); // 기본적으로 하이라이트 표시
-    }
-    
-    public ScoreboardUI(boolean showNewlyAddedHighlight) {
+    public ScoreboardView(boolean showNewlyAddedHighlight) {
+        super(true); // NavigableButtonSystem 사용
         this.showNewlyAddedHighlight = showNewlyAddedHighlight;
-        initializeUI();
-        updateScoreboard();
     }
 
-    private void initializeUI() {
-        setAlignment(Pos.CENTER);
-        setSpacing(15);
-        setPadding(new Insets(20));
-        setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
-        setMaxWidth(550); // 이름이 3글자로 제한되어 전체 폭 축소
-        setPrefWidth(550);
+    /**
+     * Scoreboard 화면의 UI를 구성하고 반환합니다.
+     * @param onBackToMenu Back to Menu 버튼 클릭 시 실행될 콜백
+     * @param onClearScores Clear Scores 버튼 클릭 시 실행될 콜백
+     * @return 구성된 BorderPane root
+     */
+    public BorderPane createView(Runnable onBackToMenu, Runnable onClearScores) {
+        BorderPane root = new BorderPane();
+        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+
+        // Scoreboard content
+        VBox scoreboardContent = createScoreboardContent();
+        root.setCenter(scoreboardContent);
+
+        // Button panel
+        HBox buttonPanel = createButtonPanel(onBackToMenu, onClearScores);
+        root.setBottom(buttonPanel);
+
+        return root;
+    }
+
+    private VBox createScoreboardContent() {
+        VBox container = new VBox(15);
+        container.setAlignment(Pos.CENTER);
+        container.setSpacing(15);
+        container.setPadding(new Insets(20));
+        container.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
+        container.setMaxWidth(550);
+        container.setPrefWidth(550);
 
         // Title
         titleLabel = new Text("HIGH SCORES");
@@ -52,14 +73,17 @@ public class ScoreboardUI extends VBox {
         scoresContainer = new VBox(8);
         scoresContainer.setAlignment(Pos.CENTER);
 
-        getChildren().addAll(titleLabel, headerBox, scoresContainer);
+        updateScoreboard();
+
+        container.getChildren().addAll(titleLabel, headerBox, scoresContainer);
+        return container;
     }
 
     private HBox createHeaderRow() {
-        HBox headerBox = new HBox(10); // 컬럼 간격 추가
+        HBox headerBox = new HBox(10);
         headerBox.setAlignment(Pos.CENTER_LEFT);
         headerBox.setPadding(new Insets(0, 0, 10, 0));
-        headerBox.setMaxWidth(500); // 전체 폭 축소
+        headerBox.setMaxWidth(500);
 
         Text rankHeader = new Text("RANK");
         rankHeader.setFill(Color.WHITE);
@@ -81,9 +105,8 @@ public class ScoreboardUI extends VBox {
         dateHeader.setFill(Color.WHITE);
         dateHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
 
-        // 3글자 이름에 맞춘 컬럼 폭 조정
         VBox rankBox = createAlignedTextBox(rankHeader, 60, Pos.CENTER);
-        VBox nameBox = createAlignedTextBox(nameHeader, 80, Pos.CENTER); // 140 → 80으로 축소
+        VBox nameBox = createAlignedTextBox(nameHeader, 80, Pos.CENTER);
         VBox scoreBox = createAlignedTextBox(scoreHeader, 120, Pos.CENTER_RIGHT);
         VBox levelBox = createAlignedTextBox(levelHeader, 80, Pos.CENTER);
         VBox dateBox = createAlignedTextBox(dateHeader, 120, Pos.CENTER);
@@ -92,9 +115,6 @@ public class ScoreboardUI extends VBox {
         return headerBox;
     }
 
-    /**
-     * 텍스트를 정렬된 박스에 넣는 헬퍼 메서드
-     */
     private VBox createAlignedTextBox(Text text, double width, Pos alignment) {
         VBox box = new VBox();
         box.setAlignment(alignment);
@@ -105,6 +125,21 @@ public class ScoreboardUI extends VBox {
         return box;
     }
 
+    private HBox createButtonPanel(Runnable onBackToMenu, Runnable onClearScores) {
+        HBox buttonPanel = new HBox(20);
+        buttonPanel.setAlignment(Pos.CENTER);
+        buttonPanel.setStyle("-fx-padding: 20;");
+
+        var backButton = buttonSystem.createNavigableButton("Back to Menu", onBackToMenu);
+        var clearButton = buttonSystem.createNavigableButton("Clear Scores", onClearScores);
+
+        buttonPanel.getChildren().addAll(backButton, clearButton);
+        return buttonPanel;
+    }
+
+    /**
+     * 스코어보드를 갱신합니다.
+     */
     public void updateScoreboard() {
         scoresContainer.getChildren().clear();
 
@@ -126,9 +161,9 @@ public class ScoreboardUI extends VBox {
     }
 
     private HBox createScoreRow(int rank, ScoreRecord record) {
-        HBox row = new HBox(10); // 컬럼 간격 추가
+        HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setMaxWidth(500); // 전체 폭 축소
+        row.setMaxWidth(500);
 
         Text rankText = new Text(String.valueOf(rank));
         Text nameText = new Text(record.getPlayerName());
@@ -162,9 +197,8 @@ public class ScoreboardUI extends VBox {
         levelText.setFont(font);
         dateText.setFont(font);
 
-        // 3글자 이름에 맞춘 정렬된 박스로 각 컬럼 생성
         VBox rankBox = createAlignedTextBox(rankText, 60, Pos.CENTER);
-        VBox nameBox = createAlignedTextBox(nameText, 80, Pos.CENTER); // 140 → 80으로 축소
+        VBox nameBox = createAlignedTextBox(nameText, 80, Pos.CENTER);
         VBox scoreBox = createAlignedTextBox(scoreText, 120, Pos.CENTER_RIGHT);
         VBox levelBox = createAlignedTextBox(levelText, 80, Pos.CENTER);
         VBox dateBox = createAlignedTextBox(dateText, 120, Pos.CENTER);
@@ -182,12 +216,10 @@ public class ScoreboardUI extends VBox {
         };
     }
 
+    /**
+     * 스코어보드를 새로고침합니다.
+     */
     public void refresh() {
-        updateScoreboard();
-    }
-
-    public void clearScores() {
-        ScoreManager.getInstance().clearScores();
         updateScoreboard();
     }
 }

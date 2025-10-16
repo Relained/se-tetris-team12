@@ -1,10 +1,13 @@
-package org.example;
+package org.example.model;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/**
+ * 점수 기록을 저장하는 Model 클래스
+ */
 public class ScoreRecord implements Serializable, Comparable<ScoreRecord> {
-    private static final long serialVersionUID = 1L; // 명시적 버전 설정
+    private static final long serialVersionUID = 1L;
     
     private String playerName;
     private int score;

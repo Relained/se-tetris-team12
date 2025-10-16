@@ -16,11 +16,12 @@ public class StartView extends BaseView {
     /**
      * Start 화면의 UI를 구성하고 반환합니다.
      * @param onStartGame Start Game 버튼 클릭 시 실행될 콜백
+     * @param onViewScoreboard View Scoreboard 버튼 클릭 시 실행될 콜백
      * @param onSetting Setting 버튼 클릭 시 실행될 콜백
      * @param onExit Exit 버튼 클릭 시 실행될 콜백
      * @return 구성된 VBox root
      */
-    public VBox createView(Runnable onStartGame, Runnable onSetting, Runnable onExit) {
+    public VBox createView(Runnable onStartGame, Runnable onViewScoreboard, Runnable onSetting, Runnable onExit) {
         VBox root = new VBox(40);
         root.setAlignment(Pos.CENTER);
         root.setBackground(new Background(
@@ -36,6 +37,7 @@ public class StartView extends BaseView {
         title.setFont(Font.font("Arial", 16));
 
         var startButton = buttonSystem.createNavigableButton("Start Game", onStartGame);
+        var scoreboardButton = buttonSystem.createNavigableButton("View Scoreboard", onViewScoreboard);
         var settingButton = buttonSystem.createNavigableButton("Setting", onSetting);
         var exitButton = buttonSystem.createNavigableButton("Exit", onExit);
 
@@ -49,7 +51,7 @@ public class StartView extends BaseView {
         controls.setFill(colorManager.getSecondaryTextColor());
         controls.setFont(Font.font("Arial", 14));
 
-        root.getChildren().addAll(title, subtitle, startButton, settingButton, exitButton, controls);
+        root.getChildren().addAll(title, subtitle, startButton, scoreboardButton, settingButton, exitButton, controls);
 
         return root;
     }

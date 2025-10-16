@@ -1,29 +1,32 @@
-package org.example;
+package org.example.state;
 
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import org.example.ScoreRecord;
-import org.example.view.component.NavigableButtonSystem;
-import org.example.ScoreInputDialog;
-import org.example.ScoreboardUI;
-import org.example.state.BaseState;
+import org.example.controller.ScoreInputController;
+import org.example.controller.ScoreboardController;
+import org.example.service.ScoreManager;
 import org.example.service.StateManager;
+import org.example.view.ScoreInputView;
+import org.example.view.ScoreboardView;
+import org.example.view.component.NavigableButtonSystem;
 
 /**
- * Unified state for handling both score input and scoreboard display
+ * Scoreboard 관련 화면을 담당하는 State
+ * 세 가지 모드를 지원합니다:
+ * 1. INPUT - 점수 입력 모드
+ * 2. NOT_ELIGIBLE - 상위 10개에 들지 못한 경우
+ * 3. SCOREBOARD - 스코어보드 조회 모드
  */
-public class ScoreState extends BaseState {
+public class ScoreboardState extends BaseState {
     
     // State modes
     public enum Mode {
@@ -38,18 +41,19 @@ public class ScoreState extends BaseState {
     private int finalScore;
     private int finalLines;
     private int finalLevel;
-    private ScoreInputDialog scoreInputDialog;
-    private boolean scoreSubmitted = false;
+    private ScoreInputView scoreInputView;
+    private ScoreInputController scoreInputController;
     
     // Scoreboard related fields
-    private ScoreboardUI scoreboardUI;
+    private ScoreboardView scoreboardView;
+    private ScoreboardController scoreboardController;
     private boolean showNewlyAddedHighlight;
     
-    // Common fields
-    private NavigableButtonSystem buttonSystem;
+    // Not eligible mode fields
+    private NavigableButtonSystem notEligibleButtonSystem;
 
-    // Constructor for score input mode
-    public ScoreState(StateManager stateManager, int score, int lines, int level) {
+    // Constructor for score input mode (from game over)
+    public ScoreboardState(StateManager stateManager, int score, int lines, int level) {
         super(stateManager);
         this.finalScore = score;
         this.finalLines = lines;
@@ -65,20 +69,20 @@ public class ScoreState extends BaseState {
     }
 
     // Constructor for scoreboard viewing mode
-    public ScoreState(StateManager stateManager, boolean showNewlyAddedHighlight) {
+    public ScoreboardState(StateManager stateManager, boolean showNewlyAddedHighlight) {
         super(stateManager);
         this.currentMode = Mode.SCOREBOARD;
         this.showNewlyAddedHighlight = showNewlyAddedHighlight;
     }
 
     // Constructor for scoreboard viewing mode (default highlight)
-    public ScoreState(StateManager stateManager) {
+    public ScoreboardState(StateManager stateManager) {
         this(stateManager, true);
     }
 
     @Override
     public void enter() {
-        scoreSubmitted = false;
+        // Mode별 초기화는 createScene에서 수행
     }
 
     @Override
@@ -88,8 +92,8 @@ public class ScoreState extends BaseState {
 
     @Override
     public void resume() {
-        if (currentMode == Mode.SCOREBOARD && scoreboardUI != null) {
-            scoreboardUI.refresh();
+        if (currentMode == Mode.SCOREBOARD && scoreboardView != null) {
+            scoreboardView.refresh();
         }
     }
 
@@ -112,35 +116,24 @@ public class ScoreState extends BaseState {
         root.setAlignment(Pos.CENTER);
         root.setBackground(new Background(new BackgroundFill(Color.rgb(0, 0, 0, 0.8), null, null)));
 
-        scoreInputDialog = new ScoreInputDialog(finalScore, finalLines, finalLevel);
+        scoreInputView = new ScoreInputView();
+        scoreInputController = new ScoreInputController(stateManager, scoreInputView, 
+                                                       finalScore, finalLines, finalLevel);
         
-        scoreInputDialog.setOnSubmit(() -> {
-            if (!scoreSubmitted) {
-                String playerName = scoreInputDialog.getPlayerName();
-                if (!playerName.isEmpty()) {
-                    ScoreRecord record = new ScoreRecord(playerName, finalScore, finalLines, finalLevel);
-                    ScoreManager.getInstance().addScore(record);
-                    scoreSubmitted = true;
-                    proceedToGameOver();
-                }
-            }
-        });
+        VBox inputBox = scoreInputView.createView(
+            finalScore, 
+            finalLines, 
+            finalLevel,
+            () -> scoreInputController.handleSubmit(),
+            () -> scoreInputController.handleSkip()
+        );
 
-        scoreInputDialog.setOnSkip(() -> {
-            proceedToGameOver();
-        });
+        root.getChildren().add(inputBox);
 
-        root.getChildren().add(scoreInputDialog);
+        scene = new Scene(root, 800, 600);
+        scene.setOnKeyPressed(event -> scoreInputController.handleKeyInput(event));
 
-        Scene scene = new Scene(root, 800, 600);
-
-        scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ESCAPE) {
-                proceedToGameOver();
-            }
-        });
-
-        scoreInputDialog.focusNameInput();
+        scoreInputView.focusNameInput();
         return scene;
     }
 
@@ -162,27 +155,35 @@ public class ScoreState extends BaseState {
         scoreText.setFont(Font.font("Arial", 20));
         scoreText.setTextAlignment(TextAlignment.CENTER);
         
-        buttonSystem = new NavigableButtonSystem();
-        var scoreboardButton = buttonSystem.createNavigableButton("View Scoreboard", () -> {
-            // Switch to scoreboard mode within the same state
+        notEligibleButtonSystem = new NavigableButtonSystem();
+        var scoreboardButton = notEligibleButtonSystem.createNavigableButton("View Scoreboard", () -> {
+            // Switch to scoreboard mode
             currentMode = Mode.SCOREBOARD;
             showNewlyAddedHighlight = false;
-            // Recreate scene with new mode
             Scene newScene = createScoreboardScene();
             stateManager.getPrimaryStage().setScene(newScene);
         });
-        var gameOverButton = buttonSystem.createNavigableButton("Go to Game Over", () -> proceedToGameOver());
+        var gameOverButton = notEligibleButtonSystem.createNavigableButton("Continue", () -> {
+            // Go to Game Over screen with score info
+            GameOverState gameOverState = 
+                new GameOverState(stateManager, finalScore, finalLines, finalLevel);
+            stateManager.addState("gameOver", gameOverState);
+            stateManager.setState("gameOver");
+        });
         
         messageBox.getChildren().addAll(messageText, scoreText, scoreboardButton, gameOverButton);
         root.getChildren().add(messageBox);
         
-        Scene scene = new Scene(root, 800, 600);
-
+        scene = new Scene(root, 800, 600);
         scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ESCAPE) {
-                proceedToGameOver();
+            if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                // Go to Game Over screen on ESC
+                GameOverState gameOverState = 
+                    new GameOverState(stateManager, finalScore, finalLines, finalLevel);
+                stateManager.addState("gameOver", gameOverState);
+                stateManager.setState("gameOver");
             } else {
-                buttonSystem.handleInput(event);
+                notEligibleButtonSystem.handleInput(event);
             }
         });
         
@@ -193,46 +194,21 @@ public class ScoreState extends BaseState {
     }
 
     private Scene createScoreboardScene() {
-        BorderPane root = new BorderPane();
-        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+        scoreboardView = new ScoreboardView(showNewlyAddedHighlight);
+        scoreboardController = new ScoreboardController(stateManager, scoreboardView);
+        
+        BorderPane root = scoreboardView.createView(
+            () -> scoreboardController.handleBackToMenu(),
+            () -> scoreboardController.handleClearScores()
+        );
 
-        scoreboardUI = new ScoreboardUI(showNewlyAddedHighlight);
-        root.setCenter(scoreboardUI);
-
-        HBox buttonPanel = createButtonPanel();
-        root.setBottom(buttonPanel);
-
-        Scene scene = new Scene(root, 800, 700);
-
-        scene.setOnKeyPressed(event -> buttonSystem.handleInput(event));
+        scene = new Scene(root, 800, 700);
+        scene.setOnKeyPressed(event -> scoreboardController.handleKeyInput(event));
 
         scene.getRoot().setFocusTraversable(true);
         scene.getRoot().requestFocus();
 
         return scene;
-    }
-
-    private HBox createButtonPanel() {
-        HBox buttonPanel = new HBox(20);
-        buttonPanel.setAlignment(Pos.CENTER);
-        buttonPanel.setStyle("-fx-padding: 20;");
-
-        buttonSystem = new NavigableButtonSystem();
-        
-        buttonSystem.createNavigableButton("Back to Menu", () -> {
-            stateManager.setState("start");
-        });
-        
-        buttonSystem.createNavigableButton("Clear Scores", () -> {
-            scoreboardUI.clearScores();
-        });
-
-        buttonPanel.getChildren().addAll(buttonSystem.getButtons());
-        return buttonPanel;
-    }
-
-    private void proceedToGameOver() {
-        stateManager.setState("gameOver");
     }
 
     // Getters for score information

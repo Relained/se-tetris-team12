@@ -1,17 +1,17 @@
-package org.example;
+package org.example.service;
 
-import org.example.ScoreRecord;
+import org.example.model.ScoreRecord;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Service class for score management
- * Score system managed with game state
+ * 점수 관리를 담당하는 Service 클래스
+ * 게임 점수를 저장, 로드, 정렬하는 기능을 제공합니다.
  */
 public class ScoreManager {
-        private static final String SAVE_FILE = System.getProperty("user.home") 
+    private static final String SAVE_FILE = System.getProperty("user.home") 
             + File.separator + "tetris_scores.dat";
     private static final int MAX_SCORES = 10;
     
@@ -30,6 +30,11 @@ public class ScoreManager {
         return instance;
     }
 
+    /**
+     * 점수를 추가하고 상위 10개만 유지합니다.
+     * @param record 추가할 점수 기록
+     * @return 추가 성공 여부
+     */
     public boolean addScore(ScoreRecord record) {
         if (record == null) {
             return false;
@@ -52,20 +57,37 @@ public class ScoreManager {
         return true;
     }
 
+    /**
+     * 상위 점수 목록을 반환합니다.
+     * @return 전체 상위 점수 목록
+     */
     public List<ScoreRecord> getTopScores() {
         return new ArrayList<>(scores);
     }
 
+    /**
+     * 지정된 개수만큼 상위 점수를 반환합니다.
+     * @param count 반환할 점수 개수
+     * @return 상위 점수 목록
+     */
     public List<ScoreRecord> getTopScores(int count) {
         int limit = Math.min(count, scores.size());
         return new ArrayList<>(scores.subList(0, limit));
     }
 
+    /**
+     * 모든 점수를 삭제합니다.
+     */
     public void clearScores() {
         scores.clear();
         saveScores();
     }
 
+    /**
+     * 주어진 점수가 상위 점수인지 확인합니다.
+     * @param score 확인할 점수
+     * @return 상위 점수 여부
+     */
     public boolean isHighScore(int score) {
         if (scores.size() < MAX_SCORES) {
             return true;
@@ -74,9 +96,10 @@ public class ScoreManager {
     }
 
     /**
-     * 상위 10개 점수에 저장 가능 여부 확인, 10개 미만이면 무조건 저장 가능
-     * @param score Score to check
-     * @return true if saveable, false otherwise
+     * 상위 10개 점수에 저장 가능 여부를 확인합니다.
+     * 10개 미만이면 무조건 저장 가능합니다.
+     * @param score 확인할 점수
+     * @return 저장 가능 여부
      */
     public boolean isScoreEligibleForSaving(int score) {
         // If less than 10 scores saved, always saveable
@@ -89,6 +112,11 @@ public class ScoreManager {
         return score > lowestScore.getScore();
     }
 
+    /**
+     * 주어진 점수의 순위를 반환합니다.
+     * @param score 확인할 점수
+     * @return 순위 (1부터 시작), 순위권 밖이면 -1
+     */
     public int getScoreRank(int score) {
         for (int i = 0; i < scores.size(); i++) {
             if (score > scores.get(i).getScore()) {
@@ -103,6 +131,9 @@ public class ScoreManager {
         return -1;
     }
 
+    /**
+     * 점수를 파일에 저장합니다.
+     */
     private void saveScores() {
         try (ObjectOutputStream oos = new ObjectOutputStream(
                 new FileOutputStream(SAVE_FILE))) {
@@ -112,6 +143,9 @@ public class ScoreManager {
         }
     }
 
+    /**
+     * 파일에서 점수를 로드합니다.
+     */
     @SuppressWarnings("unchecked")
     private void loadScores() {
         File file = new File(SAVE_FILE);
@@ -125,21 +159,7 @@ public class ScoreManager {
                 for (ScoreRecord record : scores) {
                     record.setNewlyAdded(false);
                 }
-            }
-             
-            // 버전 불일치로 인한 InvalidClassException
-
-            /* catch (InvalidClassException e) {
-                // Version mismatch - delete old file and start fresh
-                System.out.println("Score file version mismatch. Creating new scoreboard.");
-                if (file.delete()) {
-                    System.out.println("Old score file deleted successfully.");
-                }
-                scores = new ArrayList<>();
-                saveScores(); // Create new compatible file
-            } 
-            */
-            catch (IOException | ClassNotFoundException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 System.err.println("Failed to load scores: " + e.getMessage());
                 scores = new ArrayList<>();
             }

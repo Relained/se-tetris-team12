@@ -138,7 +138,16 @@ public class PlayController {
      * 게임 오버 처리
      */
     public void handleGameOver() {
-        stateManager.setState("gameover");
+        // Get final scores
+        int finalScore = tetrisSystem.getScore();
+        int finalLines = tetrisSystem.getLines();
+        int finalLevel = tetrisSystem.getLevel();
+        
+        // ScoreboardState will automatically determine the mode (INPUT or NOT_ELIGIBLE)
+        org.example.state.ScoreboardState scoreboardState = 
+            new org.example.state.ScoreboardState(stateManager, finalScore, finalLines, finalLevel);
+        stateManager.addState("scoreboard", scoreboardState);
+        stateManager.setState("scoreboard");
     }
     
     /**
