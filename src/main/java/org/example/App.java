@@ -37,6 +37,7 @@ public class App extends Application {
         stateManager.addState("pause", new PauseState(stateManager));
         stateManager.addState("setting", new SettingState(stateManager));
         stateManager.addState("color_setting", new ColorSettingState(stateManager));
+        stateManager.addState("key_setting", new KeySettingState(stateManager));
         stateManager.addState("gameover", new GameOverState(stateManager));
 
         // Start with the start screen

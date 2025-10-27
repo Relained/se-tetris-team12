@@ -28,10 +28,10 @@ public class SettingController {
     
     /**
      * Controls 버튼 클릭 시 처리
-     * TODO: 컨트롤 설정 기능 구현
+     * 키 설정 화면으로 이동
      */
     public void handleControls() {
-        System.err.println("Set Controls");
+        stateManager.stackState("key_setting");
     }
     
     /**
