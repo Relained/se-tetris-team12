@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import javafx.scene.input.KeyEvent;
+import org.example.service.ScoreManager;
 import org.example.service.StateManager;
 import org.example.view.ScoreboardView;
 
@@ -15,6 +16,8 @@ public class ScoreboardController {
     public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView) {
         this.stateManager = stateManager;
         this.scoreboardView = scoreboardView;
+        
+        // 초기 데이터 로드는 View 생성 후 State에서 호출
     }
     
     /**
@@ -29,7 +32,15 @@ public class ScoreboardController {
      */
     public void handleClearScores() {
         stateManager.settingManager.resetScoreboard();
-        scoreboardView.refresh();
+        refreshScoreboard();
+    }
+    
+    /**
+     * 스코어보드 데이터를 새로고침합니다.
+     */
+    public void refreshScoreboard() {
+        var topScores = ScoreManager.getInstance().getTopScores();
+        scoreboardView.refresh(topScores);
     }
     
     /**

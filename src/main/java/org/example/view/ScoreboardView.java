@@ -12,7 +12,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import org.example.model.ScoreRecord;
-import org.example.service.ScoreManager;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -73,7 +72,11 @@ public class ScoreboardView extends BaseView {
         scoresContainer = new VBox(8);
         scoresContainer.setAlignment(Pos.CENTER);
 
-        updateScoreboard();
+        // Initial empty state - will be populated by controller
+        Text noScoresLabel = new Text("Loading...");
+        noScoresLabel.setFill(Color.LIGHTGRAY);
+        noScoresLabel.setFont(Font.font("Arial", 16));
+        scoresContainer.getChildren().add(noScoresLabel);
 
         container.getChildren().addAll(titleLabel, headerBox, scoresContainer);
         return container;
@@ -139,11 +142,10 @@ public class ScoreboardView extends BaseView {
 
     /**
      * 스코어보드를 갱신합니다.
+     * @param topScores 표시할 점수 목록
      */
-    public void updateScoreboard() {
+    public void updateScoreboard(List<ScoreRecord> topScores) {
         scoresContainer.getChildren().clear();
-
-        List<ScoreRecord> topScores = ScoreManager.getInstance().getTopScores();
 
         if (topScores.isEmpty()) {
             Text noScoresLabel = new Text("No scores recorded yet!");
@@ -218,8 +220,9 @@ public class ScoreboardView extends BaseView {
 
     /**
      * 스코어보드를 새로고침합니다.
+     * Controller에서 데이터를 가져와서 호출해야 합니다.
      */
-    public void refresh() {
-        updateScoreboard();
+    public void refresh(List<ScoreRecord> topScores) {
+        updateScoreboard(topScores);
     }
 }

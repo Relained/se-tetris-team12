@@ -5,7 +5,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import org.example.controller.GameOverController;
-import org.example.service.ScoreManager;
 import org.example.service.StateManager;
 import org.example.view.GameOverView;
 

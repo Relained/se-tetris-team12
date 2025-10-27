@@ -10,7 +10,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import org.example.service.ScoreManager;
 
 /**
  * Score Input 화면의 UI를 담당하는 View 클래스
@@ -26,6 +25,7 @@ public class ScoreInputView extends BaseView {
     
     /**
      * Score Input 화면의 UI를 구성하고 반환합니다.
+     * @param rank 달성한 순위
      * @param score 최종 점수
      * @param lines 클리어한 총 라인 수
      * @param level 도달한 레벨
@@ -33,7 +33,7 @@ public class ScoreInputView extends BaseView {
      * @param onSkip Skip 버튼 클릭 시 실행될 콜백
      * @return 구성된 VBox root
      */
-    public VBox createView(int score, int lines, int level, Runnable onSubmit, Runnable onSkip) {
+    public VBox createView(int rank, int score, int lines, int level, Runnable onSubmit, Runnable onSkip) {
         VBox root = new VBox(20);
         root.setAlignment(Pos.CENTER);
         root.setSpacing(20);
@@ -48,7 +48,6 @@ public class ScoreInputView extends BaseView {
         title.setFont(Font.font("Arial", 28));
         
         // Rank information
-        int rank = ScoreManager.getInstance().getScoreRank(score);
         rankText = new Text(String.format("Rank: #%d", rank));
         rankText.setFill(Color.YELLOW);
         rankText.setFont(Font.font("Arial", 20));
@@ -72,14 +71,14 @@ public class ScoreInputView extends BaseView {
         nameInput.setStyle("-fx-background-color: white; -fx-text-fill: black;");
         
         // 3글자 제한
-        nameInput.textProperty().addListener((obs, oldText, newText) -> {
+        nameInput.textProperty().addListener((_, _, newText) -> {
             if (newText.length() > 3) {
                 nameInput.setText(newText.substring(0, 3));
             }
         });
         
         // Enter key on text field
-        nameInput.setOnAction(e -> {
+        nameInput.setOnAction(_ -> {
             if (!nameInput.getText().trim().isEmpty()) {
                 onSubmit.run();
             }
@@ -98,7 +97,7 @@ public class ScoreInputView extends BaseView {
         
         // 빈 입력 시 버튼 비활성화
         submitButton.setDisable(true);
-        nameInput.textProperty().addListener((obs, oldText, newText) -> {
+        nameInput.textProperty().addListener((_, _, newText) -> {
             submitButton.setDisable(newText.trim().isEmpty());
         });
         

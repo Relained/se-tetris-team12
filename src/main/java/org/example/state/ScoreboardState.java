@@ -92,8 +92,8 @@ public class ScoreboardState extends BaseState {
 
     @Override
     public void resume() {
-        if (currentMode == Mode.SCOREBOARD && scoreboardView != null) {
-            scoreboardView.refresh();
+        if (currentMode == Mode.SCOREBOARD && scoreboardController != null) {
+            scoreboardController.refreshScoreboard();
         }
     }
 
@@ -121,6 +121,7 @@ public class ScoreboardState extends BaseState {
                                                        finalScore, finalLines, finalLevel);
         
         VBox inputBox = scoreInputView.createView(
+            scoreInputController.getRank(),  // Controller에서 rank를 계산해서 전달
             finalScore, 
             finalLines, 
             finalLevel,
@@ -201,6 +202,9 @@ public class ScoreboardState extends BaseState {
             () -> scoreboardController.handleBackToMenu(),
             () -> scoreboardController.handleClearScores()
         );
+        
+        // View 생성 후 데이터 로드
+        scoreboardController.refreshScoreboard();
 
         scene = new Scene(root, 800, 700);
         scene.setOnKeyPressed(event -> scoreboardController.handleKeyInput(event));

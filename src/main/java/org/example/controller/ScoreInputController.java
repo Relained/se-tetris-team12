@@ -17,6 +17,7 @@ public class ScoreInputController {
     private int finalScore;
     private int finalLines;
     private int finalLevel;
+    private int rank;
     private boolean scoreSubmitted = false;
     
     public ScoreInputController(StateManager stateManager, ScoreInputView scoreInputView,
@@ -26,6 +27,15 @@ public class ScoreInputController {
         this.finalScore = score;
         this.finalLines = lines;
         this.finalLevel = level;
+        this.rank = ScoreManager.getInstance().getScoreRank(score);
+    }
+    
+    /**
+     * Rank 정보를 반환합니다.
+     * @return 달성한 순위
+     */
+    public int getRank() {
+        return rank;
     }
     
     /**
