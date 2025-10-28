@@ -7,6 +7,7 @@ import org.example.model.TetrominoPosition;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.Deque;
 import java.util.ArrayDeque;
 
@@ -21,6 +22,7 @@ public class TetrisSystem {
     private int score;
     private int lines;
     private int level;
+    private int difficulty;
     private boolean canHold;
     private boolean gameOver;
 
@@ -38,6 +40,7 @@ public class TetrisSystem {
         this.score = 0;
         this.lines = 0;
         this.level = 1;
+        this.difficulty = 2;
         this.canHold = true;
         this.gameOver = false;
 
@@ -45,12 +48,6 @@ public class TetrisSystem {
         for (int i = 0; i < Tetromino.values().length; i++) {
             cum += 1.0;
             this.cumulativeWeights.add(cum);
-        }
-
-        //난이도 구현 이후 수정 필요
-        int difficulty = 1;
-        if (difficulty == 1) {
-            setTetrominoWeight(Tetromino.I, 1.2);
         }
 
         fillNextQueue();
@@ -90,6 +87,17 @@ public class TetrisSystem {
             }
         }
         return values[values.length - 1];
+    }
+
+    public void setDifficulty(int difficulty) {
+        this.difficulty = difficulty;
+
+        if (this.difficulty == 1) {
+            setTetrominoWeight(Tetromino.I, 1.2); //Weight값 수정필요
+        }
+        else if (this.difficulty == 3) {
+            setTetrominoWeight(Tetromino.I, 0.8);
+        }
     }
 
     public boolean moveLeft() {
