@@ -5,7 +5,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -18,10 +17,6 @@ public class ScoreInputView extends BaseView {
     
     private TextField nameInput;
     private Text rankText;
-    
-    public ScoreInputView() {
-        super(true); // NavigableButtonSystem 사용
-    }
     
     /**
      * Score Input 화면의 UI를 구성하고 반환합니다.
@@ -42,68 +37,55 @@ public class ScoreInputView extends BaseView {
         root.setMaxWidth(500);
         root.setMaxHeight(450);
         
-        // Title
         Text title = new Text("NEW HIGH SCORE!");
         title.setFill(Color.GOLD);
         title.setFont(Font.font("Arial", 28));
         
-        // Rank information
         rankText = new Text(String.format("Rank: #%d", rank));
         rankText.setFill(Color.YELLOW);
         rankText.setFont(Font.font("Arial", 20));
         
-        // Score information
         Text scoreText = new Text(String.format("Score: %,d  |  Lines: %d  |  Level: %d", 
                                           score, lines, level));
         scoreText.setFill(Color.WHITE);
         scoreText.setFont(Font.font("Arial", 16));
         
-        // Instruction
         Text instructionText = new Text("Enter your name (max 3 characters):");
         instructionText.setFill(Color.LIGHTGRAY);
         instructionText.setFont(Font.font("Arial", 14));
         
-        // Name input
         nameInput = new TextField();
         nameInput.setPromptText("ABC");
         nameInput.setMaxWidth(300);
         nameInput.setFont(Font.font("Arial", 14));
         nameInput.setStyle("-fx-background-color: white; -fx-text-fill: black;");
         
-        // 3글자 제한
         nameInput.textProperty().addListener((_, _, newText) -> {
-            if (newText.length() > 3) {
-                nameInput.setText(newText.substring(0, 3));
+            // 공백 입력 시 필터링
+            String filteredText = newText.replace(" ", "");
+            
+            if (filteredText.length() > 3) {
+                filteredText = filteredText.substring(0, 3);
+            }
+            
+            // 필터링된 텍스트가 원본과 다르면 업데이트
+            if (!filteredText.equals(newText)) {
+                nameInput.setText(filteredText);
             }
         });
         
-        // Enter key on text field
         nameInput.setOnAction(_ -> {
             if (!nameInput.getText().trim().isEmpty()) {
                 onSubmit.run();
             }
         });
         
-        // Buttons
-        HBox buttonBox = new HBox(15);
-        buttonBox.setAlignment(Pos.CENTER);
+        // Key instructions
+        Text keyHintText = new Text("Press ENTER to submit  |  Press ESC to cancel");
+        keyHintText.setFill(Color.LIGHTGREEN);
+        keyHintText.setFont(Font.font("Arial", 12));
         
-        var submitButton = buttonSystem.createNavigableButton("Submit Score", onSubmit);
-        var skipButton = buttonSystem.createNavigableButton("Skip", onSkip);
-        
-        // 버튼 스타일 설정
-        submitButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 8 20;");
-        skipButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-padding: 8 20;");
-        
-        // 빈 입력 시 버튼 비활성화
-        submitButton.setDisable(true);
-        nameInput.textProperty().addListener((_, _, newText) -> {
-            submitButton.setDisable(newText.trim().isEmpty());
-        });
-        
-        buttonBox.getChildren().addAll(submitButton, skipButton);
-        
-        root.getChildren().addAll(title, rankText, scoreText, instructionText, nameInput, buttonBox);
+        root.getChildren().addAll(title, rankText, scoreText, instructionText, nameInput, keyHintText);
         
         return root;
     }

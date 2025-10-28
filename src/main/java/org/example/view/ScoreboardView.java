@@ -24,28 +24,40 @@ public class ScoreboardView extends BaseView {
     private VBox scoresContainer;
     private Text titleLabel;
     private boolean showNewlyAddedHighlight;
+    private boolean isAfterGamePlay = false; // 게임 플레이 후인지 여부
 
     public ScoreboardView(boolean showNewlyAddedHighlight) {
-        super(true); // NavigableButtonSystem 사용
+        super(true);
         this.showNewlyAddedHighlight = showNewlyAddedHighlight;
+    }
+    
+    public ScoreboardView(boolean showNewlyAddedHighlight, boolean isAfterGamePlay) {
+        super(true);
+        this.showNewlyAddedHighlight = showNewlyAddedHighlight;
+        this.isAfterGamePlay = isAfterGamePlay;
     }
 
     /**
      * Scoreboard 화면의 UI를 구성하고 반환합니다.
      * @param onBackToMenu Back to Menu 버튼 클릭 시 실행될 콜백
-     * @param onClearScores Clear Scores 버튼 클릭 시 실행될 콜백
+     * @param onClearScores Clear Scores 버튼 클릭 시 실행될 콜백 (게임 플레이 후에는 null 가능)
      * @return 구성된 BorderPane root
      */
     public BorderPane createView(Runnable onBackToMenu, Runnable onClearScores) {
         BorderPane root = new BorderPane();
         root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
 
-        // Scoreboard content
+        // Scoreboard content를 포함하는 컨테이너
+        VBox topContainer = new VBox();
+        topContainer.setAlignment(Pos.TOP_CENTER);
+        topContainer.setPadding(new Insets(40, 0, 0, 0));
+        
         VBox scoreboardContent = createScoreboardContent();
-        root.setCenter(scoreboardContent);
+        topContainer.getChildren().add(scoreboardContent);
+        
+        root.setTop(topContainer);
 
-        // Button panel
-        HBox buttonPanel = createButtonPanel(onBackToMenu, onClearScores);
+        VBox buttonPanel = createButtonPanel(onBackToMenu, onClearScores, isAfterGamePlay);
         root.setBottom(buttonPanel);
 
         return root;
@@ -59,20 +71,18 @@ public class ScoreboardView extends BaseView {
         container.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
         container.setMaxWidth(550);
         container.setPrefWidth(550);
+        container.setMinHeight(550);
 
-        // Title
         titleLabel = new Text("HIGH SCORES");
         titleLabel.setFill(Color.GOLD);
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
 
-        // Header row
         HBox headerBox = createHeaderRow();
 
-        // Scores container
         scoresContainer = new VBox(8);
-        scoresContainer.setAlignment(Pos.CENTER);
+        scoresContainer.setAlignment(Pos.TOP_CENTER);
+        scoresContainer.setMinHeight(300);
 
-        // Initial empty state - will be populated by controller
         Text noScoresLabel = new Text("Loading...");
         noScoresLabel.setFill(Color.LIGHTGRAY);
         noScoresLabel.setFont(Font.font("Arial", 16));
@@ -128,15 +138,26 @@ public class ScoreboardView extends BaseView {
         return box;
     }
 
-    private HBox createButtonPanel(Runnable onBackToMenu, Runnable onClearScores) {
-        HBox buttonPanel = new HBox(20);
+    private VBox createButtonPanel(Runnable onBackToMenu, Runnable onClearScores, boolean afterGamePlay) {
+        VBox buttonPanel = new VBox(15);
         buttonPanel.setAlignment(Pos.CENTER);
-        buttonPanel.setStyle("-fx-padding: 20;");
+        buttonPanel.setPadding(new Insets(30, 0, 40, 0));
 
-        var backButton = buttonSystem.createNavigableButton("Back to Menu", onBackToMenu);
-        var clearButton = buttonSystem.createNavigableButton("Clear Scores", onClearScores);
+        var backButton = buttonSystem.createNavigableButton(
+            afterGamePlay ? "Continue" : "Back to Menu", 
+            onBackToMenu
+        );
+        backButton.setPrefWidth(200);
+        
+        // 게임 플레이 후가 아닐 때만 Clear Scores 버튼 추가
+        if (!afterGamePlay && onClearScores != null) {
+            var clearButton = buttonSystem.createNavigableButton("Clear Scores", onClearScores);
+            clearButton.setPrefWidth(200);
+            buttonPanel.getChildren().addAll(backButton, clearButton);
+        } else {
+            buttonPanel.getChildren().add(backButton);
+        }
 
-        buttonPanel.getChildren().addAll(backButton, clearButton);
         return buttonPanel;
     }
 
@@ -173,7 +194,7 @@ public class ScoreboardView extends BaseView {
         Text levelText = new Text(String.valueOf(record.getLevel()));
         Text dateText = new Text(record.getPlayDate().format(DateTimeFormatter.ofPattern("MM/dd/yy")));
 
-        // Set colors based on rank
+        // Rank에 따른 색상 지정
         Color textColor = getColorForRank(rank);
         rankText.setFill(textColor);
         nameText.setFill(textColor);
@@ -183,7 +204,7 @@ public class ScoreboardView extends BaseView {
 
         Font font = Font.font("Courier New", 13);
         
-        // Apply underline for newly added scores if highlighting is enabled
+        // Highlight가 활성화된 경우 새로 추가된 점수에 밑줄 적용
         if (showNewlyAddedHighlight && record.isNewlyAdded()) {
             font = Font.font("Courier New", FontWeight.BOLD, 13);
             rankText.setUnderline(true);

@@ -143,9 +143,12 @@ public class PlayController {
         int finalLines = tetrisSystem.getLines();
         int finalLevel = tetrisSystem.getLevel();
         
-        // ScoreboardState will automatically determine the mode (INPUT or NOT_ELIGIBLE)
+        // Controller가 점수 저장 자격 확인 후 ScoreboardState 생성
+        boolean isEligible = org.example.service.ScoreManager.getInstance()
+            .isScoreEligibleForSaving(finalScore);
+        
         org.example.state.ScoreboardState scoreboardState = 
-            new org.example.state.ScoreboardState(stateManager, finalScore, finalLines, finalLevel);
+            new org.example.state.ScoreboardState(stateManager, finalScore, finalLines, finalLevel, isEligible);
         stateManager.addState("scoreboard", scoreboardState);
         stateManager.setState("scoreboard");
     }

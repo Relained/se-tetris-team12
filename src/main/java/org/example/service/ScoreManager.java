@@ -102,12 +102,12 @@ public class ScoreManager {
      * @return 저장 가능 여부
      */
     public boolean isScoreEligibleForSaving(int score) {
-        // If less than 10 scores saved, always saveable
+        // 10개 미만의 점수가 저장되어 있으면 저장 가능
         if (scores.size() < MAX_SCORES) {
             return true;
         }
         
-        // If 10 scores saved, check if higher than lowest score
+        // 10개의 점수가 저장되어 있다면, 최저 점수보다 높은지 확인
         ScoreRecord lowestScore = scores.get(scores.size() - 1);
         return score > lowestScore.getScore();
     }
@@ -138,9 +138,7 @@ public class ScoreManager {
         try (ObjectOutputStream oos = new ObjectOutputStream(
                 new FileOutputStream(SAVE_FILE))) {
             oos.writeObject(scores);
-        } catch (IOException e) {
-            System.err.println("Failed to save scores: " + e.getMessage());
-        }
+        } catch (IOException e) { }
     }
 
     /**
@@ -155,12 +153,12 @@ public class ScoreManager {
                 scores = (List<ScoreRecord>) ois.readObject();
                 Collections.sort(scores);
                 
-                // Mark all loaded scores as not newly added
+                // 로드된 점수들은 모두 newlyAdded를 false로 설정 (highlight 방지)
                 for (ScoreRecord record : scores) {
                     record.setNewlyAdded(false);
                 }
             } catch (IOException | ClassNotFoundException e) {
-                System.err.println("Failed to load scores: " + e.getMessage());
+                // 로드 실패 시 빈 리스트로 초기화 (파일 손상 등)
                 scores = new ArrayList<>();
             }
         }

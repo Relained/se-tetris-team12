@@ -49,11 +49,11 @@ public class ScoreInputController {
                 ScoreManager.getInstance().addScore(record);
                 scoreSubmitted = true;
                 
-                // Go to Game Over screen after submitting score with score info and submission status
-                org.example.state.GameOverState gameOverState = 
-                    new org.example.state.GameOverState(stateManager, finalScore, finalLines, finalLevel, true);
-                stateManager.addState("gameOver", gameOverState);
-                stateManager.setState("gameOver");
+                // 점수 제출 후 Scoreboard를 보여주고, 그 다음 GameOver 화면으로
+                org.example.state.ScoreboardState scoreboardState = 
+                    new org.example.state.ScoreboardState(stateManager, true, finalScore, finalLines, finalLevel, true);
+                stateManager.addState("scoreboardAfterSubmit", scoreboardState);
+                stateManager.setState("scoreboardAfterSubmit");
             }
         }
     }
@@ -62,21 +62,27 @@ public class ScoreInputController {
      * Skip 버튼 클릭 시 처리
      */
     public void handleSkip() {
-        // Skip and go to Game Over screen with score info (no submission)
-        org.example.state.GameOverState gameOverState = 
-            new org.example.state.GameOverState(stateManager, finalScore, finalLines, finalLevel, false);
-        stateManager.addState("gameOver", gameOverState);
-        stateManager.setState("gameOver");
+        // 점수 제출을 건너뛰고 Scoreboard를 보여주고, 그 다음 GameOver 화면으로
+        org.example.state.ScoreboardState scoreboardState = 
+            new org.example.state.ScoreboardState(stateManager, false, finalScore, finalLines, finalLevel, false);
+        stateManager.addState("scoreboardAfterSkip", scoreboardState);
+        stateManager.setState("scoreboardAfterSkip");
     }
     
     /**
      * 키보드 입력 처리
      */
     public void handleKeyInput(KeyEvent event) {
-        if (event.getCode() == KeyCode.ESCAPE) {
+        KeyCode code = event.getCode();
+        
+        if (code == KeyCode.ENTER) {
+            // Enter: 이름이 비어있지 않으면 Submit
+            if (!scoreInputView.getPlayerName().isEmpty()) {
+                handleSubmit();
+            }
+        } else if (code == KeyCode.ESCAPE) {
+            // ESC: Skip
             handleSkip();
-        } else {
-            scoreInputView.getButtonSystem().handleInput(event);
         }
     }
 }

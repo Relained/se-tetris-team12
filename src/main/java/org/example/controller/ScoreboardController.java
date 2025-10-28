@@ -12,19 +12,45 @@ public class ScoreboardController {
     
     private StateManager stateManager;
     private ScoreboardView scoreboardView;
+    private boolean isAfterGamePlay;
+    private int gameScore;
+    private int gameLines;
+    private int gameLevel;
+    private boolean scoreWasSubmitted;
     
+    // 일반 조회용 생성자
     public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView) {
         this.stateManager = stateManager;
         this.scoreboardView = scoreboardView;
-        
-        // 초기 데이터 로드는 View 생성 후 State에서 호출
+        this.isAfterGamePlay = false;
+    }
+    
+    // 게임 플레이 후용 생성자
+    public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView,
+                               int score, int lines, int level, boolean scoreSubmitted) {
+        this.stateManager = stateManager;
+        this.scoreboardView = scoreboardView;
+        this.isAfterGamePlay = true;
+        this.gameScore = score;
+        this.gameLines = lines;
+        this.gameLevel = level;
+        this.scoreWasSubmitted = scoreSubmitted;
     }
     
     /**
-     * Back to Menu 버튼 클릭 시 처리
+     * Back to Menu / Continue 버튼 클릭 시 처리
      */
     public void handleBackToMenu() {
-        stateManager.setState("start");
+        if (isAfterGamePlay) {
+            // 게임 플레이 후라면 GameOver 화면으로
+            org.example.state.GameOverState gameOverState = 
+                new org.example.state.GameOverState(stateManager, gameScore, gameLines, gameLevel, scoreWasSubmitted);
+            stateManager.addState("gameOver", gameOverState);
+            stateManager.setState("gameOver");
+        } else {
+            // 일반 조회라면 시작 화면으로
+            stateManager.setState("start");
+        }
     }
     
     /**
