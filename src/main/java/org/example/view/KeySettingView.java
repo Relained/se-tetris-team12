@@ -60,9 +60,7 @@ public class KeySettingView extends BaseView {
     /**
      * Key Setting 화면의 UI를 구성하고 반환합니다.
      */
-    public VBox createView(Runnable onResetToDefault,
-                          Runnable onApply,
-                          Runnable onGoBack) {
+    public VBox createView(Runnable onResetToDefault, Runnable onGoBack) {
         // 초기화
         navigableItems.clear();
         selectedIndex = 0;
@@ -99,11 +97,9 @@ public class KeySettingView extends BaseView {
 
         // 하단 버튼들을 HBox로 생성하여 네비게이션 항목에 추가
         HBox resetButtonBox = createButtonRow("Reset to Default", onResetToDefault);
-        HBox applyButtonBox = createButtonRow("Apply", onApply);
         HBox goBackButtonBox = createButtonRow("Go Back", onGoBack);
         
         navigableItems.add(new NavigableItem("button", "Reset to Default", resetButtonBox, onResetToDefault));
-        navigableItems.add(new NavigableItem("button", "Apply", applyButtonBox, onApply));
         navigableItems.add(new NavigableItem("button", "Go Back", goBackButtonBox, onGoBack));
 
         // 첫 번째 항목을 선택 상태로 설정
@@ -116,7 +112,6 @@ public class KeySettingView extends BaseView {
             statusText,
             keyBindingsContainer,
             resetButtonBox,
-            applyButtonBox,
             goBackButtonBox
         );
 

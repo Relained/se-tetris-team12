@@ -23,7 +23,7 @@ public class SettingController {
      * TODO: 화면 크기 설정 기능 구현
      */
     public void handleScreenSize() {
-        System.err.println("Set Screen Size");
+        
     }
     
     /**
@@ -46,14 +46,13 @@ public class SettingController {
      * TODO: 점수판 초기화 기능 구현
      */
     public void handleResetScoreBoard() {
-        System.err.println("Reset Score Board");
+        
     }
     
     /**
      * Reset All Setting 버튼 클릭 시 처리 - 모든 설정을 기본값으로 초기화
      */
     public void handleResetAllSetting() {
-        System.err.println("All Setting Reset to Default");
         stateManager.settingManager.resetToDefault();
         stateManager.settingManager.applyColorSetting();
     }

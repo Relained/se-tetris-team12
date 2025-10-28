@@ -46,7 +46,6 @@ public class KeySettingState extends BaseState {
         // Controller의 핸들러를 콜백으로 전달
         VBox root = keySettingView.createView(
             () -> controller.handleResetToDefault(),  // Reset to Default 버튼
-            () -> controller.handleApply(),           // Apply 버튼
             () -> controller.handleGoBack()           // Go Back 버튼
         );
 

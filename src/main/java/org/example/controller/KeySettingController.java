@@ -32,15 +32,6 @@ public class KeySettingController {
     public void handleResetToDefault() {
         keySettingManager.resetToDefault();
         keySettingView.updateAllKeyBindings();
-        System.out.println("Key settings reset to default");
-    }
-    
-    /**
-     * Apply 버튼 클릭 시 처리 - 현재 키 설정을 저장
-     */
-    public void handleApply() {
-        keySettingManager.saveKeySettings();
-        System.out.println("Key settings saved");
     }
     
     /**
