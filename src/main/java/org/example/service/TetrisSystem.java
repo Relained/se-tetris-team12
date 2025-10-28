@@ -23,6 +23,7 @@ public class TetrisSystem {
     private int lines;
     private int level;
     private int difficulty;
+    private int levelFactor;
     private boolean canHold;
     private boolean gameOver;
 
@@ -41,6 +42,7 @@ public class TetrisSystem {
         this.lines = 0;
         this.level = 1;
         this.difficulty = 2;
+        this.levelFactor = 10;
         this.canHold = true;
         this.gameOver = false;
 
@@ -93,10 +95,16 @@ public class TetrisSystem {
         this.difficulty = difficulty;
 
         if (this.difficulty == 1) {
-            setTetrominoWeight(Tetromino.I, 1.2); //Weight값 수정필요
+            setTetrominoWeight(Tetromino.I, 1.2);
+            levelFactor = 12;
+        }
+        else if (this.difficulty == 2) {
+            setTetrominoWeight(Tetromino.I, 1.0);
+            levelFactor = 10;
         }
         else if (this.difficulty == 3) {
             setTetrominoWeight(Tetromino.I, 0.8);
+            levelFactor = 8;
         }
     }
 
@@ -128,7 +136,7 @@ public class TetrisSystem {
         TetrominoPosition newPos = SuperRotationSystem.moveDown(currentPiece, board);
         if (newPos != null) {
             currentPiece = newPos;
-            score += SOFT_DROP_SCORE;
+            score += SOFT_DROP_SCORE * calcScoreFactor();
             return true;
         } else {
             // Piece has landed
@@ -164,7 +172,7 @@ public class TetrisSystem {
 
         TetrominoPosition dropPos = SuperRotationSystem.hardDrop(currentPiece, board);
         int dropDistance = dropPos.getY() - currentPiece.getY();
-        score += dropDistance * HARD_DROP_SCORE;
+        score += dropDistance * HARD_DROP_SCORE * calcScoreFactor();
 
         currentPiece = dropPos;
         lockPiece();
@@ -201,8 +209,8 @@ public class TetrisSystem {
         int clearedLines = board.clearLines();
         if (clearedLines > 0) {
             lines += clearedLines;
-            score += LINE_SCORES[clearedLines] * level;
-            level = Math.min(20, (lines / 10) + 1);
+            score += LINE_SCORES[clearedLines] * calcScoreFactor();
+            level = Math.min(20, (lines / levelFactor) + 1);
         }
 
         if (board.isGameOver()) {
@@ -216,6 +224,16 @@ public class TetrisSystem {
         if (!gameOver) {
             moveDown();
         }
+    }
+
+    private double calcScoreFactor() {
+        //difficulty: 1(Easy), 2(Normal), 3(Hard)
+        //-1 ~ 1 * 0.2 + 1 = 0.8, 1, 1.2
+        double dfactor = (difficulty - 2) * 0.2 + 1;
+        //level: 1~20
+        //(level - 1) / 5 + 1 = 1 ~ 4.8
+        double lfactor = (1 + (level - 1) / 5);
+        return lfactor * dfactor;
     }
 
     // Getters
