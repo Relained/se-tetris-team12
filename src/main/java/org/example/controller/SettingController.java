@@ -23,15 +23,15 @@ public class SettingController {
      * TODO: 화면 크기 설정 기능 구현
      */
     public void handleScreenSize() {
-        System.err.println("Set Screen Size");
+        
     }
     
     /**
      * Controls 버튼 클릭 시 처리
-     * TODO: 컨트롤 설정 기능 구현
+     * 키 설정 화면으로 이동
      */
     public void handleControls() {
-        System.err.println("Set Controls");
+        stateManager.stackState("key_setting");
     }
     
     /**
@@ -52,7 +52,6 @@ public class SettingController {
      * Reset All Setting 버튼 클릭 시 처리 - 모든 설정을 기본값으로 초기화
      */
     public void handleResetAllSetting() {
-        System.err.println("All Setting Reset to Default");
         stateManager.settingManager.resetToDefault();
         stateManager.settingManager.applyColorSetting();
     }

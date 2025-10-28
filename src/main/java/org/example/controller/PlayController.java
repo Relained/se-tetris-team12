@@ -98,6 +98,7 @@ public class PlayController {
     private void handleInputs() {
         if (tetrisSystem == null || tetrisSystem.isGameOver()) return;
 
+        // SettingManager를 통해 최신 키 설정 가져오기
         ControlData data = stateManager.settingManager.getCurrentSettings().controlData;
 
         // 한 번만 실행되는 입력 처리
