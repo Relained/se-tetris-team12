@@ -19,24 +19,44 @@ public class GameOverState extends BaseState {
     private int finalScore;
     private int finalLines;
     private int finalLevel;
+    private boolean scoreWasSubmitted = false; // 점수가 제출되었는지 추적
 
     public GameOverState(StateManager stateManager) {
         super(stateManager);
     }
+    
+    // Constructor with score information
+    public GameOverState(StateManager stateManager, int score, int lines, int level) {
+        super(stateManager);
+        this.finalScore = score;
+        this.finalLines = lines;
+        this.finalLevel = level;
+    }
+    
+    // Constructor with score information and submission status
+    public GameOverState(StateManager stateManager, int score, int lines, int level, boolean scoreSubmitted) {
+        super(stateManager);
+        this.finalScore = score;
+        this.finalLines = lines;
+        this.finalLevel = level;
+        this.scoreWasSubmitted = scoreSubmitted;
+    }
 
     @Override
     public void enter() {
-        // Get final game stats from the previous play state
-        BaseState previousState = stateManager.getCurrentState();
-        if (previousState instanceof PlayState playState && playState.getGameLogic() != null) {
-            finalScore = playState.getGameLogic().getScore();
-            finalLines = playState.getGameLogic().getLines();
-            finalLevel = playState.getGameLogic().getLevel();
+        // Get final game stats from the previous play state only if not already set
+        if (finalScore == 0 && finalLines == 0 && finalLevel == 0) {
+            BaseState previousState = stateManager.getCurrentState();
+            if (previousState instanceof PlayState playState && playState.getGameLogic() != null) {
+                finalScore = playState.getGameLogic().getScore();
+                finalLines = playState.getGameLogic().getLines();
+                finalLevel = playState.getGameLogic().getLevel();
+            }
         }
         
         // State 진입 시 View와 Controller 초기화
         gameOverView = new GameOverView();
-        controller = new GameOverController(stateManager, gameOverView);
+        controller = new GameOverController(stateManager, gameOverView, scoreWasSubmitted);
     }
 
     @Override
@@ -57,9 +77,10 @@ public class GameOverState extends BaseState {
             finalScore,
             finalLines,
             finalLevel,
-            () -> controller.handlePlayAgain(),    // Play Again 버튼
-            () -> controller.handleMainMenu(),     // Main Menu 버튼
-            () -> controller.handleExit()          // Exit Game 버튼
+            () -> controller.handlePlayAgain(),       // Play Again 버튼
+            () -> controller.handleViewScoreboard(),  // View Scoreboard 버튼
+            () -> controller.handleMainMenu(),        // Main Menu 버튼
+            () -> controller.handleExit()             // Exit Game 버튼
         );
 
         scene = new Scene(root, 1000, 700);

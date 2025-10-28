@@ -42,11 +42,10 @@ public class SettingController {
     }
     
     /**
-     * Reset Score Board 버튼 클릭 시 처리
-     * TODO: 점수판 초기화 기능 구현
+     * Reset Score Board 버튼 클릭 시 처리 - 스코어보드 초기화
      */
     public void handleResetScoreBoard() {
-        
+        stateManager.settingManager.resetScoreboard();
     }
     
     /**
