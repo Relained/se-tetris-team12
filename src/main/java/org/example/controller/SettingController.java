@@ -46,7 +46,6 @@ public class SettingController {
      */
     public void handleResetScoreBoard() {
         stateManager.settingManager.resetScoreboard();
-        System.out.println("Score Board has been reset");
     }
     
     /**
