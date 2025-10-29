@@ -31,6 +31,11 @@ public class PlayState extends BaseState {
         playView = new PlayView();
         controller = new PlayController(stateManager, playView, gameLogic);
 
+        BaseState previousState = stateManager.getCurrentState();
+        if (previousState instanceof DifficultyState playState) {
+            gameLogic.setDifficulty(playState.getDifficulty());
+        }
+
         // 게임 루프 시작
         gameTimer = new AnimationTimer() {
             @Override

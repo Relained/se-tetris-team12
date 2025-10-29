@@ -11,8 +11,8 @@ import java.util.List;
  * 게임 점수를 저장, 로드, 정렬하는 기능을 제공합니다.
  */
 public class ScoreManager {
-    private static final String SAVE_FILE = System.getProperty("user.home") 
-            + File.separator + "tetris_scores.dat";
+    private static final String SCORE_SAVE_PATH = System.getProperty("user.home") 
+            + File.separator + "tetris_scores.ser";
     private static final int MAX_SCORES = 10;
     
     private List<ScoreRecord> scores;
@@ -136,7 +136,7 @@ public class ScoreManager {
      */
     private void saveScores() {
         try (ObjectOutputStream oos = new ObjectOutputStream(
-                new FileOutputStream(SAVE_FILE))) {
+                new FileOutputStream(SCORE_SAVE_PATH))) {
             oos.writeObject(scores);
         } catch (IOException e) { }
     }
@@ -146,7 +146,7 @@ public class ScoreManager {
      */
     @SuppressWarnings("unchecked")
     private void loadScores() {
-        File file = new File(SAVE_FILE);
+        File file = new File(SCORE_SAVE_PATH);
         if (file.exists()) {
             try (ObjectInputStream ois = new ObjectInputStream(
                     new FileInputStream(file))) {

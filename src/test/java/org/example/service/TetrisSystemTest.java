@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
 import java.util.List;
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -122,8 +125,6 @@ class TetrisSystemTest {
     @DisplayName("하드 드롭 테스트")
     void testHardDrop() {
         int scoreBefore = tetrisSystem.getScore();
-        TetrominoPosition before = tetrisSystem.getCurrentPiece();
-        Tetromino typeBefore = before.getType();
         
         tetrisSystem.hardDrop();
         
@@ -146,7 +147,8 @@ class TetrisSystemTest {
         assertTrue(held);
         assertNotNull(tetrisSystem.getHoldPiece());
         assertEquals(currentType, tetrisSystem.getHoldPiece().getType());
-        assertNotEquals(currentType, tetrisSystem.getCurrentPiece().getType());
+        //assertNotEquals(currentType, tetrisSystem.getCurrentPiece().getType());
+        //RWS로 바꾸면서 다음 피스가 같을 수 있음
     }
 
     @Test
@@ -224,9 +226,6 @@ class TetrisSystemTest {
     @Test
     @DisplayName("업데이트 테스트")
     void testUpdate() {
-        TetrominoPosition before = tetrisSystem.getCurrentPiece();
-        int beforeY = before.getY();
-        
         tetrisSystem.update();
         
         // 업데이트 후 피스가 아래로 이동했거나 락되었어야 함
@@ -255,13 +254,44 @@ class TetrisSystemTest {
     @Test
     @DisplayName("게임 오버 후 이동 불가")
     void testCannotMoveAfterGameOver() {
-        // 게임 오버 상태로 만들기는 어려우므로
-        // 일단 게임이 오버되지 않은 상태에서는 이동 가능한지 확인
-        assertFalse(tetrisSystem.isGameOver());
-        
-        // 이동이 성공하거나 실패할 수 있음 (위치에 따라)
-        boolean canMove = tetrisSystem.moveLeft() || tetrisSystem.moveRight();
-        // 최소한 하나는 가능해야 함 (게임 시작 시)
+        // 강제로 게임 오버 상태로 전환
+        try {
+            Field go = TetrisSystem.class.getDeclaredField("gameOver");
+            go.setAccessible(true);
+            go.setBoolean(tetrisSystem, true);
+        } catch (Exception e) {
+            fail("Failed to set gameOver via reflection: " + e.getMessage());
+        }
+
+        assertTrue(tetrisSystem.isGameOver(), "게임 오버 상태여야 함");
+
+        // 현재 상태 스냅샷
+        TetrominoPosition before = tetrisSystem.getCurrentPiece();
+        int bx = before.getX();
+        int by = before.getY();
+        int br = before.getRotation();
+        Tetromino bt = before.getType();
+        int scoreBefore = tetrisSystem.getScore();
+
+        // 이동/회전/홀드 모두 금지되어야 함
+        assertFalse(tetrisSystem.moveLeft(), "게임 오버 후 moveLeft는 false여야 함");
+        assertFalse(tetrisSystem.moveRight(), "게임 오버 후 moveRight는 false여야 함");
+        assertFalse(tetrisSystem.moveDown(), "게임 오버 후 moveDown은 false여야 함");
+        assertFalse(tetrisSystem.rotateClockwise(), "게임 오버 후 회전은 false여야 함");
+        assertFalse(tetrisSystem.rotateCounterClockwise(), "게임 오버 후 회전은 false여야 함");
+        assertFalse(tetrisSystem.hold(), "게임 오버 후 홀드는 false여야 함");
+
+        // 하드드롭은 아무 동작도 하지 않아야 함
+        tetrisSystem.hardDrop();
+
+        // 상태가 변하지 않았는지 확인
+        TetrominoPosition after = tetrisSystem.getCurrentPiece();
+        assertNotNull(after);
+        assertEquals(bt, after.getType());
+        assertEquals(bx, after.getX());
+        assertEquals(by, after.getY());
+        assertEquals(br, after.getRotation());
+        assertEquals(scoreBefore, tetrisSystem.getScore(), "게임 오버 후 점수는 변하지 않아야 함");
     }
 
     @Test
@@ -276,5 +306,52 @@ class TetrisSystemTest {
     void testHoldPieceInitiallyNull() {
         TetrisSystem newSystem = new TetrisSystem();
         assertNull(newSystem.getHoldPiece());
+    }
+
+    @Test
+    @DisplayName("RWS 테스트")
+    void testRouletteSelectionWeightedIPiece() throws Exception {
+        // Stabilize randomness for reproducibility
+        Field rndField = TetrisSystem.class.getDeclaredField("random");
+        rndField.setAccessible(true);
+        rndField.set(tetrisSystem, new Random(12345L));
+
+        // Increase I piece weight by 100% (2.0 vs 1.0 others)
+        tetrisSystem.setTetrominoWeight(Tetromino.I, 2);
+
+        // Access private selection method via reflection
+        Method picker = TetrisSystem.class.getDeclaredMethod("selectWeightedRandom");
+        picker.setAccessible(true);
+
+        int trials = 1000;
+        int countI = 0;
+        int countO = 0; // use O as a representative of weight=1.0 pieces
+
+        for (int i = 0; i < trials; i++) {
+            Tetromino t = (Tetromino) picker.invoke(tetrisSystem);
+            if (t == Tetromino.I) countI++;
+            if (t == Tetromino.O) countO++;
+        }
+
+        // Expected probabilities for I weight = 2.0, others = 1.0:
+        // total weight = 2 + 6 * 1.0 = 8
+        // P(I) = 2 / 8 = 0.25 => expected count = 250
+        double pI = 0.25;
+        double expectedI = trials * pI; // = 250
+        double sigma = Math.sqrt(trials * pI * (1.0 - pI)); // std-dev for binomial
+
+        // Assert I count within 3σ window to avoid flakiness
+        double lower = expectedI - 3 * sigma;
+        double upper = expectedI + 3 * sigma;
+        assertTrue(countI >= lower && countI <= upper,
+            String.format("I count %d outside expected range [%.1f, %.1f]", countI, lower, upper));
+
+        // Also check relative ratio against a 1.0-weight piece roughly matches 2.0x
+        // Avoid division by zero in pathological randomness
+        assertTrue(countO > 0, "O count should be > 0 in 1000 trials");
+        double ratio = (double) countI / (double) countO;
+        // Expect ~2.0 ratio (I has double weight). Allow ±0.25 tolerance to absorb randomness
+        assertTrue(Math.abs(ratio - 2.0) < 0.25,
+            String.format("I/O ratio %.3f not close to 2.0 (counts: I=%d, O=%d)", ratio, countI, countO));
     }
 }
