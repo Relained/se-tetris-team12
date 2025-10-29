@@ -35,10 +35,8 @@ class PlayControllerTest extends ApplicationTest {
         // StateManager에 SettingManager 주입
         stateManager.settingManager = settingManager;
         
-        // 기본 ControlData 설정
-        ControlData controlData = new ControlData();
+        // 기본 SettingData 설정
         SettingData settingData = new SettingData();
-        settingData.controlData = controlData;
         when(settingManager.getCurrentSettings()).thenReturn(settingData);
         
         controller = new PlayController(stateManager, playView, tetrisSystem);

@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import javafx.application.Platform;
+import org.example.model.ScoreRecord;
 import org.example.service.StateManager;
 import org.example.view.ScoreInputView;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,9 +17,7 @@ class ScoreInputControllerTest {
     private ScoreInputController controller;
     private StateManager stateManager;
     private ScoreInputView scoreInputView;
-    private int testScore = 1000;
-    private int testLines = 10;
-    private int testLevel = 5;
+    private ScoreRecord testRecord;
     
     @BeforeAll
     static void initJavaFX() {
@@ -33,7 +32,8 @@ class ScoreInputControllerTest {
     void setUp() {
         stateManager = mock(StateManager.class);
         scoreInputView = mock(ScoreInputView.class);
-        controller = new ScoreInputController(stateManager, scoreInputView, testScore, testLines, testLevel);
+        testRecord = new ScoreRecord(1000, 10, 5, 1);
+        controller = new ScoreInputController(stateManager, scoreInputView, testRecord);
     }
     
     @Test
@@ -54,20 +54,21 @@ class ScoreInputControllerTest {
     void testHandleSubmitWithValidName() {
         String playerName = "TestPlayer";
         when(scoreInputView.getPlayerName()).thenReturn(playerName);
+        when(stateManager.getCurrentState()).thenReturn(mock(org.example.state.ScoreboardState.class));
         
         controller.handleSubmit();
         
         verify(scoreInputView).getPlayerName();
-        verify(stateManager).addState(eq("scoreboardAfterSubmit"), any());
-        verify(stateManager).setState("scoreboardAfterSubmit");
+        assertEquals(playerName, testRecord.getPlayerName());
     }
     
     @Test
     @DisplayName("Skip 핸들러 - 점수 저장 건너뛰기")
     void testHandleSkip() {
+        when(stateManager.getCurrentState()).thenReturn(mock(org.example.state.ScoreboardState.class));
+        
         controller.handleSkip();
         
-        verify(stateManager).addState(eq("scoreboardAfterSkip"), any());
-        verify(stateManager).setState("scoreboardAfterSkip");
+        verify(stateManager).getCurrentState();
     }
 }

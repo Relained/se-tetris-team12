@@ -44,7 +44,8 @@ class ScoreManagerTest {
     @Test
     @DisplayName("점수 추가 - 성공")
     void testAddScore() {
-        ScoreRecord record = new ScoreRecord("Player1", 1000, 10, 5);
+        ScoreRecord record = new ScoreRecord(1000, 10, 5, 1);
+        record.setPlayerName("Player1");
         boolean result = scoreManager.addScore(record);
         
         assertTrue(result);
@@ -63,9 +64,17 @@ class ScoreManagerTest {
     @Test
     @DisplayName("점수 정렬 확인")
     void testScoreSorting() {
-        scoreManager.addScore(new ScoreRecord("A", 500, 5, 3));
-        scoreManager.addScore(new ScoreRecord("B", 1500, 15, 7));
-        scoreManager.addScore(new ScoreRecord("C", 1000, 10, 5));
+        ScoreRecord recordA = new ScoreRecord(500, 5, 3, 1);
+        recordA.setPlayerName("A");
+        scoreManager.addScore(recordA);
+        
+        ScoreRecord recordB = new ScoreRecord(1500, 15, 7, 1);
+        recordB.setPlayerName("B");
+        scoreManager.addScore(recordB);
+        
+        ScoreRecord recordC = new ScoreRecord(1000, 10, 5, 1);
+        recordC.setPlayerName("C");
+        scoreManager.addScore(recordC);
         
         List<ScoreRecord> scores = scoreManager.getTopScores();
         
@@ -79,7 +88,9 @@ class ScoreManagerTest {
     @DisplayName("최대 10개 점수만 유지")
     void testMaxScoresLimit() {
         for (int i = 0; i < 15; i++) {
-            scoreManager.addScore(new ScoreRecord("Player" + i, (i + 1) * 100, i, i));
+            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
+            record.setPlayerName("Player" + i);
+            scoreManager.addScore(record);
         }
         
         List<ScoreRecord> scores = scoreManager.getTopScores();
@@ -92,7 +103,9 @@ class ScoreManagerTest {
     @DisplayName("상위 N개 점수 가져오기")
     void testGetTopScoresWithLimit() {
         for (int i = 0; i < 5; i++) {
-            scoreManager.addScore(new ScoreRecord("Player" + i, (i + 1) * 100, i, i));
+            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
+            record.setPlayerName("Player" + i);
+            scoreManager.addScore(record);
         }
         
         List<ScoreRecord> top3 = scoreManager.getTopScores(3);
@@ -104,8 +117,13 @@ class ScoreManagerTest {
     @Test
     @DisplayName("모든 점수 삭제")
     void testClearScores() {
-        scoreManager.addScore(new ScoreRecord("Player1", 1000, 10, 5));
-        scoreManager.addScore(new ScoreRecord("Player2", 2000, 20, 10));
+        ScoreRecord record1 = new ScoreRecord(1000, 10, 5, 1);
+        record1.setPlayerName("Player1");
+        scoreManager.addScore(record1);
+        
+        ScoreRecord record2 = new ScoreRecord(2000, 20, 10, 1);
+        record2.setPlayerName("Player2");
+        scoreManager.addScore(record2);
         
         scoreManager.clearScores();
         
@@ -116,7 +134,9 @@ class ScoreManagerTest {
     @DisplayName("상위 점수 여부 확인 - 10개 미만일 때")
     void testIsHighScoreLessThan10() {
         for (int i = 0; i < 5; i++) {
-            scoreManager.addScore(new ScoreRecord("Player" + i, (i + 1) * 100, i, i));
+            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
+            record.setPlayerName("Player" + i);
+            scoreManager.addScore(record);
         }
         
         assertTrue(scoreManager.isHighScore(50)); // 어떤 점수든 상위 점수
@@ -126,7 +146,9 @@ class ScoreManagerTest {
     @DisplayName("상위 점수 여부 확인 - 10개일 때")
     void testIsHighScore10Records() {
         for (int i = 0; i < 10; i++) {
-            scoreManager.addScore(new ScoreRecord("Player" + i, (i + 1) * 100, i, i));
+            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
+            record.setPlayerName("Player" + i);
+            scoreManager.addScore(record);
         }
         
         assertTrue(scoreManager.isHighScore(1100)); // 최고 점수보다 높음
@@ -137,7 +159,9 @@ class ScoreManagerTest {
     @DisplayName("점수 저장 가능 여부 - 10개 미만")
     void testIsScoreEligibleForSavingLessThan10() {
         for (int i = 0; i < 5; i++) {
-            scoreManager.addScore(new ScoreRecord("Player" + i, (i + 1) * 100, i, i));
+            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
+            record.setPlayerName("Player" + i);
+            scoreManager.addScore(record);
         }
         
         assertTrue(scoreManager.isScoreEligibleForSaving(1));
@@ -147,7 +171,9 @@ class ScoreManagerTest {
     @DisplayName("점수 저장 가능 여부 - 10개일 때")
     void testIsScoreEligibleForSaving10Records() {
         for (int i = 0; i < 10; i++) {
-            scoreManager.addScore(new ScoreRecord("Player" + i, (i + 1) * 100, i, i));
+            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
+            record.setPlayerName("Player" + i);
+            scoreManager.addScore(record);
         }
         
         assertTrue(scoreManager.isScoreEligibleForSaving(1100));
@@ -158,7 +184,9 @@ class ScoreManagerTest {
     @DisplayName("점수 순위 확인")
     void testGetScoreRank() {
         for (int i = 0; i < 5; i++) {
-            scoreManager.addScore(new ScoreRecord("Player" + i, (i + 1) * 100, i, i));
+            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
+            record.setPlayerName("Player" + i);
+            scoreManager.addScore(record);
         }
         
         assertEquals(1, scoreManager.getScoreRank(600)); // 1위
@@ -170,7 +198,9 @@ class ScoreManagerTest {
     @DisplayName("점수 순위 - 순위권 밖")
     void testGetScoreRankOutOfRange() {
         for (int i = 0; i < 10; i++) {
-            scoreManager.addScore(new ScoreRecord("Player" + i, (i + 1) * 100, i, i));
+            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
+            record.setPlayerName("Player" + i);
+            scoreManager.addScore(record);
         }
         
         assertEquals(-1, scoreManager.getScoreRank(50)); // 순위권 밖
@@ -179,10 +209,12 @@ class ScoreManagerTest {
     @Test
     @DisplayName("새로 추가된 점수 플래그 확인")
     void testNewlyAddedFlag() {
-        ScoreRecord record1 = new ScoreRecord("Player1", 1000, 10, 5);
+        ScoreRecord record1 = new ScoreRecord(1000, 10, 5, 1);
+        record1.setPlayerName("Player1");
         scoreManager.addScore(record1);
         
-        ScoreRecord record2 = new ScoreRecord("Player2", 2000, 20, 10);
+        ScoreRecord record2 = new ScoreRecord(2000, 20, 10, 1);
+        record2.setPlayerName("Player2");
         scoreManager.addScore(record2);
         
         List<ScoreRecord> scores = scoreManager.getTopScores();
