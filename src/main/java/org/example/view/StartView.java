@@ -34,7 +34,7 @@ public class StartView extends BaseView {
 
         Text subtitle = new Text("Team 12 Edition");
         subtitle.setFill(colorManager.getSecondaryTextColor());
-        title.setFont(Font.font("Arial", 16));
+        subtitle.setFont(Font.font("Arial", 16));
 
         var startButton = buttonSystem.createNavigableButton("Start Game", onStartGame);
         var scoreboardButton = buttonSystem.createNavigableButton("View Scoreboard", onViewScoreboard);
