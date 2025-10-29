@@ -5,6 +5,8 @@ import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 
 import org.example.controller.PlayController;
+import org.example.model.GameMode;
+import org.example.service.ItemTetrisSystem;
 import org.example.service.StateManager;
 import org.example.service.TetrisSystem;
 import org.example.view.PlayView;
@@ -19,22 +21,27 @@ public class PlayState extends BaseState {
     private PlayController controller;
     private TetrisSystem gameLogic;
     private AnimationTimer gameTimer;
+    private GameMode gameMode;
 
     public PlayState(StateManager stateManager) {
         super(stateManager);
     }
-
+    
     @Override
     public void enter() {
-        // State 진입 시 게임 로직, View, Controller 초기화
-        gameLogic = new TetrisSystem();
-        playView = new PlayView();
-        controller = new PlayController(stateManager, playView, gameLogic);
-
         BaseState previousState = stateManager.getCurrentState();
         if (previousState instanceof DifficultyState playState) {
+            gameMode = playState.getGameMode();
+            if (gameMode == GameMode.ITEM) {
+                gameLogic = new ItemTetrisSystem();
+            } else {
+                gameLogic = new TetrisSystem();
+            }
             gameLogic.setDifficulty(playState.getDifficulty());
         }
+        
+        playView = new PlayView();
+        controller = new PlayController(stateManager, playView, gameLogic, gameMode);
 
         // 게임 루프 시작
         gameTimer = new AnimationTimer() {
@@ -62,6 +69,7 @@ public class PlayState extends BaseState {
 
     @Override
     public Scene createScene() {
+        gameLogic.reset();
         // View로부터 UI 구성 요소를 받아옴
         HBox root = playView.createView();
 

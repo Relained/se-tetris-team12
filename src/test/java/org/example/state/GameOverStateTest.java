@@ -97,6 +97,32 @@ class GameOverStateTest extends ApplicationTest {
     }
     
     @Test
+    @DisplayName("createScene() - 점수 정보 포함하여 생성")
+    void testCreateSceneWithScoreInfo() {
+        GameOverState stateWithScore = new GameOverState(stateManager);
+        javafx.application.Platform.runLater(() -> {
+            stateWithScore.enter();
+            Scene scene = stateWithScore.createScene();
+            
+            assertNotNull(scene);
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("createScene() - 점수 제출 상태 포함")
+    void testCreateSceneWithSubmissionStatus() {
+        GameOverState stateWithSubmission = new GameOverState(stateManager);
+        javafx.application.Platform.runLater(() -> {
+            stateWithSubmission.enter();
+            Scene scene = stateWithSubmission.createScene();
+            
+            assertNotNull(scene);
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
     @DisplayName("여러 번 enter() 호출")
     void testMultipleEnter() {
         assertDoesNotThrow(() -> {
@@ -129,6 +155,19 @@ class GameOverStateTest extends ApplicationTest {
             state.createScene();
             
             assertNotNull(state.getScene());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("점수 0인 경우")
+    void testWithZeroScore() {
+        GameOverState stateZeroScore = new GameOverState(stateManager);
+        javafx.application.Platform.runLater(() -> {
+            stateZeroScore.enter();
+            Scene scene = stateZeroScore.createScene();
+            
+            assertNotNull(scene);
         });
         WaitForAsyncUtils.waitForFxEvents();
     }

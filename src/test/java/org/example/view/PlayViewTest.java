@@ -132,8 +132,8 @@ class PlayViewTest extends ApplicationTest {
             TetrominoPosition current = new TetrominoPosition(Tetromino.I, 0, 0, 0);
             TetrominoPosition ghost = new TetrominoPosition(Tetromino.I, 0, 10, 0);
             TetrominoPosition hold = new TetrominoPosition(Tetromino.T, 0, 0, 0);
-            List<Tetromino> nextQueue = new ArrayList<>();
-            nextQueue.add(Tetromino.O);
+            List<TetrominoPosition> nextQueue = new ArrayList<>();
+            nextQueue.add(new TetrominoPosition(Tetromino.O, 0, 0, 0));
             
             // Canvas가 null일 때 분기 커버
             assertDoesNotThrow(() -> view.updateDisplay(board, current, ghost, hold, nextQueue, 1000, 10, 5));
@@ -152,9 +152,9 @@ class PlayViewTest extends ApplicationTest {
             TetrominoPosition current = new TetrominoPosition(Tetromino.I, 0, 0, 0);
             TetrominoPosition ghost = new TetrominoPosition(Tetromino.I, 0, 10, 0);
             TetrominoPosition hold = new TetrominoPosition(Tetromino.T, 0, 0, 0);
-            List<Tetromino> nextQueue = new ArrayList<>();
-            nextQueue.add(Tetromino.O);
-            nextQueue.add(Tetromino.L);
+            List<TetrominoPosition> nextQueue = new ArrayList<>();
+            nextQueue.add(new TetrominoPosition(Tetromino.O, 0, 0, 0));
+            nextQueue.add(new TetrominoPosition(Tetromino.L, 0, 0, 0));
             
             assertDoesNotThrow(() -> view.updateDisplay(board, current, ghost, hold, nextQueue, 2500, 25, 10));
         });
@@ -171,8 +171,8 @@ class PlayViewTest extends ApplicationTest {
             GameBoard board = new GameBoard();
             TetrominoPosition current = new TetrominoPosition(Tetromino.I, 0, 0, 0);
             TetrominoPosition ghost = new TetrominoPosition(Tetromino.I, 0, 10, 0);
-            List<Tetromino> nextQueue = new ArrayList<>();
-            nextQueue.add(Tetromino.S);
+            List<TetrominoPosition> nextQueue = new ArrayList<>();
+            nextQueue.add(new TetrominoPosition(Tetromino.S, 0, 0, 0));
             
             assertDoesNotThrow(() -> view.updateDisplay(board, current, ghost, null, nextQueue, 500, 5, 2));
         });
@@ -189,7 +189,7 @@ class PlayViewTest extends ApplicationTest {
             GameBoard board = new GameBoard();
             TetrominoPosition current = new TetrominoPosition(Tetromino.Z, 0, 0, 0);
             TetrominoPosition ghost = new TetrominoPosition(Tetromino.Z, 0, 15, 0);
-            List<Tetromino> nextQueue = new ArrayList<>();
+            List<TetrominoPosition> nextQueue = new ArrayList<>();
             
             assertDoesNotThrow(() -> view.updateDisplay(board, current, ghost, null, nextQueue, 0, 0, 1));
         });

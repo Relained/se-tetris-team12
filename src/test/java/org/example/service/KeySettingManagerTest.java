@@ -1,6 +1,7 @@
 package org.example.service;
 
 import javafx.scene.input.KeyCode;
+import org.example.model.KeyData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +40,14 @@ class KeySettingManagerTest {
         KeySettingManager instance2 = KeySettingManager.getInstance();
         
         assertSame(instance1, instance2);
+    }
+    
+    @Test
+    @DisplayName("KeyData 가져오기")
+    void testGetKeyData() {
+        KeyData data = keySettingManager.getKeyData();
+        
+        assertNotNull(data);
     }
     
     @Test
@@ -103,8 +112,29 @@ class KeySettingManagerTest {
         keySettingManager.setKeyBinding("moveLeft", KeyCode.A);
         keySettingManager.resetToDefault();
         
-        // 기본값으로 리셋되었는지 확인
-        assertNotEquals(KeyCode.A, keySettingManager.getKeyBinding("moveLeft"));
+        KeyData data = keySettingManager.getKeyData();
+        KeyData defaultData = new KeyData();
+        
+        assertEquals(defaultData.moveLeft, data.moveLeft);
+    }
+    
+    @Test
+    @DisplayName("키 설정 저장 및 로드")
+    void testSaveAndLoadKeySettings() {
+        keySettingManager.setKeyBinding("moveLeft", KeyCode.A);
+        keySettingManager.setKeyBinding("moveRight", KeyCode.D);
+        settingManager.saveSettingData();
+        
+        // 새로운 매니저 생성 및 로드
+        SettingManager newSettingManager = new SettingManager();
+        KeySettingManager newKeyManager = KeySettingManager.getInstance();
+        newKeyManager.setSettingManager(newSettingManager);
+        
+        boolean loaded = newSettingManager.loadSettingData();
+        
+        assertTrue(loaded);
+        assertEquals(KeyCode.A, newKeyManager.getKeyBinding("moveLeft"));
+        assertEquals(KeyCode.D, newKeyManager.getKeyBinding("moveRight"));
     }
     
     @Test

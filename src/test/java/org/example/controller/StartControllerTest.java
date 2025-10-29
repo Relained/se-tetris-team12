@@ -38,7 +38,7 @@ class StartControllerTest {
     void testHandleStartGame() {
         controller.handleStartGame();
         
-        verify(stateManager).stackState("difficulty");
+        verify(stateManager).stackState("gamemode");
     }
     
     @Test

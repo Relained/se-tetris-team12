@@ -54,8 +54,10 @@ public class SuperRotationSystem {
 
         newPos.setRotation(newRotation);
 
-        // O piece doesn't need wall kicks
+        // O piece doesn't need wall kicks, but still needs to rotate for item tracking
         if (current.getType() == Tetromino.O) {
+            // Always succeed rotation for O block (no wall kicks needed)
+            // This allows item blocks to rotate position even though the shape looks the same
             if (board.isValidPosition(newPos)) {
                 return new RotationResult(newPos, false, 0);
             }

@@ -4,6 +4,7 @@ import javafx.scene.input.KeyCode;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.example.model.GameMode;
 import org.example.model.KeyData;
 import org.example.service.StateManager;
 import org.example.service.SuperRotationSystem;
@@ -21,15 +22,17 @@ public class PlayController {
     private StateManager stateManager;
     private PlayView playView;
     private TetrisSystem tetrisSystem;
+    private GameMode gameMode;
     
     private long lastDropTime;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
     
-    public PlayController(StateManager stateManager, PlayView playView, TetrisSystem tetrisSystem) {
+    public PlayController(StateManager stateManager, PlayView playView, TetrisSystem tetrisSystem, GameMode gameMode) {
         this.stateManager = stateManager;
         this.playView = playView;
         this.tetrisSystem = tetrisSystem;
+        this.gameMode = gameMode != null ? gameMode : GameMode.NORMAL;
         this.lastDropTime = System.currentTimeMillis();
     }
     
@@ -44,6 +47,9 @@ public class PlayController {
             tetrisSystem.update();
             lastDropTime = currentTime;
         }
+
+        // Apply any pending board clears (after effect delay)
+        tetrisSystem.getBoard().processPendingClearsIfDue();
 
         // Update UI through View
         updateDisplay();
@@ -147,7 +153,7 @@ public class PlayController {
             .isScoreEligibleForSaving(tetrisSystem.getScore());
 
         ScoreRecord record = new ScoreRecord(tetrisSystem.getScore(), tetrisSystem.getLines(), 
-            tetrisSystem.getLevel(), tetrisSystem.getDifficulty());
+            tetrisSystem.getLevel(), tetrisSystem.getDifficulty(), gameMode);
 
         ScoreboardState scoreboardState = new ScoreboardState(stateManager, record, isEligible);
         stateManager.addState("scoreboard", scoreboardState);

@@ -22,7 +22,7 @@ public class App extends Application {
         primaryStage.setResizable(true);
         
         // 최소 크기 설정 (게임이 정상적으로 표시될 수 있는 최소 크기)
-        primaryStage.setMinWidth(500);
+        primaryStage.setMinWidth(600);
         primaryStage.setMinHeight(800);
         
         // Initialize managers
@@ -40,6 +40,7 @@ public class App extends Application {
         // Add all game states
         stateManager.addState("start", new StartState(stateManager));
         stateManager.addState("play", new PlayState(stateManager));
+        stateManager.addState("gamemode", new GameModeState(stateManager));
         stateManager.addState("pause", new PauseState(stateManager));
         stateManager.addState("setting", new SettingState(stateManager));
         stateManager.addState("color_setting", new ColorSettingState(stateManager));

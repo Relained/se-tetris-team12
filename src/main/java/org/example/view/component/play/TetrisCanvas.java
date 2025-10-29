@@ -79,10 +79,21 @@ public class TetrisCanvas extends Canvas {
         int[][] visibleBoard = board.getVisibleBoard();
         for (int row = 0; row < GameBoard.HEIGHT; row++) {
             for (int col = 0; col < GameBoard.WIDTH; col++) {
-                if (visibleBoard[row][col] == 0) 
+                int v = visibleBoard[row][col];
+                if (v == 0) continue;
+                if (v == GameBoard.CLEAR_MARK) {
+                    // pending-clear cells: draw white, no item mark
+                    drawCell(gc, col, row, Color.WHITE);
                     continue;
-                Color color = colorManager.getColorFromIndex(visibleBoard[row][col]);
+                }
+                Color color = colorManager.getColorFromIndex(v);
                 drawCell(gc, col, row, color);
+                
+                // 보드에 배치된 블록의 아이템 표시 (skip when pending-clear)
+                org.example.model.ItemBlock item = board.getItemAt(row + GameBoard.BUFFER_ZONE, col);
+                if (item != null && item.isItem()) {
+                    drawItemMark(gc, col, row, item.getSymbol());
+                }
             }
         }
 
@@ -93,13 +104,17 @@ public class TetrisCanvas extends Canvas {
 
         // Draw current piece
         if (currentPiece != null) {
-            Color pieceColor = currentPiece.getType().getColor();
+            Color pieceColor = currentPiece.getDisplayColor(colorManager);
             drawPiece(gc, currentPiece, pieceColor, false);
         }
+
+    // No separate overlay; pending cells are drawn white directly
 
         // Draw grid
         drawGrid(gc);
     }
+
+    // overlay method removed in marker-based approach
 
     private void drawPiece(GraphicsContext gc, TetrominoPosition piece, Color color, boolean isGhost) {
         int[][] shape = piece.getCurrentShape();
@@ -116,6 +131,19 @@ public class TetrisCanvas extends Canvas {
                             drawGhostCell(gc, x, y);
                         } else {
                             drawCell(gc, x, y, color);
+                            
+                            org.example.model.ItemBlock item = piece.getItemAt(row, col);
+                            if (item != null && item.isItem()) {
+                                drawItemMark(gc, x, y, item.getSymbol());
+                            }
+
+                            // 특수 조각(WEIGHT/BOMB) 표식 표시
+                            var special = piece.getSpecialKind();
+                            if (special == TetrominoPosition.SpecialKind.WEIGHT) {
+                                drawItemMark(gc, x, y, 'W');
+                            } else if (special == TetrominoPosition.SpecialKind.BOMB) {
+                                drawItemMark(gc, x, y, 'B');
+                            }
                         }
                     }
                 }
@@ -157,5 +185,33 @@ public class TetrisCanvas extends Canvas {
             double y = i * cellSize;
             gc.strokeLine(0, y, getWidth(), y);
         }
+    }
+
+    private void drawItemMark(GraphicsContext gc, int x, int y, char symbol) {
+        double pixelX = x * cellSize;
+        double pixelY = y * cellSize;
+        
+        // 텍스트 설정
+        gc.setFill(Color.WHITE);
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(2);
+        
+        // 폰트 크기를 셀 크기에 맞게 조정
+        double fontSize = cellSize * 0.7;
+        gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, fontSize));
+        
+        // 텍스트 중앙 정렬을 위한 계산
+        javafx.scene.text.Text text = new javafx.scene.text.Text(String.valueOf(symbol));
+        text.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, fontSize));
+        double textWidth = text.getLayoutBounds().getWidth();
+        double textHeight = text.getLayoutBounds().getHeight();
+        
+        double textX = pixelX + (cellSize - textWidth) / 2;
+        double textY = pixelY + (cellSize + textHeight) / 2 - 2;
+        
+        // 검은 테두리
+        gc.strokeText(String.valueOf(symbol), textX, textY);
+        // 흰색 글자
+        gc.fillText(String.valueOf(symbol), textX, textY);
     }
 }

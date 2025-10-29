@@ -42,6 +42,16 @@ class ScoreboardStateTest extends ApplicationTest {
     }
     
     @Test
+    @DisplayName("생성자 - Scoreboard 모드 (게임 플레이 후)")
+    void testConstructorScoreboardModeAfterGamePlay() {
+        ScoreRecord record = new ScoreRecord(5000, 50, 10, 1);
+        ScoreboardState state = new ScoreboardState(stateManager, record, true);
+        assertNotNull(state);
+        // ScoreRecord를 전달하면 INPUT 모드로 시작됨
+        assertEquals(ScoreboardState.Mode.INPUT, state.getCurrentMode());
+    }
+    
+    @Test
     @DisplayName("생성자 - Input 모드 (상위 10위 내)")
     void testConstructorInputMode() {
         ScoreRecord record = new ScoreRecord(5000, 50, 10, 1);

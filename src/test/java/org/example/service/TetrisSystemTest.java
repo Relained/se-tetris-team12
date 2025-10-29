@@ -44,7 +44,7 @@ class TetrisSystemTest {
     @Test
     @DisplayName("다음 큐가 비어있지 않음")
     void testNextQueueNotEmpty() {
-        List<Tetromino> nextQueue = tetrisSystem.getNextQueue();
+        List<TetrominoPosition> nextQueue = tetrisSystem.getNextQueue();
         assertNotNull(nextQueue);
         assertTrue(nextQueue.size() > 0);
         assertTrue(nextQueue.size() <= 5);
@@ -267,7 +267,7 @@ class TetrisSystemTest {
     @Test
     @DisplayName("다음 큐는 최대 5개까지만 반환")
     void testNextQueueMaxFive() {
-        List<Tetromino> nextQueue = tetrisSystem.getNextQueue();
+        List<TetrominoPosition> nextQueue = tetrisSystem.getNextQueue();
         assertTrue(nextQueue.size() <= 5);
     }
 

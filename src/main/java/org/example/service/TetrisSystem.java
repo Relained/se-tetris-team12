@@ -11,29 +11,34 @@ import java.util.Deque;
 import java.util.ArrayDeque;
 
 public class TetrisSystem {
-    private final GameBoard board;
-    private TetrominoPosition currentPiece;
-    private TetrominoPosition holdPiece;
-    private final Deque<Tetromino> nextQueue;
-    private final Random random;
-    private final ArrayList<Double> cumulativeWeights;
+    protected final GameBoard board;
+    protected TetrominoPosition currentPiece;
+    protected TetrominoPosition holdPiece;
+    protected final Deque<TetrominoPosition> nextQueue;
+    protected final Random random;
+    private final List<Double> cumulativeWeights;
 
-    private int score;
-    private int lines;
-    private int level;
-    private int difficulty;
-    private int levelFactor;
-    private boolean canHold;
-    private boolean gameOver;
+    // 게임 상태
+    protected int score;
+    protected int lines;
+    protected int level;
+    protected int difficulty;
+    protected int levelFactor;
+    protected boolean canHold;
+    protected boolean gameOver;
 
-    // Scoring system
-    private static final int[] LINE_SCORES = {0, 100, 300, 500, 800}; // 0, 1, 2, 3, 4 lines
-    private static final int SOFT_DROP_SCORE = 1;
-    private static final int HARD_DROP_SCORE = 2;
-    private static final int QUEUEING_SIZE = 7;
+    // 점수 시스템
+    protected static final int[] LINE_SCORES = {0, 100, 300, 500, 800}; // 0, 1, 2, 3, 4 lines
+    protected static final int SOFT_DROP_SCORE = 1;
+    protected static final int HARD_DROP_SCORE = 2;
+    protected static final int QUEUEING_SIZE = 7;
 
     public TetrisSystem() {
-        this.board = new GameBoard();
+        this(new GameBoard());
+    }
+
+    protected TetrisSystem(GameBoard board) {
+        this.board = board;
         this.nextQueue = new ArrayDeque<>();
         this.random = new Random();
         this.cumulativeWeights = new ArrayList<>();
@@ -55,21 +60,25 @@ public class TetrisSystem {
         spawnNewPiece();
     }
 
-    private void fillNextQueue() {
+    protected void fillNextQueue() {
         while (nextQueue.size() < QUEUEING_SIZE) {
-            nextQueue.addLast(selectWeightedRandom());
+            Tetromino type = selectWeightedRandom();
+            nextQueue.addLast(new TetrominoPosition(type, 0, 0, 0));
         }
     }
 
-    private void spawnNewPiece() {
+    protected void spawnNewPiece() {
         fillNextQueue();
-        Tetromino nextType = nextQueue.pollFirst();
+        TetrominoPosition nextPiece = nextQueue.pollFirst();
 
         // Spawn position (top-center of board, accounting for buffer zone)
-        int spawnX = (GameBoard.WIDTH - nextType.getShape(0)[0].length) / 2;
-        int spawnY = GameBoard.BUFFER_ZONE - nextType.getShape(0).length;
+        int[][] shape = nextPiece.getCurrentShape();
+        int spawnX = (GameBoard.WIDTH - shape[0].length) / 2;
+        int spawnY = GameBoard.BUFFER_ZONE - shape.length;
 
-        currentPiece = new TetrominoPosition(nextType, spawnX, spawnY, 0);
+        currentPiece = nextPiece.copy();
+        currentPiece.setX(spawnX);
+        currentPiece.setY(spawnY);
         canHold = true;
 
         if (!board.isValidPosition(currentPiece)) {
@@ -202,7 +211,7 @@ public class TetrisSystem {
         return true;
     }
 
-    private void lockPiece() {
+    protected void lockPiece() {
         board.placeTetromino(currentPiece);
 
         int clearedLines = board.clearLines();
@@ -225,7 +234,7 @@ public class TetrisSystem {
         }
     }
 
-    private double calcScoreFactor() {
+    protected double calcScoreFactor() {
         //difficulty: 1(Easy), 2(Normal), 3(Hard)
         //-1 ~ 1 * 0.2 + 1 = 0.8, 1, 1.2
         double dfactor = (difficulty - 2) * 0.2 + 1;
@@ -239,10 +248,10 @@ public class TetrisSystem {
     public GameBoard getBoard() { return board; }
     public TetrominoPosition getCurrentPiece() { return currentPiece; }
     public TetrominoPosition getHoldPiece() { return holdPiece; }
-    public List<Tetromino> getNextQueue() {
-        List<Tetromino> preview = new ArrayList<>(5);
+    public List<TetrominoPosition> getNextQueue() {
+        List<TetrominoPosition> preview = new ArrayList<>(5);
         int i = 0;
-        for (Tetromino t : nextQueue) {
+        for (TetrominoPosition t : nextQueue) {
             if (i++ >= 5) break;
             preview.add(t);
         }

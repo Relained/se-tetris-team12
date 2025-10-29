@@ -3,12 +3,14 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import javafx.application.Platform;
 import org.example.model.Tetromino;
+import org.example.model.TetrominoPosition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.testfx.framework.junit5.ApplicationTest;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,9 +34,9 @@ class NextPiecePanelTest extends ApplicationTest {
     void testUpdateNextPieces() {
         Platform.runLater(() -> {
             NextPiecePanel panel = new NextPiecePanel();
-            List<Tetromino> nextPieces = Arrays.asList(
+            List<TetrominoPosition> nextPieces = Arrays.asList(
                 Tetromino.I, Tetromino.O, Tetromino.T, Tetromino.L, Tetromino.J
-            );
+            ).stream().map(t -> new TetrominoPosition(t, 0, 0, 0)).collect(Collectors.toList());
             
             assertDoesNotThrow(() -> panel.updateNextPieces(nextPieces));
             
@@ -47,7 +49,8 @@ class NextPiecePanelTest extends ApplicationTest {
     void testUpdateWithFewerPieces() {
         Platform.runLater(() -> {
             NextPiecePanel panel = new NextPiecePanel();
-            List<Tetromino> nextPieces = Arrays.asList(Tetromino.T, Tetromino.Z);
+            List<TetrominoPosition> nextPieces = Arrays.asList(Tetromino.T, Tetromino.Z)
+                .stream().map(t -> new TetrominoPosition(t, 0, 0, 0)).collect(Collectors.toList());
             
             assertDoesNotThrow(() -> panel.updateNextPieces(nextPieces));
             
@@ -60,10 +63,10 @@ class NextPiecePanelTest extends ApplicationTest {
     void testUpdateWithMorePieces() {
         Platform.runLater(() -> {
             NextPiecePanel panel = new NextPiecePanel();
-            List<Tetromino> nextPieces = Arrays.asList(
+            List<TetrominoPosition> nextPieces = Arrays.asList(
                 Tetromino.I, Tetromino.O, Tetromino.T, 
                 Tetromino.L, Tetromino.J, Tetromino.S, Tetromino.Z
-            );
+            ).stream().map(t -> new TetrominoPosition(t, 0, 0, 0)).collect(Collectors.toList());
             
             assertDoesNotThrow(() -> panel.updateNextPieces(nextPieces));
             
@@ -77,8 +80,10 @@ class NextPiecePanelTest extends ApplicationTest {
         Platform.runLater(() -> {
             NextPiecePanel panel = new NextPiecePanel();
             
-            List<Tetromino> pieces1 = Arrays.asList(Tetromino.I, Tetromino.O, Tetromino.T);
-            List<Tetromino> pieces2 = Arrays.asList(Tetromino.L, Tetromino.J);
+            List<TetrominoPosition> pieces1 = Arrays.asList(Tetromino.I, Tetromino.O, Tetromino.T)
+                .stream().map(t -> new TetrominoPosition(t, 0, 0, 0)).collect(Collectors.toList());
+            List<TetrominoPosition> pieces2 = Arrays.asList(Tetromino.L, Tetromino.J)
+                .stream().map(t -> new TetrominoPosition(t, 0, 0, 0)).collect(Collectors.toList());
             
             assertDoesNotThrow(() -> {
                 panel.updateNextPieces(pieces1);
@@ -94,7 +99,8 @@ class NextPiecePanelTest extends ApplicationTest {
     void testUpdateWithAllTetrominoTypes() {
         Platform.runLater(() -> {
             NextPiecePanel panel = new NextPiecePanel();
-            List<Tetromino> allTypes = Arrays.asList(Tetromino.values());
+            List<TetrominoPosition> allTypes = Arrays.asList(Tetromino.values())
+                .stream().map(t -> new TetrominoPosition(t, 0, 0, 0)).collect(Collectors.toList());
             
             assertDoesNotThrow(() -> panel.updateNextPieces(allTypes));
             

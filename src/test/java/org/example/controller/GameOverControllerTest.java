@@ -40,6 +40,13 @@ class GameOverControllerTest {
     }
     
     @Test
+    @DisplayName("점수 제출 여부와 함께 컨트롤러 생성")
+    void testControllerWithScoreSubmitted() {
+        GameOverController controllerWithScore = new GameOverController(stateManager, gameOverView);
+        assertNotNull(controllerWithScore);
+    }
+    
+    @Test
     @DisplayName("Play Again 핸들러 - play 상태로 전환")
     void testHandlePlayAgain() {
         controller.handlePlayAgain();

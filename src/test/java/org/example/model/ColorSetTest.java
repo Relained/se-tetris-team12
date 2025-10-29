@@ -107,9 +107,9 @@ class ColorSetTest {
     }
 
     @Test
-    @DisplayName("TRITANOPIA 색상 세트 - 두 번째 색상은 WHITE")
+    @DisplayName("TRITANOPIA 색상 세트 - 두 번째 색상은 자홍색 (Magenta)")
     void testTritanopiaSecondColor() {
-        assertEquals(Color.WHITE, ColorSet.TRITANOPIA[1]);
+        assertEquals(Color.web("#CC79A7"), ColorSet.TRITANOPIA[1]);
     }
 
     @Test

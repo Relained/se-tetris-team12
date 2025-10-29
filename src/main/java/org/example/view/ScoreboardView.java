@@ -71,9 +71,8 @@ public class ScoreboardView extends BaseView {
         container.setSpacing(15);
         container.setPadding(new Insets(20));
         container.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
-        container.setMaxWidth(Double.MAX_VALUE); // 최대한 늘어나도록
-        container.setPrefWidth(550); // 선호 크기는 유지
-        container.setMinWidth(400); // 최소 크기 설정
+        container.setMaxWidth(650);
+        container.setPrefWidth(650);
         container.setMinHeight(550);
 
         titleLabel = new Text("HIGH SCORES");
@@ -95,57 +94,50 @@ public class ScoreboardView extends BaseView {
         return container;
     }
 
-    private GridPane createHeaderRow() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setAlignment(Pos.CENTER);
-        grid.setPadding(new Insets(0, 0, 10, 0));
-        grid.setMaxWidth(Double.MAX_VALUE);
-        
-        // 컬럼 제약 조건 설정 (퍼센트 기반)
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(10); // RANK
-        col1.setHalignment(HPos.CENTER);
-        
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(15); // NAME
-        col2.setHalignment(HPos.CENTER);
-        
-        ColumnConstraints col3 = new ColumnConstraints();
-        col3.setPercentWidth(25); // SCORE
-        col3.setHalignment(HPos.RIGHT);
-        
-        ColumnConstraints col4 = new ColumnConstraints();
-        col4.setPercentWidth(15); // LEVEL
-        col4.setHalignment(HPos.CENTER);
-        
-        ColumnConstraints col5 = new ColumnConstraints();
-        col5.setPercentWidth(15); // DIFF
-        col5.setHalignment(HPos.CENTER);
-        
-        ColumnConstraints col6 = new ColumnConstraints();
-        col6.setPercentWidth(20); // DATE
-        col6.setHalignment(HPos.CENTER);
-        
-        grid.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6);
-        
-        // 헤더 텍스트 생성
-        Text rankHeader = createHeaderText("RANK");
-        Text nameHeader = createHeaderText("NAME");
-        Text scoreHeader = createHeaderText("SCORE");
-        Text levelHeader = createHeaderText("LEVEL");
-        Text diffHeader = createHeaderText("DIFF");
-        Text dateHeader = createHeaderText("DATE");
-        
-        // GridPane에 추가
-        grid.add(rankHeader, 0, 0);
-        grid.add(nameHeader, 1, 0);
-        grid.add(scoreHeader, 2, 0);
-        grid.add(levelHeader, 3, 0);
-        grid.add(diffHeader, 4, 0);
-        grid.add(dateHeader, 5, 0);
-        
-        return grid;
+    private HBox createHeaderRow() {
+        HBox headerBox = new HBox(10);
+        headerBox.setAlignment(Pos.CENTER_LEFT);
+        headerBox.setPadding(new Insets(0, 0, 10, 0));
+        headerBox.setMaxWidth(600);
+
+        Text rankHeader = new Text("RANK");
+        rankHeader.setFill(Color.WHITE);
+        rankHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
+        Text nameHeader = new Text("NAME");
+        nameHeader.setFill(Color.WHITE);
+        nameHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
+        Text scoreHeader = new Text("SCORE");
+        scoreHeader.setFill(Color.WHITE);
+        scoreHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
+        Text levelHeader = new Text("LEVEL");
+        levelHeader.setFill(Color.WHITE);
+        levelHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
+        Text diffHeader = new Text("DIFF");
+        diffHeader.setFill(Color.WHITE);
+        diffHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
+        Text modeHeader = new Text("MODE");
+        modeHeader.setFill(Color.WHITE);
+        modeHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
+        Text dateHeader = new Text("DATE");
+        dateHeader.setFill(Color.WHITE);
+        dateHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
+        VBox rankBox = createAlignedTextBox(rankHeader, 60, Pos.CENTER);
+        VBox nameBox = createAlignedTextBox(nameHeader, 80, Pos.CENTER);
+        VBox scoreBox = createAlignedTextBox(scoreHeader, 120, Pos.CENTER_RIGHT);
+        VBox levelBox = createAlignedTextBox(levelHeader, 60, Pos.CENTER);
+        VBox diffBox = createAlignedTextBox(diffHeader, 70, Pos.CENTER);
+        VBox modeBox = createAlignedTextBox(modeHeader, 70, Pos.CENTER);
+        VBox dateBox = createAlignedTextBox(dateHeader, 120, Pos.CENTER);
+
+        headerBox.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, diffBox, modeBox, dateBox);
+        return headerBox;
     }
     
     private Text createHeaderText(String content) {
@@ -200,44 +192,17 @@ public class ScoreboardView extends BaseView {
         }
     }
 
-    private GridPane createScoreRow(int rank, ScoreRecord record) {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setAlignment(Pos.CENTER);
-        grid.setMaxWidth(Double.MAX_VALUE);
-        
-        // 헤더와 동일한 컬럼 제약 조건 적용
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(10); // RANK
-        col1.setHalignment(HPos.CENTER);
-        
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(15); // NAME
-        col2.setHalignment(HPos.CENTER);
-        
-        ColumnConstraints col3 = new ColumnConstraints();
-        col3.setPercentWidth(25); // SCORE
-        col3.setHalignment(HPos.RIGHT);
-        
-        ColumnConstraints col4 = new ColumnConstraints();
-        col4.setPercentWidth(15); // LEVEL
-        col4.setHalignment(HPos.CENTER);
-        
-        ColumnConstraints col5 = new ColumnConstraints();
-        col5.setPercentWidth(15); // DIFF
-        col5.setHalignment(HPos.CENTER);
-        
-        ColumnConstraints col6 = new ColumnConstraints();
-        col6.setPercentWidth(20); // DATE
-        col6.setHalignment(HPos.CENTER);
-        
-        grid.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6);
+    private HBox createScoreRow(int rank, ScoreRecord record) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setMaxWidth(600);
 
         Text rankText = new Text(String.valueOf(rank));
         Text nameText = new Text(record.getPlayerName());
         Text scoreText = new Text(String.format("%,d", record.getScore()));
         Text levelText = new Text(String.valueOf(record.getLevel()));
         Text diffText = new Text(mapDifficulty(record.getDifficulty()));
+        Text modeText = new Text(mapGameMode(record.getGameMode()));
         Text dateText = new Text(record.getPlayDate().format(DateTimeFormatter.ofPattern("MM/dd/yy")));
 
         // Rank에 따른 색상 지정
@@ -247,6 +212,7 @@ public class ScoreboardView extends BaseView {
         scoreText.setFill(textColor);
         levelText.setFill(textColor);
         diffText.setFill(textColor);
+        modeText.setFill(textColor);
         dateText.setFill(textColor);
 
         Font font = Font.font("Courier New", 13);
@@ -259,6 +225,7 @@ public class ScoreboardView extends BaseView {
             scoreText.setUnderline(true);
             levelText.setUnderline(true);
             diffText.setUnderline(true);
+            modeText.setUnderline(true);
             dateText.setUnderline(true);
         }
         
@@ -267,17 +234,19 @@ public class ScoreboardView extends BaseView {
         scoreText.setFont(font);
         levelText.setFont(font);
         diffText.setFont(font);
+        modeText.setFont(font);
         dateText.setFont(font);
 
-        // GridPane에 텍스트 추가
-        grid.add(rankText, 0, 0);
-        grid.add(nameText, 1, 0);
-        grid.add(scoreText, 2, 0);
-        grid.add(levelText, 3, 0);
-        grid.add(diffText, 4, 0);
-        grid.add(dateText, 5, 0);
+        VBox rankBox = createAlignedTextBox(rankText, 60, Pos.CENTER);
+        VBox nameBox = createAlignedTextBox(nameText, 80, Pos.CENTER);
+        VBox scoreBox = createAlignedTextBox(scoreText, 120, Pos.CENTER_RIGHT);
+        VBox levelBox = createAlignedTextBox(levelText, 60, Pos.CENTER);
+        VBox diffBox = createAlignedTextBox(diffText, 70, Pos.CENTER);
+        VBox modeBox = createAlignedTextBox(modeText, 70, Pos.CENTER);
+        VBox dateBox = createAlignedTextBox(dateText, 120, Pos.CENTER);
 
-        return grid;
+        row.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, diffBox, modeBox, dateBox);
+        return row;
     }
 
     private String mapDifficulty(int difficulty) {
@@ -286,6 +255,16 @@ public class ScoreboardView extends BaseView {
             case 2 -> "Normal";
             case 3 -> "Hard";
             default -> "-"; // legacy/unknown
+        };
+    }
+
+    private String mapGameMode(org.example.model.GameMode gameMode) {
+        if (gameMode == null) {
+            return "Normal"; // null인 경우 기본값
+        }
+        return switch (gameMode) {
+            case NORMAL -> "Normal";
+            case ITEM -> "Item";
         };
     }
 

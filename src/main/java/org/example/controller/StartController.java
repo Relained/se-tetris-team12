@@ -22,8 +22,8 @@ public class StartController {
      * Start Game 버튼 클릭 시 처리
      */
     public void handleStartGame() {
-        // 게임 시작 전에 난이도 선택 화면으로 이동
-        stateManager.stackState("difficulty");
+        // 게임 시작 전에 게임 모드 선택 화면으로 이동
+        stateManager.stackState("gamemode");
     }
     
     /**

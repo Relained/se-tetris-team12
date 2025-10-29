@@ -135,7 +135,9 @@ class ScoreboardViewTest extends ApplicationTest {
             view.createView(() -> {}, () -> {});
             
             List<ScoreRecord> records = new ArrayList<>();
-            records.add(createScoreRecord("ABC", 5000, 50, 10));
+            ScoreRecord record = new ScoreRecord(5000, 50, 10, 1);
+            record.setPlayerName("ABC");
+            records.add(record);
             
             assertDoesNotThrow(() -> view.updateScoreboard(records));
         });
@@ -151,7 +153,9 @@ class ScoreboardViewTest extends ApplicationTest {
             
             List<ScoreRecord> records = new ArrayList<>();
             for (int i = 0; i < 5; i++) {
-                records.add(createScoreRecord("P" + i, 1000 * (5 - i), 10 * (5 - i), i + 1));
+                ScoreRecord record = new ScoreRecord(1000 * (5 - i), 10 * (5 - i), i + 1, 1);
+                record.setPlayerName("P" + i);
+                records.add(record);
             }
             
             assertDoesNotThrow(() -> view.updateScoreboard(records));
@@ -168,7 +172,9 @@ class ScoreboardViewTest extends ApplicationTest {
             
             List<ScoreRecord> records = new ArrayList<>();
             for (int i = 0; i < 15; i++) {
-                records.add(createScoreRecord("P" + i, 1000 * (15 - i), 10 * (15 - i), i + 1));
+                ScoreRecord record = new ScoreRecord(1000 * (15 - i), 10 * (15 - i), i + 1, 1);
+                record.setPlayerName("P" + i);
+                records.add(record);
             }
             
             // 15개 입력했지만 10개만 표시됨
@@ -185,10 +191,14 @@ class ScoreboardViewTest extends ApplicationTest {
             view.createView(() -> {}, () -> {});
             
             List<ScoreRecord> records = new ArrayList<>();
-            ScoreRecord newRecord = createScoreRecord("NEW", 10000, 100, 15);
+            ScoreRecord newRecord = new ScoreRecord(10000, 100, 15, 1);
+            newRecord.setPlayerName("NEW");
             newRecord.setNewlyAdded(true); // 새로 추가된 기록으로 표시
             records.add(newRecord);
-            records.add(createScoreRecord("OLD", 5000, 50, 10));
+            
+            ScoreRecord oldRecord = new ScoreRecord(5000, 50, 10, 1);
+            oldRecord.setPlayerName("OLD");
+            records.add(oldRecord);
             
             assertDoesNotThrow(() -> view.updateScoreboard(records));
         });
@@ -203,7 +213,9 @@ class ScoreboardViewTest extends ApplicationTest {
             view.createView(() -> {}, () -> {});
             
             List<ScoreRecord> records = new ArrayList<>();
-            records.add(createScoreRecord("1ST", 10000, 100, 15));
+            ScoreRecord record = new ScoreRecord(10000, 100, 15, 1);
+            record.setPlayerName("1ST");
+            records.add(record);
             
             assertDoesNotThrow(() -> view.updateScoreboard(records));
         });
@@ -218,8 +230,13 @@ class ScoreboardViewTest extends ApplicationTest {
             view.createView(() -> {}, () -> {});
             
             List<ScoreRecord> records = new ArrayList<>();
-            records.add(createScoreRecord("1ST", 10000, 100, 15));
-            records.add(createScoreRecord("2ND", 8000, 80, 12));
+            ScoreRecord record1 = new ScoreRecord(10000, 100, 15, 1);
+            record1.setPlayerName("1ST");
+            records.add(record1);
+            
+            ScoreRecord record2 = new ScoreRecord(8000, 80, 12, 1);
+            record2.setPlayerName("2ND");
+            records.add(record2);
             
             assertDoesNotThrow(() -> view.updateScoreboard(records));
         });
@@ -234,9 +251,17 @@ class ScoreboardViewTest extends ApplicationTest {
             view.createView(() -> {}, () -> {});
             
             List<ScoreRecord> records = new ArrayList<>();
-            records.add(createScoreRecord("1ST", 10000, 100, 15));
-            records.add(createScoreRecord("2ND", 8000, 80, 12));
-            records.add(createScoreRecord("3RD", 6000, 60, 10));
+            ScoreRecord record1 = new ScoreRecord(10000, 100, 15, 1);
+            record1.setPlayerName("1ST");
+            records.add(record1);
+            
+            ScoreRecord record2 = new ScoreRecord(8000, 80, 12, 1);
+            record2.setPlayerName("2ND");
+            records.add(record2);
+            
+            ScoreRecord record3 = new ScoreRecord(6000, 60, 10, 1);
+            record3.setPlayerName("3RD");
+            records.add(record3);
             
             assertDoesNotThrow(() -> view.updateScoreboard(records));
         });
@@ -251,10 +276,21 @@ class ScoreboardViewTest extends ApplicationTest {
             view.createView(() -> {}, () -> {});
             
             List<ScoreRecord> records = new ArrayList<>();
-            records.add(createScoreRecord("1ST", 10000, 100, 15));
-            records.add(createScoreRecord("2ND", 8000, 80, 12));
-            records.add(createScoreRecord("3RD", 6000, 60, 10));
-            records.add(createScoreRecord("4TH", 4000, 40, 8));
+            ScoreRecord record1 = new ScoreRecord(10000, 100, 15, 1);
+            record1.setPlayerName("1ST");
+            records.add(record1);
+            
+            ScoreRecord record2 = new ScoreRecord(8000, 80, 12, 1);
+            record2.setPlayerName("2ND");
+            records.add(record2);
+            
+            ScoreRecord record3 = new ScoreRecord(6000, 60, 10, 1);
+            record3.setPlayerName("3RD");
+            records.add(record3);
+            
+            ScoreRecord record4 = new ScoreRecord(4000, 40, 8, 1);
+            record4.setPlayerName("4TH");
+            records.add(record4);
             
             assertDoesNotThrow(() -> view.updateScoreboard(records));
         });
@@ -269,7 +305,9 @@ class ScoreboardViewTest extends ApplicationTest {
             view.createView(() -> {}, () -> {});
             
             List<ScoreRecord> records = new ArrayList<>();
-            records.add(createScoreRecord("ABC", 5000, 50, 10));
+            ScoreRecord record = new ScoreRecord(5000, 50, 10, 1);
+            record.setPlayerName("ABC");
+            records.add(record);
             
             assertDoesNotThrow(() -> view.refresh(records));
         });

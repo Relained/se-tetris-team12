@@ -3,6 +3,7 @@ package org.example.controller;
 import javafx.application.Platform;
 import org.example.model.ScoreRecord;
 import org.example.service.StateManager;
+import org.example.state.ScoreboardState;
 import org.example.view.ScoreInputView;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ class ScoreInputControllerTest {
     private ScoreInputController controller;
     private StateManager stateManager;
     private ScoreInputView scoreInputView;
+    private ScoreboardState scoreboardState;
     private ScoreRecord testRecord;
     
     @BeforeAll
@@ -32,7 +34,12 @@ class ScoreInputControllerTest {
     void setUp() {
         stateManager = mock(StateManager.class);
         scoreInputView = mock(ScoreInputView.class);
+        scoreboardState = mock(ScoreboardState.class);
         testRecord = new ScoreRecord(1000, 10, 5, 1);
+        
+        // Mock getCurrentState to return scoreboardState
+        when(stateManager.getCurrentState()).thenReturn(scoreboardState);
+        
         controller = new ScoreInputController(stateManager, scoreInputView, testRecord);
     }
     
@@ -59,7 +66,7 @@ class ScoreInputControllerTest {
         controller.handleSubmit();
         
         verify(scoreInputView).getPlayerName();
-        assertEquals(playerName, testRecord.getPlayerName());
+        verify(scoreboardState).setScoreBoardScene(true);
     }
     
     @Test
@@ -69,6 +76,6 @@ class ScoreInputControllerTest {
         
         controller.handleSkip();
         
-        verify(stateManager).getCurrentState();
+        verify(scoreboardState).setScoreBoardScene(false);
     }
 }
