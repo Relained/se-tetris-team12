@@ -4,8 +4,10 @@ public class GameBoard {
     public static final int WIDTH = 10;
     public static final int HEIGHT = 20;
     public static final int BUFFER_ZONE = 4; // Extra rows above visible area
+    public static final int CLEAR_MARK = -1; // pending clear mark
 
     protected final int[][] board;
+    protected long pendingClearDueMs = 0L;
 
     public GameBoard() {
         this.board = new int[HEIGHT + BUFFER_ZONE][WIDTH];
@@ -56,16 +58,68 @@ public class GameBoard {
 
     public int clearLines() {
         int linesCleared = 0;
+        long now = System.currentTimeMillis();
         for (int row = HEIGHT + BUFFER_ZONE - 1; row >= 0; row--) {
             if (isLineFull(row)) {
-                clearLine(row);
+                // mark entire row for clear and schedule
+                for (int col = 0; col < WIDTH; col++) {
+                    board[row][col] = CLEAR_MARK;
+                }
                 linesCleared++;
-                row++; // Check the same row again
+                schedulePendingClear(now + 500);
             }
         }
         return linesCleared;
     }
     
+    public void playClearLineEffect(int min_x, int min_y, int max_x, int max_y) {
+        // Clamp to board bounds and mark cells for white flash
+        int clampedMinX = Math.max(0, Math.min(WIDTH - 1, min_x));
+        int clampedMaxX = Math.max(0, Math.min(WIDTH - 1, max_x));
+        int clampedMinY = Math.max(0, Math.min(HEIGHT + BUFFER_ZONE - 1, min_y));
+        int clampedMaxY = Math.max(0, Math.min(HEIGHT + BUFFER_ZONE - 1, max_y));
+        for (int y = clampedMinY; y <= clampedMaxY; y++) {
+            for (int x = clampedMinX; x <= clampedMaxX; x++) {
+                board[y][x] = CLEAR_MARK;
+            }
+        }
+        schedulePendingClear(System.currentTimeMillis() + 500);
+    }
+
+    private void schedulePendingClear(long dueMs) {
+        if (pendingClearDueMs == 0L || dueMs < pendingClearDueMs) {
+            pendingClearDueMs = dueMs;
+        }
+    }
+
+    public void processPendingClearsIfDue() {
+        if (pendingClearDueMs == 0L) return;
+        long now = System.currentTimeMillis();
+        if (now < pendingClearDueMs) return;
+
+        // 1) Clear fully marked rows (bottom-up for correct shifting)
+        for (int row = HEIGHT + BUFFER_ZONE - 1; row >= 0; row--) {
+            boolean fullMarked = true;
+            for (int col = 0; col < WIDTH; col++) {
+                if (board[row][col] != CLEAR_MARK) { fullMarked = false; break; }
+            }
+            if (fullMarked) {
+                clearLine(row);
+                row++; // re-check same index after shift
+            }
+        }
+
+        // 2) Clear any remaining marked cells (rect/segments)
+        for (int y = 0; y < HEIGHT + BUFFER_ZONE; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                if (board[y][x] == CLEAR_MARK) {
+                    board[y][x] = 0;
+                }
+            }
+        }
+
+        pendingClearDueMs = 0L;
+    }
 
     private boolean isLineFull(int row) {
         for (int col = 0; col < WIDTH; col++) {
@@ -86,7 +140,6 @@ public class GameBoard {
         }
     }
     
-
     public int[][] getVisibleBoard() {
         int[][] visible = new int[HEIGHT][WIDTH];
         System.arraycopy(board, BUFFER_ZONE, visible, 0, HEIGHT);

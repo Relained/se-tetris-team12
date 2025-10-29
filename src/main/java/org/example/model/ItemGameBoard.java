@@ -68,7 +68,6 @@ public class ItemGameBoard extends GameBoard {
             if (shouldClear) {
                 clearLineWithItems(row);
                 linesCleared++;
-                row++; // 같은 줄을 다시 검사 (위에서 내려온 줄)
             }
         }
 
@@ -129,12 +128,8 @@ public class ItemGameBoard extends GameBoard {
         int cStart = Math.max(0, centerCol - 2);
         int cEnd = Math.min(WIDTH - 1, centerCol + 3);
 
-        for (int r = rStart; r <= rEnd; r++) {
-            for (int c = cStart; c <= cEnd; c++) {
-                board[r][c] = 0;
-                itemBoard.remove(toKey(r, c));
-            }
-        }
+        // mark square area effect for bomb (deferred clear)
+        playClearLineEffect(cStart, rStart, cEnd, rEnd);
     }
 
     // 외부에서 폭탄 효과를 트리거하기 위한 공개 메서드
@@ -178,14 +173,7 @@ public class ItemGameBoard extends GameBoard {
         }
         itemBoard.clear();
         itemBoard.putAll(newItemBoard);
-
-        // 일반 보드 처리
-        for (int row = lineIndex; row > 0; row--) {
-            System.arraycopy(board[row - 1], 0, board[row], 0, WIDTH);
-        }
-        for (int col = 0; col < WIDTH; col++) {
-            board[0][col] = 0;
-        }
+        playClearLineEffect(0, lineIndex, WIDTH - 1, lineIndex);
     }
 
     private void clearColumnWithItems(int colIndex) {
@@ -201,16 +189,46 @@ public class ItemGameBoard extends GameBoard {
         itemBoard.clear();
         itemBoard.putAll(newItemBoard);
 
-        // 일반 보드 처리: 해당 열을 모두 비움 (다른 열 이동 없음)
-        for (int row = 0; row < HEIGHT + BUFFER_ZONE; row++) {
-            board[row][colIndex] = 0;
-        }
+        playClearLineEffect(colIndex, BUFFER_ZONE, colIndex, HEIGHT + BUFFER_ZONE - 1);
     }
 
     @Override
     public void clear() {
         super.clear();
         itemBoard.clear();
+    }
+
+    @Override
+    public void processPendingClearsIfDue() {
+        if (pendingClearDueMs == 0L) return;
+        long now = System.currentTimeMillis();
+        if (now < pendingClearDueMs) return;
+
+        // 1) Clear fully marked rows with itemBoard shift (bottom-up)
+        for (int row = HEIGHT + BUFFER_ZONE - 1; row >= 0; row--) {
+            boolean fullMarked = true;
+            for (int col = 0; col < WIDTH; col++) {
+                if (board[row][col] != CLEAR_MARK) { fullMarked = false; break; }
+            }
+            if (fullMarked) {
+                for (int r = row; r > 0; r--) {
+                    System.arraycopy(board[r - 1], 0, board[r], 0, WIDTH);
+                }
+                for (int c = 0; c < WIDTH; c++) board[0][c] = 0;
+                row++; // re-check same index after shift
+            }
+        }
+
+        // 3) Clear remaining marked cells (rectangles/segments) and their items
+        for (int y = 0; y < HEIGHT + BUFFER_ZONE; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                if (board[y][x] == CLEAR_MARK) {
+                    board[y][x] = 0;
+                }
+            }
+        }
+
+        pendingClearDueMs = 0L;
     }
 
     public void setItemBlock(int row, int col, ItemBlock item) {

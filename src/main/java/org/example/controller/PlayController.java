@@ -45,6 +45,9 @@ public class PlayController {
             lastDropTime = currentTime;
         }
 
+        // Apply any pending board clears (after effect delay)
+        tetrisSystem.getBoard().processPendingClearsIfDue();
+
         // Update UI through View
         updateDisplay();
 

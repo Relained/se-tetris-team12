@@ -79,12 +79,17 @@ public class TetrisCanvas extends Canvas {
         int[][] visibleBoard = board.getVisibleBoard();
         for (int row = 0; row < GameBoard.HEIGHT; row++) {
             for (int col = 0; col < GameBoard.WIDTH; col++) {
-                if (visibleBoard[row][col] == 0) 
+                int v = visibleBoard[row][col];
+                if (v == 0) continue;
+                if (v == GameBoard.CLEAR_MARK) {
+                    // pending-clear cells: draw white, no item mark
+                    drawCell(gc, col, row, Color.WHITE);
                     continue;
-                Color color = colorManager.getColorFromIndex(visibleBoard[row][col]);
+                }
+                Color color = colorManager.getColorFromIndex(v);
                 drawCell(gc, col, row, color);
                 
-                // 보드에 배치된 블록의 아이템 표시
+                // 보드에 배치된 블록의 아이템 표시 (skip when pending-clear)
                 org.example.model.ItemBlock item = board.getItemAt(row + GameBoard.BUFFER_ZONE, col);
                 if (item != null && item.isItem()) {
                     drawItemMark(gc, col, row, item.getSymbol());
@@ -103,9 +108,13 @@ public class TetrisCanvas extends Canvas {
             drawPiece(gc, currentPiece, pieceColor, false);
         }
 
+    // No separate overlay; pending cells are drawn white directly
+
         // Draw grid
         drawGrid(gc);
     }
+
+    // overlay method removed in marker-based approach
 
     private void drawPiece(GraphicsContext gc, TetrominoPosition piece, Color color, boolean isGhost) {
         int[][] shape = piece.getCurrentShape();
