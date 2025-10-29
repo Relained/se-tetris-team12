@@ -3,6 +3,7 @@ package org.example.controller;
 import javafx.scene.input.KeyEvent;
 
 import org.example.service.StateManager;
+import org.example.state.ScoreboardState;
 import org.example.view.GameOverView;
 
 /**
@@ -12,10 +13,16 @@ public class GameOverController {
     
     private StateManager stateManager;
     private GameOverView gameOverView;
+    private boolean scoreWasSubmitted; // 점수 제출 여부
     
     public GameOverController(StateManager stateManager, GameOverView gameOverView) {
+        this(stateManager, gameOverView, false);
+    }
+    
+    public GameOverController(StateManager stateManager, GameOverView gameOverView, boolean scoreWasSubmitted) {
         this.stateManager = stateManager;
         this.gameOverView = gameOverView;
+        this.scoreWasSubmitted = scoreWasSubmitted;
     }
     
     /**
@@ -23,6 +30,17 @@ public class GameOverController {
      */
     public void handlePlayAgain() {
         stateManager.setState("play");
+    }
+    
+    /**
+     * View Scoreboard 버튼 클릭 시 처리 - 스코어보드로 이동
+     * 점수가 제출되었다면 하이라이트 표시
+     */
+    public void handleViewScoreboard() {
+        // 점수가 제출되었으면 하이라이트 활성화, 아니면 비활성화
+        ScoreboardState scoreboardState = new ScoreboardState(stateManager, scoreWasSubmitted);
+        stateManager.addState("scoreboard", scoreboardState);
+        stateManager.setState("scoreboard");
     }
     
     /**

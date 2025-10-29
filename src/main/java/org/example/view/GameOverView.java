@@ -23,6 +23,7 @@ public class GameOverView extends BaseView {
      * @param finalLines 클리어한 총 라인 수
      * @param finalLevel 도달한 레벨
      * @param onPlayAgain Play Again 버튼 클릭 시 실행될 콜백
+     * @param onViewScoreboard View Scoreboard 버튼 클릭 시 실행될 콜백
      * @param onMainMenu Main Menu 버튼 클릭 시 실행될 콜백
      * @param onExit Exit Game 버튼 클릭 시 실행될 콜백
      * @return 구성된 VBox root
@@ -31,6 +32,7 @@ public class GameOverView extends BaseView {
                           int finalLines, 
                           int finalLevel,
                           Runnable onPlayAgain,
+                          Runnable onViewScoreboard,
                           Runnable onMainMenu,
                           Runnable onExit) {
         VBox root = new VBox(25);
@@ -54,6 +56,7 @@ public class GameOverView extends BaseView {
         levelText.setFont(Font.font("Arial", 20));
 
         var playAgainButton = buttonSystem.createNavigableButton("Play Again", onPlayAgain);
+        var viewScoreboardButton = buttonSystem.createNavigableButton("View Scoreboard", onViewScoreboard);
         var mainMenuButton = buttonSystem.createNavigableButton("Main Menu", onMainMenu);
         var exitButton = buttonSystem.createNavigableButton("Exit Game", onExit);
 
@@ -63,6 +66,7 @@ public class GameOverView extends BaseView {
                 linesText,
                 levelText,
                 playAgainButton,
+                viewScoreboardButton,
                 mainMenuButton,
                 exitButton
         );

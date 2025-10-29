@@ -1,4 +1,9 @@
-package org.example.game.logic;
+package org.example.deprecated.game.logic;
+
+import org.example.model.GameBoard;
+import org.example.model.Tetromino;
+import org.example.model.TetrominoPosition;
+import org.example.service.SuperRotationSystem;
 
 import org.example.model.GameBoard;
 import org.example.model.Tetromino;

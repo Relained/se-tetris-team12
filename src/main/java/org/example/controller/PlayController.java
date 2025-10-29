@@ -98,6 +98,7 @@ public class PlayController {
     private void handleInputs() {
         if (tetrisSystem == null || tetrisSystem.isGameOver()) return;
 
+        // SettingManager를 통해 최신 키 설정 가져오기
         ControlData data = stateManager.settingManager.getCurrentSettings().controlData;
 
         // 한 번만 실행되는 입력 처리
@@ -138,7 +139,19 @@ public class PlayController {
      * 게임 오버 처리
      */
     public void handleGameOver() {
-        stateManager.setState("gameover");
+        // Get final scores
+        int finalScore = tetrisSystem.getScore();
+        int finalLines = tetrisSystem.getLines();
+        int finalLevel = tetrisSystem.getLevel();
+        
+        // Controller가 점수 저장 자격 확인 후 ScoreboardState 생성
+        boolean isEligible = org.example.service.ScoreManager.getInstance()
+            .isScoreEligibleForSaving(finalScore);
+        
+        org.example.state.ScoreboardState scoreboardState = 
+            new org.example.state.ScoreboardState(stateManager, finalScore, finalLines, finalLevel, isEligible);
+        stateManager.addState("scoreboard", scoreboardState);
+        stateManager.setState("scoreboard");
     }
     
     /**

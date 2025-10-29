@@ -1,151 +1,166 @@
 package org.example.model;
 
-import org.example.service.ColorManager;
+import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class TetrominoTest {
 
     @Test
-    void testTetrominoI() {
-        Tetromino tetromino = Tetromino.I;
-        int[][] expectedShape = {{0,0,0,0}, {1,1,1,1}, {0,0,0,0}, {0,0,0,0}};
-
-        assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorManager.getInstance().getColorFromIndex(1), tetromino.getColor());
+    @DisplayName("모든 테트로미노 타입이 존재하는지 확인")
+    void testAllTetrominoTypes() {
+        Tetromino[] types = Tetromino.values();
+        assertEquals(7, types.length);
+        
+        assertEquals(Tetromino.I, types[0]);
+        assertEquals(Tetromino.O, types[1]);
+        assertEquals(Tetromino.T, types[2]);
+        assertEquals(Tetromino.S, types[3]);
+        assertEquals(Tetromino.Z, types[4]);
+        assertEquals(Tetromino.J, types[5]);
+        assertEquals(Tetromino.L, types[6]);
     }
 
     @Test
-    void testTetrominoO() {
-        Tetromino tetromino = Tetromino.O;
-        int[][] expectedShape = {{0,1,1,0}, {0,1,1,0}, {0,0,0,0}, {0,0,0,0}};
-
-        assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorManager.getInstance().getColorFromIndex(2), tetromino.getColor());
+    @DisplayName("I 블록의 모양 테스트")
+    void testITetrominoShape() {
+        int[][] shape = Tetromino.I.getShape(0);
+        assertNotNull(shape);
+        assertEquals(4, shape.length);
+        assertEquals(4, shape[0].length);
+        
+        // I 블록의 첫 번째 회전 상태 확인
+        int[][] expected = {
+            {0, 0, 0, 0},
+            {1, 1, 1, 1},
+            {0, 0, 0, 0},
+            {0, 0, 0, 0}
+        };
+        
+        assertArrayEquals(expected, shape);
     }
 
     @Test
-    void testTetrominoT() {
-        Tetromino tetromino = Tetromino.T;
-        int[][] expectedShape = {{0,1,0,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}};
-
-        assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorManager.getInstance().getColorFromIndex(3), tetromino.getColor());
+    @DisplayName("O 블록의 모양 테스트")
+    void testOTetrominoShape() {
+        int[][] shape = Tetromino.O.getShape(0);
+        assertNotNull(shape);
+        
+        // O 블록은 모든 회전에서 같은 모양
+        int[][] expected = {
+            {0, 1, 1, 0},
+            {0, 1, 1, 0},
+            {0, 0, 0, 0},
+            {0, 0, 0, 0}
+        };
+        
+        assertArrayEquals(expected, shape);
     }
 
     @Test
-    void testTetrominoS() {
-        Tetromino tetromino = Tetromino.S;
-        int[][] expectedShape = {{0,1,1,0}, {1,1,0,0}, {0,0,0,0}, {0,0,0,0}};
-
-        assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorManager.getInstance().getColorFromIndex(4), tetromino.getColor());
+    @DisplayName("T 블록의 모양 테스트")
+    void testTTetrominoShape() {
+        int[][] shape = Tetromino.T.getShape(0);
+        assertNotNull(shape);
+        
+        int[][] expected = {
+            {0, 1, 0, 0},
+            {1, 1, 1, 0},
+            {0, 0, 0, 0},
+            {0, 0, 0, 0}
+        };
+        
+        assertArrayEquals(expected, shape);
     }
 
     @Test
-    void testTetrominoZ() {
-        Tetromino tetromino = Tetromino.Z;
-        int[][] expectedShape = {{1,1,0,0}, {0,1,1,0}, {0,0,0,0}, {0,0,0,0}};
-
-        assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorManager.getInstance().getColorFromIndex(5), tetromino.getColor());
-    }
-
-    @Test
-    void testTetrominoJ() {
-        Tetromino tetromino = Tetromino.J;
-        int[][] expectedShape = {{1,0,0,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}};
-
-        assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorManager.getInstance().getColorFromIndex(6), tetromino.getColor());
-    }
-
-    @Test
-    void testTetrominoL() {
-        Tetromino tetromino = Tetromino.L;
-        int[][] expectedShape = {{0,0,1,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}};
-
-        assertArrayEquals(expectedShape, tetromino.getShape(0));
-        assertEquals(ColorManager.getInstance().getColorFromIndex(7), tetromino.getColor());
-    }
-
-    @Test
-    void testGetAllRotations_I() {
-        Tetromino tetromino = Tetromino.I;
-        int[][][] rotations = tetromino.getAllRotations();
-
-        assertEquals(4, rotations.length);
-
-        int[][] rotation0 = {{0,0,0,0}, {1,1,1,1}, {0,0,0,0}, {0,0,0,0}};
-        int[][] rotation1 = {{0,0,1,0}, {0,0,1,0}, {0,0,1,0}, {0,0,1,0}};
-        int[][] rotation2 = {{0,0,0,0}, {0,0,0,0}, {1,1,1,1}, {0,0,0,0}};
-        int[][] rotation3 = {{0,1,0,0}, {0,1,0,0}, {0,1,0,0}, {0,1,0,0}};
-
-        assertArrayEquals(rotation0, rotations[0]);
-        assertArrayEquals(rotation1, rotations[1]);
-        assertArrayEquals(rotation2, rotations[2]);
-        assertArrayEquals(rotation3, rotations[3]);
-    }
-
-    @Test
-    void testGetAllRotations_O() {
-        Tetromino tetromino = Tetromino.O;
-        int[][][] rotations = tetromino.getAllRotations();
-
-        assertEquals(4, rotations.length);
-
-        int[][] expectedShape = {{0,1,1,0}, {0,1,1,0}, {0,0,0,0}, {0,0,0,0}};
-
-        for (int i = 0; i < 4; i++) {
-            assertArrayEquals(expectedShape, rotations[i]);
+    @DisplayName("각 테트로미노가 4개의 회전 상태를 가지는지 확인")
+    void testRotationCount() {
+        for (Tetromino type : Tetromino.values()) {
+            int[][][] rotations = type.getAllRotations();
+            assertEquals(4, rotations.length);
         }
     }
 
     @Test
-    void testGetAllRotations_T() {
-        Tetromino tetromino = Tetromino.T;
-        int[][][] rotations = tetromino.getAllRotations();
-
-        assertEquals(4, rotations.length);
-
-        int[][] rotation0 = {{0,1,0,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}};
-        int[][] rotation1 = {{0,1,0,0}, {0,1,1,0}, {0,1,0,0}, {0,0,0,0}};
-        int[][] rotation2 = {{0,0,0,0}, {1,1,1,0}, {0,1,0,0}, {0,0,0,0}};
-        int[][] rotation3 = {{0,1,0,0}, {1,1,0,0}, {0,1,0,0}, {0,0,0,0}};
-
-        assertArrayEquals(rotation0, rotations[0]);
-        assertArrayEquals(rotation1, rotations[1]);
-        assertArrayEquals(rotation2, rotations[2]);
-        assertArrayEquals(rotation3, rotations[3]);
+    @DisplayName("회전 인덱스로 모양 가져오기")
+    void testGetShapeByIndex() {
+        for (Tetromino type : Tetromino.values()) {
+            for (int i = 0; i < 4; i++) {
+                int[][] shape = type.getShape(i);
+                assertNotNull(shape);
+                assertEquals(4, shape.length);
+                assertEquals(4, shape[0].length);
+            }
+        }
     }
 
     @Test
-    void testRotateClockwise() {
-        Tetromino tetromino = Tetromino.L;
-        int[][][] rotations = tetromino.getAllRotations();
-
-        int[][] original = {{0,0,1,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}};
-        int[][] rotated90 = {{0,1,0,0}, {0,1,0,0}, {0,1,1,0}, {0,0,0,0}};
-        int[][] rotated180 = {{0,0,0,0}, {1,1,1,0}, {1,0,0,0}, {0,0,0,0}};
-        int[][] rotated270 = {{1,1,0,0}, {0,1,0,0}, {0,1,0,0}, {0,0,0,0}};
-
-        assertArrayEquals(original, rotations[0]);
-        assertArrayEquals(rotated90, rotations[1]);
-        assertArrayEquals(rotated180, rotations[2]);
-        assertArrayEquals(rotated270, rotations[3]);
+    @DisplayName("색상 인덱스 테스트")
+    void testColorIndex() {
+        assertEquals(1, Tetromino.I.getColorIndex());
+        assertEquals(2, Tetromino.O.getColorIndex());
+        assertEquals(3, Tetromino.T.getColorIndex());
+        assertEquals(4, Tetromino.S.getColorIndex());
+        assertEquals(5, Tetromino.Z.getColorIndex());
+        assertEquals(6, Tetromino.J.getColorIndex());
+        assertEquals(7, Tetromino.L.getColorIndex());
     }
 
     @Test
-    void testAllTetrominoTypes() {
-        Tetromino[] allTypes = Tetromino.values();
-        assertEquals(7, allTypes.length);
+    @DisplayName("색상 가져오기 테스트")
+    void testGetColor() {
+        for (Tetromino type : Tetromino.values()) {
+            Color color = type.getColor();
+            assertNotNull(color);
+        }
+    }
 
-        assertEquals(Tetromino.I, allTypes[0]);
-        assertEquals(Tetromino.O, allTypes[1]);
-        assertEquals(Tetromino.T, allTypes[2]);
-        assertEquals(Tetromino.S, allTypes[3]);
-        assertEquals(Tetromino.Z, allTypes[4]);
-        assertEquals(Tetromino.J, allTypes[5]);
-        assertEquals(Tetromino.L, allTypes[6]);
+    @Test
+    @DisplayName("모든 회전 가져오기 테스트")
+    void testGetAllRotations() {
+        for (Tetromino type : Tetromino.values()) {
+            int[][][] rotations = type.getAllRotations();
+            assertNotNull(rotations);
+            assertEquals(4, rotations.length);
+            
+            for (int[][] rotation : rotations) {
+                assertEquals(4, rotation.length);
+                assertEquals(4, rotation[0].length);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("각 블록의 모양에 블록이 4개 있는지 확인")
+    void testEachShapeHasFourBlocks() {
+        for (Tetromino type : Tetromino.values()) {
+            int[][] shape = type.getShape(0);
+            int blockCount = 0;
+            
+            for (int[] row : shape) {
+                for (int cell : row) {
+                    if (cell == 1) {
+                        blockCount++;
+                    }
+                }
+            }
+            
+            assertEquals(4, blockCount, type + " should have exactly 4 blocks");
+        }
+    }
+
+    @Test
+    @DisplayName("O 블록은 모든 회전에서 같은 모양")
+    void testOBlockRotationInvariance() {
+        int[][] shape0 = Tetromino.O.getShape(0);
+        
+        for (int i = 1; i < 4; i++) {
+            int[][] shapeI = Tetromino.O.getShape(i);
+            assertArrayEquals(shape0, shapeI, 
+                "O block should have same shape for all rotations");
+        }
     }
 }

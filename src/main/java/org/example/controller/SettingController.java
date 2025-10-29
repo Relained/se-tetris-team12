@@ -27,10 +27,10 @@ public class SettingController {
     
     /**
      * Controls 버튼 클릭 시 처리
-     * TODO: 컨트롤 설정 기능 구현
+     * 키 설정 화면으로 이동
      */
     public void handleControls() {
-        System.err.println("Set Controls");
+        stateManager.stackState("key_setting");
     }
     
     /**
@@ -41,18 +41,16 @@ public class SettingController {
     }
     
     /**
-     * Reset Score Board 버튼 클릭 시 처리
-     * TODO: 점수판 초기화 기능 구현
+     * Reset Score Board 버튼 클릭 시 처리 - 스코어보드 초기화
      */
     public void handleResetScoreBoard() {
-        System.err.println("Reset Score Board");
+        stateManager.settingManager.resetScoreboard();
     }
     
     /**
      * Reset All Setting 버튼 클릭 시 처리 - 모든 설정을 기본값으로 초기화
      */
     public void handleResetAllSetting() {
-        System.err.println("All Setting Reset to Default");
         stateManager.settingManager.resetToDefault();
         stateManager.settingManager.applyColorSetting();
     }

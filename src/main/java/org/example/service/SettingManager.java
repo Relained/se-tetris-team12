@@ -13,9 +13,15 @@ public class SettingManager {
     final String fileName = "setting.ser";
     SettingData currentSettings;
     private ColorManager colorManager;
+    private KeySettingManager keySettingManager;
 
     public SettingManager() {
         this.colorManager = ColorManager.getInstance();
+        this.keySettingManager = KeySettingManager.getInstance();
+        
+        // KeySettingManager에 자신을 주입
+        this.keySettingManager.setSettingManager(this);
+        
         boolean success = loadSettingData();
         if (!success) {
             currentSettings = new SettingData();
@@ -29,6 +35,10 @@ public class SettingManager {
 
     public void resetToDefault() {
         currentSettings = new SettingData();
+    }
+    
+    public void resetScoreboard() {
+        ScoreManager.getInstance().clearScores();
     }
 
     public void setColorSetting(SettingData.ColorBlindMode mode) {
