@@ -149,7 +149,7 @@ public class ScoreboardView extends BaseView {
         buttonPanel.setPadding(new Insets(30, 0, 40, 0));
 
         var backButton = buttonSystem.createNavigableButton(
-            afterGamePlay ? "Continue" : "Back to Menu", 
+            afterGamePlay ? "Continue" : "Go Back", 
             onBackToMenu
         );
         backButton.setPrefWidth(200);

@@ -2,10 +2,8 @@ package org.example.controller;
 
 import javafx.scene.input.KeyEvent;
 
-import org.example.model.ScoreRecord;
 import org.example.service.ScoreManager;
 import org.example.service.StateManager;
-import org.example.state.GameOverState;
 import org.example.view.ScoreboardView;
 
 /**
@@ -15,41 +13,21 @@ public class ScoreboardController {
     
     private StateManager stateManager;
     private ScoreboardView scoreboardView;
-    private ScoreRecord record;
     private boolean isAfterGamePlay;
-    private boolean scoreWasSubmitted;
     
     // 일반 조회용 생성자
-    public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView) {
+    public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView, boolean isAfterGamePlay) {
         this.stateManager = stateManager;
         this.scoreboardView = scoreboardView;
-        this.isAfterGamePlay = false;
-    }
-    
-    // 게임 플레이 후용 생성자
-    public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView,
-                               ScoreRecord record, boolean scoreSubmitted) {
-        this.stateManager = stateManager;
-        this.scoreboardView = scoreboardView;
-        this.isAfterGamePlay = true;
-        this.record = record;
-        this.scoreWasSubmitted = scoreSubmitted;
+        this.isAfterGamePlay = isAfterGamePlay;
     }
     
     /**
-     * Back to Menu / Continue 버튼 클릭 시 처리
+     * Go Back 버튼 클릭 시 처리
      */
-    public void handleBackToMenu() {
-        if (isAfterGamePlay) {
-            // 게임 플레이 후라면 GameOver 화면으로
-            GameOverState gameOverState = 
-                new GameOverState(stateManager, record.getScore(), record.getLines(), record.getLevel(), scoreWasSubmitted);
-            stateManager.addState("gameOver", gameOverState);
-            stateManager.setState("gameOver");
-        } else {
-            // 일반 조회라면 시작 화면으로
-            stateManager.setState("start");
-        }
+    public void handleGoBack() {
+        if (isAfterGamePlay) stateManager.setState("gameover");
+        else stateManager.popState();
     }
     
     /**

@@ -47,7 +47,7 @@ public class ScoreboardState extends BaseState {
     private ScoreboardView scoreboardView;
     private ScoreboardController scoreboardController;
     private boolean isAfterGamePlay = false; // 게임 플레이 후인지 여부
-    private boolean scoreWasSubmitted;
+    private boolean scoreWasSubmitted = false;
     
     // Not eligible mode fields
     private NavigableButtonSystem notEligibleButtonSystem;
@@ -56,7 +56,6 @@ public class ScoreboardState extends BaseState {
     public ScoreboardState(StateManager stateManager, ScoreRecord record, boolean isEligible) {
         super(stateManager);
         this.record = record;
-        
         if (isEligible) {
             this.currentMode = Mode.INPUT;
         } else {
@@ -72,11 +71,13 @@ public class ScoreboardState extends BaseState {
         this.scoreWasSubmitted = false;
     }
 
-    // 점수 입력 절차 끝나고 스코어보드로 넘어가도록 설정하는 함수
-    public void SetScoreBoardReady(boolean scoreWasSubmitted) {
+    // 점수 입력 절차 끝나고 스코어보드 화면으로 전환하는 메서드
+    public void setScoreBoardScene(boolean scoreWasSubmitted) {
         this.currentMode = Mode.SCOREBOARD;
         this.isAfterGamePlay = true;
         this.scoreWasSubmitted = scoreWasSubmitted;
+        var scoreboardScene = createScoreboardScene();
+        stateManager.getPrimaryStage().setScene(scoreboardScene);
     }
 
     @Override
@@ -86,7 +87,7 @@ public class ScoreboardState extends BaseState {
 
     @Override
     public void exit() {
-        // Cleanup if needed
+        isAfterGamePlay = false;
     }
 
     @Override
@@ -155,32 +156,18 @@ public class ScoreboardState extends BaseState {
         scoreText.setTextAlignment(TextAlignment.CENTER);
         
         notEligibleButtonSystem = new NavigableButtonSystem();
-        var scoreboardButton = notEligibleButtonSystem.createNavigableButton("View Scoreboard", () -> {
-            // Switch to scoreboard mode
-            currentMode = Mode.SCOREBOARD;
-            scoreWasSubmitted = false;
-            Scene newScene = createScoreboardScene();
-            stateManager.getPrimaryStage().setScene(newScene);
-        });
         var gameOverButton = notEligibleButtonSystem.createNavigableButton("Continue", () -> {
-            // Go to Game Over screen with score info
-            GameOverState gameOverState = 
-                new GameOverState(stateManager, record.getScore(), record.getLines(), record.getLevel());
-            stateManager.addState("gameOver", gameOverState);
-            stateManager.setState("gameOver");
+            currentMode = Mode.SCOREBOARD;
+            stateManager.setState("gameover");
         });
         
-        messageBox.getChildren().addAll(messageText, scoreText, scoreboardButton, gameOverButton);
+        messageBox.getChildren().addAll(messageText, scoreText, gameOverButton);
         root.getChildren().add(messageBox);
         
         scene = new Scene(root, 800, 600);
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
-                // Go to Game Over screen on ESC
-                GameOverState gameOverState = 
-                    new GameOverState(stateManager, record.getScore(), record.getLines(), record.getLevel());
-                stateManager.addState("gameOver", gameOverState);
-                stateManager.setState("gameOver");
+                stateManager.setState("gameover");
             } else {
                 notEligibleButtonSystem.handleInput(event);
             }
@@ -194,17 +181,10 @@ public class ScoreboardState extends BaseState {
 
     private Scene createScoreboardScene() {
         scoreboardView = new ScoreboardView(scoreWasSubmitted, isAfterGamePlay);
-        
-        // 게임 플레이 후인지에 따라 다른 생성자 사용
-        if (isAfterGamePlay) {
-            scoreboardController = new ScoreboardController(stateManager, scoreboardView,
-                                                           record, scoreWasSubmitted);
-        } else {
-            scoreboardController = new ScoreboardController(stateManager, scoreboardView);
-        }
+        scoreboardController = new ScoreboardController(stateManager, scoreboardView, isAfterGamePlay);
         
         BorderPane root = scoreboardView.createView(
-            () -> scoreboardController.handleBackToMenu(),
+            () -> scoreboardController.handleGoBack(),
             isAfterGamePlay ? null : () -> scoreboardController.handleClearScores()
         );
         

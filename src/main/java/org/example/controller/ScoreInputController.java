@@ -44,10 +44,8 @@ public class ScoreInputController {
             record.setPlayerName(playerName);
             ScoreManager.getInstance().addScore(record);
             
-            // 점수 제출 후 Scoreboard를 보여주고, 그 다음 GameOver 화면으로
             ScoreboardState scoreboardState = (ScoreboardState)stateManager.getCurrentState();
-            scoreboardState.SetScoreBoardReady(true);
-            stateManager.setState("scoreboard");
+            scoreboardState.setScoreBoardScene(true);
         }
     }
 
@@ -56,8 +54,7 @@ public class ScoreInputController {
      */
     public void handleSkip() {
         ScoreboardState scoreboardState = (ScoreboardState)stateManager.getCurrentState();
-        scoreboardState.SetScoreBoardReady(false);
-        stateManager.setState("scoreboard");
+        scoreboardState.setScoreBoardScene(false);
     }
 
     /**

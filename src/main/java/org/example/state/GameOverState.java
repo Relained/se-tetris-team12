@@ -19,44 +19,24 @@ public class GameOverState extends BaseState {
     private int finalScore;
     private int finalLines;
     private int finalLevel;
-    private boolean scoreWasSubmitted = false; // 점수가 제출되었는지 추적
 
     public GameOverState(StateManager stateManager) {
         super(stateManager);
-    }
-    
-    // Constructor with score information
-    public GameOverState(StateManager stateManager, int score, int lines, int level) {
-        super(stateManager);
-        this.finalScore = score;
-        this.finalLines = lines;
-        this.finalLevel = level;
-    }
-    
-    // Constructor with score information and submission status
-    public GameOverState(StateManager stateManager, int score, int lines, int level, boolean scoreSubmitted) {
-        super(stateManager);
-        this.finalScore = score;
-        this.finalLines = lines;
-        this.finalLevel = level;
-        this.scoreWasSubmitted = scoreSubmitted;
     }
 
     @Override
     public void enter() {
         // Get final game stats from the previous play state only if not already set
-        if (finalScore == 0 && finalLines == 0 && finalLevel == 0) {
-            BaseState previousState = stateManager.getCurrentState();
-            if (previousState instanceof PlayState playState && playState.getGameLogic() != null) {
-                finalScore = playState.getGameLogic().getScore();
-                finalLines = playState.getGameLogic().getLines();
-                finalLevel = playState.getGameLogic().getLevel();
-            }
+        BaseState previousState = stateManager.getCurrentState();
+        if (previousState instanceof ScoreboardState scoreboardState) {
+            finalScore = scoreboardState.getFinalScore();
+            finalLines = scoreboardState.getFinalLines();
+            finalLevel = scoreboardState.getFinalLevel();
         }
         
         // State 진입 시 View와 Controller 초기화
         gameOverView = new GameOverView();
-        controller = new GameOverController(stateManager, gameOverView, scoreWasSubmitted);
+        controller = new GameOverController(stateManager, gameOverView);
     }
 
     @Override

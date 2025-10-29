@@ -40,6 +40,7 @@ public class App extends Application {
         stateManager.addState("key_setting", new KeySettingState(stateManager));
         stateManager.addState("gameover", new GameOverState(stateManager));
         stateManager.addState("difficulty", new DifficultyState(stateManager));
+        stateManager.addState("scoreboard", new ScoreboardState(stateManager));
 
         // Start with the start screen
         stateManager.setState("start");
