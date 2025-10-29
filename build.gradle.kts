@@ -127,7 +127,7 @@ tasks.register<Exec>("jpackage") {
     val osName = System.getProperty("os.name").lowercase()
     val installerType = when {
         osName.contains("mac") -> "dmg"
-        osName.contains("win") -> "msi"
+        osName.contains("win") -> "app-image"  // msi 대신 app-image (설치 프로그램 없이 실행 가능)
         else -> "deb"
     }
 
@@ -138,12 +138,13 @@ tasks.register<Exec>("jpackage") {
     }
     
     // JavaFX SDK 경로 (Gradle이 다운로드한 위치)
+    val pathSeparator = if (osName.contains("win")) ";" else ":"
     val javafxModulePath = configurations.runtimeClasspath.get()
         .files
         .filter { it.name.contains("javafx") }
         .map { it.parent }
         .distinct()
-        .joinToString(":")
+        .joinToString(pathSeparator)
     
     val jpackageArgs = mutableListOf(
         "jpackage",
