@@ -4,7 +4,7 @@ plugins {
     groovy
     jacoco
     id("org.openjfx.javafxplugin") version "0.0.13"
-    id("org.beryx.jlink") version "2.25.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "org.example"
@@ -28,6 +28,18 @@ tasks.withType<JavaCompile> {
 
 application {
     mainClass.set("org.example.App")
+}
+
+// ShadowJar 설정 - 모든 의존성 포함
+tasks.shadowJar {
+    archiveBaseName.set("tetris")
+    archiveClassifier.set("")
+    archiveVersion.set("1.0")
+    manifest {
+        attributes["Main-Class"] = "org.example.App"
+    }
+    // JavaFX 모듈을 명시적으로 포함
+    mergeServiceFiles()
 }
 
 javafx {
@@ -100,4 +112,60 @@ tasks.jacocoTestCoverageVerification {
 //     dependsOn(tasks.jacocoTestCoverageVerification)
 // }
 
-// jlink block is left as-is, but note: jlink is designed for modular projects. If you do not use modules, jlink may not work as expected. You may remove this block if you do not need custom runtime images.
+// jpackage 태스크 - JRE를 포함한 실행 파일 생성
+tasks.register<Exec>("jpackage") {
+    dependsOn("shadowJar")
+    
+    val inputDir = "${layout.buildDirectory.get()}/libs"
+    val outputDir = "${layout.buildDirectory.get()}/dist"
+    val jarFile = "tetris-1.0.jar"
+    
+    doFirst {
+        file(outputDir).mkdirs()
+    }
+    
+    val osName = System.getProperty("os.name").lowercase()
+    val installerType = when {
+        osName.contains("mac") -> "dmg"
+        osName.contains("win") -> "msi"
+        else -> "deb"
+    }
+
+    val iconFile = when {
+        osName.contains("mac") -> "${projectDir}/src/main/res/icons/logo.icns"
+        osName.contains("win") -> "${projectDir}/src/main/res/icons/logo.ico"
+        else -> "${projectDir}/src/main/res/icons/logo.png"
+    }
+    
+    // JavaFX SDK 경로 (Gradle이 다운로드한 위치)
+    val javafxModulePath = configurations.runtimeClasspath.get()
+        .files
+        .filter { it.name.contains("javafx") }
+        .map { it.parent }
+        .distinct()
+        .joinToString(":")
+    
+    val jpackageArgs = mutableListOf(
+        "jpackage",
+        "--input", inputDir,
+        "--name", "Tetris",
+        "--main-jar", jarFile,
+        "--main-class", "org.example.App",
+        "--type", installerType,
+        "--dest", outputDir,
+        "--app-version", "1.0",
+        "--vendor", "Seoultech Team12",
+        "--description", "Tetris Game with JavaFX",
+        "--copyright", "Copyright 2025",
+        "--module-path", javafxModulePath,
+        "--add-modules", "javafx.controls,javafx.fxml",
+        "--java-options", "-Xmx512m"
+    )
+
+    if (file(iconFile).exists()) {
+        jpackageArgs.add("--icon")
+        jpackageArgs.add(iconFile)
+    }
+
+    commandLine(jpackageArgs)
+}
