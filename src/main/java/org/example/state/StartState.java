@@ -43,7 +43,6 @@ public class StartState extends BaseState {
         // Controller의 핸들러를 콜백으로 전달
         VBox root = startView.createView(
             () -> controller.handleStartGame(),       // Start Game 버튼 콜백
-            () -> controller.handleStartItemGame(),   // Start Game (Item Mode) 버튼 콜백
             () -> controller.handleViewScoreboard(),  // View Scoreboard 버튼 콜백
             () -> controller.handleSetting(),         // Setting 버튼 콜백
             () -> controller.handleExit()             // Exit 버튼 콜백

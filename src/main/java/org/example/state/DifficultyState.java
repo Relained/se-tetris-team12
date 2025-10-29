@@ -4,6 +4,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 
 import org.example.controller.DifficultyController;
+import org.example.model.GameMode;
 import org.example.service.StateManager;
 import org.example.view.DifficultyView;
 
@@ -15,6 +16,7 @@ public class DifficultyState extends BaseState {
 
     private DifficultyView difficultyView;
     private DifficultyController controller;
+    private GameMode gameMode;
 
     public DifficultyState(StateManager stateManager) {
         super(stateManager);
@@ -25,6 +27,11 @@ public class DifficultyState extends BaseState {
         // State 진입 시 View와 Controller 초기화
         difficultyView = new DifficultyView();
         controller = new DifficultyController(stateManager, difficultyView);
+
+        BaseState previousState = stateManager.getCurrentState();
+        if (previousState instanceof GameModeState gameModeState) {
+            gameMode = gameModeState.getGameMode();
+        }
     }
 
     @Override
@@ -64,5 +71,9 @@ public class DifficultyState extends BaseState {
 
     public int getDifficulty() {
         return controller.getDifficulty();
+    }
+
+    public GameMode getGameMode() {
+        return gameMode;
     }
 }

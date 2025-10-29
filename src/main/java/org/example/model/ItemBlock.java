@@ -7,15 +7,12 @@ public enum ItemBlock {
     LINE_CLEAR('L'),    // 가로줄 삭제 아이템 - 블록이 고정되면 해당 가로줄 삭제
     COLUMN_CLEAR('I'),  // 세로줄 삭제 아이템 - 블록이 고정되면 해당 세로줄 삭제
     CROSS_CLEAR('X'),   // 십자 삭제 아이템 - 블록이 고정되면 해당 가로줄과 세로줄 모두 삭제
+    WEIGHT('W'),       // 무게 아이템 - 아래 방향으로 다 삭제
+    BOMB('O'),          // 폭탄 아이템 - 주변 6*6 영역 삭제
     NONE(' ');          // 아이템 없음
     
-    /**
-     * 아이템 생성 주기 (삭제된 줄 수 기준)
-     * 10줄을 삭제할 때마다 새로운 아이템 블록 생성
-     */
-    public static final int LINES_FOR_ITEM_GENERATION = 10;
-    
     private final char symbol;
+    public static final int LINES_FOR_ITEM_GENERATION = 1; // 아이템 생성 주기 (10줄마다)
     
     ItemBlock(char symbol) {
         this.symbol = symbol;

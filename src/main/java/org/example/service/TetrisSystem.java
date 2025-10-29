@@ -1,13 +1,10 @@
 package org.example.service;
 
 import org.example.model.GameBoard;
-import org.example.model.GameMode;
-import org.example.model.ItemBlock;
 import org.example.model.Tetromino;
 import org.example.model.TetrominoPosition;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Deque;
@@ -37,7 +34,11 @@ public class TetrisSystem {
     protected static final int QUEUEING_SIZE = 7;
 
     public TetrisSystem() {
-        this.board = new GameBoard();
+        this(new GameBoard());
+    }
+
+    protected TetrisSystem(GameBoard board) {
+        this.board = board;
         this.nextQueue = new ArrayDeque<>();
         this.random = new Random();
         this.cumulativeWeights = new ArrayList<>();
@@ -229,7 +230,7 @@ public class TetrisSystem {
         }
     }
 
-    private double calcScoreFactor() {
+    protected double calcScoreFactor() {
         //difficulty: 1(Easy), 2(Normal), 3(Hard)
         //-1 ~ 1 * 0.2 + 1 = 0.8, 1, 1.2
         double dfactor = (difficulty - 2) * 0.2 + 1;

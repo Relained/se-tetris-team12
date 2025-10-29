@@ -6,6 +6,11 @@ public class TetrominoPosition {
     private Tetromino type;
     private Integer itemBlockIndex; // 아이템이 부착된 블록의 인덱스 (rotation 0 기준, 0부터 시작)
     private ItemBlock itemType;     // 아이템 타입 (LINE_CLEAR, COLUMN_CLEAR, NONE)
+    // 커스텀(아이템 전용) 테트로미노 지원
+    private int[][] customShape;     // 회전 무시, 현재 회전에 관계없이 이 shape 사용
+    private boolean rotationLocked;  // 회전 금지 여부
+    private javafx.scene.paint.Color customColor; // 표시용 색상 (null이면 기본 Tetromino 색)
+    private SpecialKind specialKind = SpecialKind.NONE; // 특수 동작 구분
 
     public TetrominoPosition(Tetromino type, int x, int y, int rotation) {
         this.type = type;
@@ -14,6 +19,9 @@ public class TetrominoPosition {
         this.rotation = rotation;
         this.itemBlockIndex = null;
         this.itemType = ItemBlock.NONE;
+        this.customShape = null;
+        this.rotationLocked = false;
+        this.customColor = null;
     }
     
     private TetrominoPosition(Tetromino type, int x, int y, int rotation, Integer itemBlockIndex, ItemBlock itemType) {
@@ -33,15 +41,25 @@ public class TetrominoPosition {
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
     public void setRotation(int rotation) { 
-        this.rotation = Math.floorMod(rotation, 4);
+        if (!rotationLocked) {
+            this.rotation = Math.floorMod(rotation, 4);
+        }
     }
 
     public int[][] getCurrentShape() {
+        if (customShape != null) {
+            return customShape;
+        }
         return type.getShape(rotation);
     }
 
     public TetrominoPosition copy() {
-        return new TetrominoPosition(type, x, y, rotation, itemBlockIndex, itemType);
+        TetrominoPosition cp = new TetrominoPosition(type, x, y, rotation, itemBlockIndex, itemType);
+        cp.customShape = this.customShape;
+        cp.rotationLocked = this.rotationLocked;
+        cp.customColor = this.customColor;
+        cp.specialKind = this.specialKind;
+        return cp;
     }
     
     // ===== 아이템 관련 메서드 =====
@@ -130,4 +148,44 @@ public class TetrominoPosition {
     public Integer getItemBlockIndex() {
         return itemBlockIndex;
     }
+
+    // ====== 아이템 테트로미노 생성기 ======
+    public static TetrominoPosition createWeightPiece(int x, int y) {
+        TetrominoPosition p = new TetrominoPosition(Tetromino.O, x, y, 0);
+        // 형태: 
+        //   0 0
+        // 0 0 0 0
+        p.customShape = new int[][] {
+            {0,1,1,0},
+            {1,1,1,1}
+        };
+        p.rotationLocked = true;
+        p.customColor = javafx.scene.paint.Color.DARKGRAY;
+        p.specialKind = SpecialKind.WEIGHT;
+        return p;
+    }
+
+    public static TetrominoPosition createBombPiece(int x, int y) {
+        TetrominoPosition p = new TetrominoPosition(Tetromino.O, x, y, 0);
+        // 형태: 2x2 블록
+        p.customShape = new int[][] {
+            {1,1},
+            {1,1}
+        };
+        p.rotationLocked = true;
+        p.customColor = javafx.scene.paint.Color.ORANGERED;
+        p.specialKind = SpecialKind.BOMB;
+        return p;
+    }
+
+    public boolean isRotationLocked() { return rotationLocked; }
+    public boolean hasCustomShape() { return customShape != null; }
+    public SpecialKind getSpecialKind() { return specialKind; }
+
+    public javafx.scene.paint.Color getDisplayColor(org.example.service.ColorManager cm) {
+        if (customColor != null) return customColor;
+        return type.getColor();
+    }
+
+    public enum SpecialKind { NONE, WEIGHT, BOMB }
 }

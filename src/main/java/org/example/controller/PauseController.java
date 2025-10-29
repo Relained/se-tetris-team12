@@ -3,6 +3,8 @@ package org.example.controller;
 import javafx.scene.input.KeyEvent;
 
 import org.example.service.StateManager;
+import org.example.state.BaseState;
+import org.example.state.PlayState;
 import org.example.view.PauseView;
 
 /**
@@ -29,7 +31,7 @@ public class PauseController {
      * Restart 버튼 클릭 시 처리 - 현재 게임 모드로 재시작
      */
     public void handleRestart() {
-        stateManager.restartCurrentGame();
+        stateManager.setState("play");
     }
     
     /**

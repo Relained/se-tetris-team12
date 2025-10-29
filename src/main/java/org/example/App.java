@@ -3,7 +3,6 @@ package org.example;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-import org.example.model.GameMode;
 import org.example.service.StateManager;
 import org.example.service.SettingManager;
 import org.example.service.DisplayManager;
@@ -40,8 +39,8 @@ public class App extends Application {
 
         // Add all game states
         stateManager.addState("start", new StartState(stateManager));
-        stateManager.addState("play", new PlayState(stateManager, GameMode.NORMAL));
-        stateManager.addState("playItem", new PlayState(stateManager, GameMode.ITEM));
+        stateManager.addState("play", new PlayState(stateManager));
+        stateManager.addState("gamemode", new GameModeState(stateManager));
         stateManager.addState("pause", new PauseState(stateManager));
         stateManager.addState("setting", new SettingState(stateManager));
         stateManager.addState("color_setting", new ColorSettingState(stateManager));

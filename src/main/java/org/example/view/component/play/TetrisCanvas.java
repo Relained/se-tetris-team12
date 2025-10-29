@@ -99,7 +99,7 @@ public class TetrisCanvas extends Canvas {
 
         // Draw current piece
         if (currentPiece != null) {
-            Color pieceColor = currentPiece.getType().getColor();
+            Color pieceColor = currentPiece.getDisplayColor(colorManager);
             drawPiece(gc, currentPiece, pieceColor, false);
         }
 

@@ -1,30 +1,14 @@
 package org.example.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class GameBoard {
     public static final int WIDTH = 10;
     public static final int HEIGHT = 20;
     public static final int BUFFER_ZONE = 4; // Extra rows above visible area
 
-    private final int[][] board;
-    private final Map<Integer, ItemBlock> itemBoard; // (row * WIDTH + col) -> ItemBlock (보드 절대 좌표)
+    protected final int[][] board;
 
     public GameBoard() {
         this.board = new int[HEIGHT + BUFFER_ZONE][WIDTH];
-        this.itemBoard = new HashMap<>();
-    }
-    
-    /**
-     * 행과 열을 하나의 int 키로 변환합니다.
-     * 
-     * @param row 행 인덱스
-     * @param col 열 인덱스
-     * @return 변환된 키 값 (row * WIDTH + col)
-     */
-    private int toKey(int row, int col) {
-        return row * WIDTH + col;
     }
 
     public boolean isValidPosition(TetrominoPosition position) {
@@ -63,12 +47,7 @@ public class GameBoard {
                     if (boardY >= 0 && boardY < HEIGHT + BUFFER_ZONE &&
                         boardX >= 0 && boardX < WIDTH) {
                         board[boardY][boardX] = color;
-                        
-                        // 아이템이 있으면 itemBoard에 저장
-                        ItemBlock item = position.getItemAt(row, col);
-                        if (item != null && item.isItem()) {
-                            itemBoard.put(toKey(boardY, boardX), item);
-                        }
+
                     }
                 }
             }
@@ -87,95 +66,6 @@ public class GameBoard {
         return linesCleared;
     }
     
-    /**
-     * - 꽉 찬 줄 삭제 (기본)
-     * - LINE_CLEAR 아이템이 있는 줄 삭제 (아이템 모드 특성)
-     */
-    public int clearLinesWithItems() {
-        int linesCleared = 0;
-        
-        // 아래에서 위로 검사하며 삭제 (기존 clearLines와 동일한 방식)
-        for (int row = HEIGHT + BUFFER_ZONE - 1; row >= 0; row--) {
-            boolean shouldClear = isLineFull(row);
-            
-            // LINE_CLEAR 아이템이 있는지 확인
-            if (!shouldClear) {
-                for (int col = 0; col < WIDTH; col++) {
-                    ItemBlock item = itemBoard.get(toKey(row, col));
-                    if (item == ItemBlock.LINE_CLEAR) {
-                        shouldClear = true;
-                        break;
-                    }
-                }
-            }
-            
-            // 줄 삭제
-            if (shouldClear) {
-                clearLineWithItems(row);
-                linesCleared++;
-                row++; // 같은 줄을 다시 검사 (위에서 내려온 줄)
-            }
-        }
-        
-        return linesCleared;
-    }
-    
-    /**
-     * COLUMN_CLEAR 아이템을 포함한 세로줄을 검사하고 삭제
-     * - COLUMN_CLEAR 아이템이 있는 열 전체 삭제
-     */
-    public int clearColumnsWithItems() {
-        int columnsCleared = 0;
-        
-        // 왼쪽에서 오른쪽으로 검사하며 COLUMN_CLEAR 아이템 찾기
-        for (int col = 0; col < WIDTH; col++) {
-            boolean shouldClear = false;
-            
-            // COLUMN_CLEAR 아이템이 있는지 확인
-            for (int row = 0; row < HEIGHT + BUFFER_ZONE; row++) {
-                ItemBlock item = itemBoard.get(toKey(row, col));
-                if (item == ItemBlock.COLUMN_CLEAR) {
-                    shouldClear = true;
-                    break;
-                }
-            }
-            
-            // 세로줄 삭제 (중력 적용 없이 그냥 비움)
-            if (shouldClear) {
-                clearColumnWithItems(col);
-                columnsCleared++;
-            }
-        }
-        
-        return columnsCleared;
-    }
-    
-    /**
-     * CROSS_CLEAR 아이템을 포함한 십자를 검사하고 삭제
-     * - CROSS_CLEAR 아이템이 있는 위치의 가로줄과 세로줄 모두 삭제
-     */
-    public int clearCrossesWithItems() {
-        int crossesCleared = 0;
-        
-        // CROSS_CLEAR 아이템 위치 찾기
-        for (int row = HEIGHT + BUFFER_ZONE - 1; row >= 0; row--) {
-            for (int col = 0; col < WIDTH; col++) {
-                ItemBlock item = itemBoard.get(toKey(row, col));
-                if (item == ItemBlock.CROSS_CLEAR) {
-                    // 가로줄 먼저 삭제
-                    clearLineWithItems(row);
-                    // 세로줄 삭제 (가로줄 삭제 후)
-                    clearColumnWithItems(col);
-                    crossesCleared++;
-                    // 가로줄이 삭제되었으므로 같은 행을 다시 검사
-                    row++;
-                    break; // 이 행의 다른 열 검사 중단
-                }
-            }
-        }
-        
-        return crossesCleared;
-    }
 
     private boolean isLineFull(int row) {
         for (int col = 0; col < WIDTH; col++) {
@@ -196,70 +86,6 @@ public class GameBoard {
         }
     }
     
-    /**
-     * 특정 줄을 삭제하고 아이템 보드도 함께 업데이트
-     * - 삭제된 줄의 아이템 제거
-     * - 위쪽 줄들을 한 칸씩 아래로 이동
-     * 
-     * @param lineIndex 삭제할 줄의 인덱스
-     */
-    private void clearLineWithItems(int lineIndex) {
-        // 아이템 보드 처리: 해당 줄의 아이템 제거 및 위 줄들 이동
-        Map<Integer, ItemBlock> newItemBoard = new HashMap<>();
-        for (Map.Entry<Integer, ItemBlock> entry : itemBoard.entrySet()) {
-            int key = entry.getKey();
-            int row = key / WIDTH;
-            int col = key % WIDTH;
-            
-            if (row < lineIndex) {
-                // 삭제된 줄 위의 아이템들은 한 칸 아래로
-                newItemBoard.put(toKey(row + 1, col), entry.getValue());
-            } else if (row > lineIndex) {
-                // 삭제된 줄 아래의 아이템들은 그대로
-                newItemBoard.put(key, entry.getValue());
-            }
-            // row == lineIndex인 경우는 제거 (추가하지 않음)
-        }
-        itemBoard.clear();
-        itemBoard.putAll(newItemBoard);
-        
-        // 일반 보드 처리
-        for (int row = lineIndex; row > 0; row--) {
-            System.arraycopy(board[row - 1], 0, board[row], 0, WIDTH);
-        }
-        for (int col = 0; col < WIDTH; col++) {
-            board[0][col] = 0;
-        }
-    }
-    
-    /**
-     * 특정 세로줄을 삭제하고 아이템 보드도 함께 업데이트
-     * - 삭제된 열의 모든 블록을 빈 공간으로 변경
-     * - 삭제된 열의 아이템 제거
-     * - 다른 열들은 이동하지 않음 (공백만 생성)
-     * 
-     * @param colIndex 삭제할 열의 인덱스
-     */
-    private void clearColumnWithItems(int colIndex) {
-        // 아이템 보드 처리: 해당 열의 아이템만 제거
-        Map<Integer, ItemBlock> newItemBoard = new HashMap<>();
-        for (Map.Entry<Integer, ItemBlock> entry : itemBoard.entrySet()) {
-            int key = entry.getKey();
-            int col = key % WIDTH;
-            
-            // 삭제되는 열이 아닌 경우만 유지
-            if (col != colIndex) {
-                newItemBoard.put(key, entry.getValue());
-            }
-        }
-        itemBoard.clear();
-        itemBoard.putAll(newItemBoard);
-        
-        // 일반 보드 처리: 해당 열을 모두 비움 (다른 열 이동 없음)
-        for (int row = 0; row < HEIGHT + BUFFER_ZONE; row++) {
-            board[row][colIndex] = 0;
-        }
-    }
 
     public int[][] getVisibleBoard() {
         int[][] visible = new int[HEIGHT][WIDTH];
@@ -292,7 +118,6 @@ public class GameBoard {
                 board[row][col] = 0;
             }
         }
-        itemBoard.clear();
     }
 
     /**
@@ -303,6 +128,6 @@ public class GameBoard {
      * @return 해당 위치의 아이템 (없으면 ItemBlock.NONE)
      */
     public ItemBlock getItemAt(int row, int col) {
-        return itemBoard.getOrDefault(toKey(row, col), ItemBlock.NONE);
+        return ItemBlock.NONE;
     }
 }

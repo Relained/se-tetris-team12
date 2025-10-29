@@ -24,31 +24,24 @@ public class PlayState extends BaseState {
     private GameMode gameMode;
 
     public PlayState(StateManager stateManager) {
-        this(stateManager, GameMode.NORMAL);
+        super(stateManager);
     }
     
-    public PlayState(StateManager stateManager, GameMode gameMode) {
-        super(stateManager);
-        this.gameMode = gameMode;
-    }
-
     @Override
     public void enter() {
-        // State 진입 시 게임 로직, View, Controller 초기화
-        // 게임 모드에 따라 적절한 시스템 생성
-        if (gameMode == GameMode.ITEM) {
-            gameLogic = new ItemTetrisSystem();
-        } else {
-            gameLogic = new TetrisSystem();
+        BaseState previousState = stateManager.getCurrentState();
+        if (previousState instanceof DifficultyState playState) {
+            gameMode = playState.getGameMode();
+            if (gameMode == GameMode.ITEM) {
+                gameLogic = new ItemTetrisSystem();
+            } else {
+                gameLogic = new TetrisSystem();
+            }
+            gameLogic.setDifficulty(playState.getDifficulty());
         }
         
         playView = new PlayView();
         controller = new PlayController(stateManager, playView, gameLogic);
-
-        BaseState previousState = stateManager.getCurrentState();
-        if (previousState instanceof DifficultyState playState) {
-            gameLogic.setDifficulty(playState.getDifficulty());
-        }
 
         // 게임 루프 시작
         gameTimer = new AnimationTimer() {
@@ -76,6 +69,7 @@ public class PlayState extends BaseState {
 
     @Override
     public Scene createScene() {
+        gameLogic.reset();
         // View로부터 UI 구성 요소를 받아옴
         HBox root = playView.createView();
 
