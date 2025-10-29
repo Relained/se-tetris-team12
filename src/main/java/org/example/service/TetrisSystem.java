@@ -282,15 +282,20 @@ public class TetrisSystem {
         // 줄 삭제 (아이템 모드와 일반 모드 분기)
         int clearedLines;
         int clearedColumns = 0;
+        int clearedCrosses = 0;
         
         if (gameMode == GameMode.ITEM) {
+            // 십자 아이템을 먼저 처리 (가로+세로 동시 삭제)
+            clearedCrosses = board.clearCrossesWithItems();
+            // 그 다음 가로줄 아이템 처리
             clearedLines = board.clearLinesWithItems();
+            // 마지막으로 세로줄 아이템 처리
             clearedColumns = board.clearColumnsWithItems();
         } else {
             clearedLines = board.clearLines();
         }
         
-        int totalCleared = clearedLines + clearedColumns;
+        int totalCleared = clearedLines + clearedColumns + clearedCrosses;
         
         if (totalCleared > 0) {
             lines += totalCleared;
