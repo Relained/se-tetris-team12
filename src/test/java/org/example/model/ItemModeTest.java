@@ -25,7 +25,7 @@ class ItemModeTest {
     void testItemModeCreation() {
         ItemTetrisSystem game = new ItemTetrisSystem();
         assertNotNull(game);
-        assertFalse(game.nextPieceHasItem());
+        // nextPieceHasItem() 메서드는 제거됨 - 아이템은 이제 큐에서 직접 확인 가능
     }
 
     @Test

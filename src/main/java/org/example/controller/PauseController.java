@@ -3,8 +3,6 @@ package org.example.controller;
 import javafx.scene.input.KeyEvent;
 
 import org.example.service.StateManager;
-import org.example.state.BaseState;
-import org.example.state.PlayState;
 import org.example.view.PauseView;
 
 /**

@@ -16,32 +16,95 @@ import java.util.List;
  */
 public class ItemTetrisSystem extends TetrisSystem {
     private int linesSinceLastItem;  // 마지막 아이템 생성 이후 삭제된 줄 수
-    private boolean nextPieceShouldHaveItem;  // 다음 생성될 블록에 아이템 포함 여부
     
     public ItemTetrisSystem() {
         super(new ItemGameBoard());
         this.linesSinceLastItem = 0;
-        this.nextPieceShouldHaveItem = false;
     }
     
-    @Override
-    protected void spawnNewPiece() {
-        // 부모 클래스의 spawnNewPiece 호출
-        super.spawnNewPiece();
+    /**
+     * 아이템 테트로미노를 생성하여 큐의 인덱스 1번에 추가합니다 (바로 다음에 나올 위치).
+     */
+    private void generateItemPiece() {
+        // 아이템 타입 랜덤 선택 (LINE, COLUMN, CROSS, WEIGHT, BOMB)
+        int itemChoice = random.nextInt(5);
+        TetrominoPosition itemPiece;
         
-        // 아이템 추가가 필요한 경우
-        if (nextPieceShouldHaveItem && currentPiece != null) {
-            addRandomItemToPiece(currentPiece);
-            nextPieceShouldHaveItem = false;
+        switch (itemChoice) {
+            case 0: // LINE_CLEAR
+            case 1: // COLUMN_CLEAR
+            case 2: // CROSS_CLEAR
+                // 일반 아이템: 랜덤 테트로미노에 아이템 부착
+                itemPiece = createPieceWithItem(itemChoice);
+                break;
+            case 3: // WEIGHT
+                itemPiece = TetrominoPosition.createWeightPiece(0, 0);
+                break;
+            case 4: // BOMB
+                itemPiece = TetrominoPosition.createBombPiece(0, 0);
+                break;
+            default:
+                itemPiece = createPieceWithItem(0);
+        }
+        
+        // 큐의 인덱스 1번 위치에 추가 (다음에 나올 조각)
+        // 방법: 첫 번째 요소를 임시 저장 → 아이템 추가 → 첫 번째 요소 복원
+        if (!nextQueue.isEmpty()) {
+            TetrominoPosition firstPiece = nextQueue.removeFirst();
+            nextQueue.addFirst(itemPiece);
+            nextQueue.addFirst(firstPiece);
+        } else {
+            // 큐가 비어있으면 그냥 추가
+            nextQueue.addFirst(itemPiece);
+        }
+        
+        // 큐 크기가 QUEUEING_SIZE를 초과하면 맨 뒤 제거
+        while (nextQueue.size() > QUEUEING_SIZE) {
+            nextQueue.removeLast();
         }
     }
     
     /**
-     * 테트로미노에 랜덤한 위치와 랜덤한 타입의 아이템을 부착합니다.
+     * 랜덤 테트로미노에 아이템을 부착한 TetrominoPosition 생성
      */
-    private void addRandomItemToPiece(TetrominoPosition piece) {
+    private TetrominoPosition createPieceWithItem(int itemChoice) {
+        // 랜덤 테트로미노 선택 (부모 클래스의 private 메서드를 사용할 수 없으므로 직접 구현)
+        var values = org.example.model.Tetromino.values();
+        double total = 0;
+        for (int i = 0; i < values.length; i++) {
+            total += 1.0;
+        }
+        double r = random.nextDouble() * total;
+        double cum = 0.0;
+        org.example.model.Tetromino type = values[0];
+        for (int i = 0; i < values.length; i++) {
+            cum += 1.0;
+            if (r < cum) {
+                type = values[i];
+                break;
+            }
+        }
+        
+        TetrominoPosition piece = new TetrominoPosition(type, 0, 0, 0);
+        
+        // 아이템 타입 결정
+        ItemBlock itemType;
+        switch (itemChoice) {
+            case 0:
+                itemType = ItemBlock.LINE_CLEAR;
+                break;
+            case 1:
+                itemType = ItemBlock.COLUMN_CLEAR;
+                break;
+            case 2:
+                itemType = ItemBlock.CROSS_CLEAR;
+                break;
+            default:
+                itemType = ItemBlock.LINE_CLEAR;
+        }
+        
         // rotation 0 기준으로 블록 인덱스 계산 (회전에 독립적)
-        int[][] shape = piece.getType().getShape(0);
+        int[][] shape = type.getShape(0);
         List<Integer> blockIndices = new ArrayList<>();
         
         // 블록이 있는 모든 위치의 인덱스 수집
@@ -55,54 +118,20 @@ public class ItemTetrisSystem extends TetrisSystem {
             }
         }
         
-        // 랜덤한 블록 인덱스와 아이템 타입 선택
+        // 랜덤한 블록 인덱스에 아이템 부착
         if (!blockIndices.isEmpty()) {
             int randomBlockIndex = blockIndices.get(random.nextInt(blockIndices.size()));
-            
-            // 아이템 타입 랜덤 선택 (LINE, COLUMN, CROSS, WEIGHT, BOMB)
-            int itemChoice = random.nextInt(5);
-            ItemBlock itemType;
-            switch (itemChoice) {
-                case 0:
-                    itemType = ItemBlock.LINE_CLEAR;
-                    break;
-                case 1:
-                    itemType = ItemBlock.COLUMN_CLEAR;
-                    break;
-                case 2:
-                    itemType = ItemBlock.CROSS_CLEAR;
-                    break;
-                case 3:
-                    itemType = ItemBlock.WEIGHT;
-                    break;
-                case 4:
-                    itemType = ItemBlock.BOMB;
-                    break;
-                default:
-                    itemType = ItemBlock.LINE_CLEAR;
-            }
-            
-            if (itemType == ItemBlock.WEIGHT || itemType == ItemBlock.BOMB) {
-                // 특수 아이템은 ITEM 테트로미노로 대체 스폰
-                int[][] custom = (itemType == ItemBlock.WEIGHT)
-                        ? new int[][]{{0,1,1,0},{1,1,1,1}}
-                        : new int[][]{{1,1},{1,1}};
-                int spawnX = (org.example.model.GameBoard.WIDTH - custom[0].length) / 2;
-                int spawnY = org.example.model.GameBoard.BUFFER_ZONE - custom.length;
-                if (itemType == ItemBlock.WEIGHT) {
-                    this.currentPiece = org.example.model.TetrominoPosition.createWeightPiece(spawnX, spawnY);
-                } else {
-                    this.currentPiece = org.example.model.TetrominoPosition.createBombPiece(spawnX, spawnY);
-                }
-            } else {
-                piece.setItemAtBlockIndex(randomBlockIndex, itemType);
-            }
+            piece.setItemAtBlockIndex(randomBlockIndex, itemType);
         }
+        
+        return piece;
     }
 
     // ===== 특수 아이템 동작 상태 =====
     private boolean weightActive = false;
+    private boolean weightShowingAtBottom = false;  // 무게추가 바닥에 표시 중인지
     private int weightStartCol;
+    private int[][] weightShape;  // 무게추 모양 저장
     
     @Override
     protected void lockPiece() {
@@ -135,12 +164,15 @@ public class ItemTetrisSystem extends TetrisSystem {
 
         ItemGameBoard itemBoard = (ItemGameBoard) board;
 
-        int clearedCrosses = itemBoard.clearCrossesWithItems();
-        int clearedLines = itemBoard.clearLinesWithItems();
+        // 순서 중요: 열 삭제 → 십자 삭제 → 줄 삭제
+        // (줄 삭제가 좌표를 변경하므로 가장 마지막에 실행)
         int clearedColumns = itemBoard.clearColumnsWithItems();
-
-        int totalCleared = clearedLines + clearedColumns + clearedCrosses;
-
+        int clearedCrosses = itemBoard.clearCrossesWithItems();
+        int[] lineResults = itemBoard.clearLinesWithItems();  // [전체, 아이템으로 인한]
+        
+        int totalCleared = lineResults[0] + clearedColumns + clearedCrosses;
+        int normalCleared = lineResults[0] - lineResults[1];  // 일반 삭제 = 전체 - 아이템
+        
         if (totalCleared > 0) {
             lines += totalCleared;
 
@@ -154,11 +186,11 @@ public class ItemTetrisSystem extends TetrisSystem {
             score += lineScore * calcScoreFactor();
 
             level = Math.min(20, (lines / levelFactor) + 1);
-
-            // 10줄마다 새로운 아이템 생성
-            linesSinceLastItem += totalCleared;
+            
+            // 10줄마다 새로운 아이템 생성 (아이템으로 인한 삭제는 제외)
+            linesSinceLastItem += normalCleared;  // 일반 삭제만 카운트
             if (linesSinceLastItem >= ItemBlock.LINES_FOR_ITEM_GENERATION) {
-                nextPieceShouldHaveItem = true;
+                generateItemPiece();  // 큐의 맨 앞에 아이템 조각 추가
                 linesSinceLastItem = 0;
             }
         }
@@ -184,47 +216,116 @@ public class ItemTetrisSystem extends TetrisSystem {
 
     @Override
     public void hardDrop() {
-        // 아이템 사용 체크는 lockPiece에서만 처리
-        if (weightActive) return; // 효과 진행 중에는 입력 무시
+        if (gameOver || currentPiece == null) return;
+        var special = currentPiece.getSpecialKind();
+        if (special == org.example.model.TetrominoPosition.SpecialKind.BOMB) {
+            // BOMB: 먼저 바닥까지 내려간 다음 착지 위치에서 폭발
+            super.hardDrop(); // 바닥까지 내려가서 착지
+            // lockPiece()에서 이미 폭발 효과가 적용되므로 여기서는 추가 처리 불필요
+            return;
+        } else if (special == org.example.model.TetrominoPosition.SpecialKind.WEIGHT) {
+            // 하드드롭: 무게추 아래를 모두 지우고 바닥에 배치
+            ItemGameBoard igb = (ItemGameBoard) board;
+            weightShape = currentPiece.getCurrentShape();
+            weightStartCol = Math.max(0, currentPiece.getX());
+            
+            igb.triggerWeightEffect(currentPiece.getY(), weightStartCol, weightShape);
+            weightActive = true;
+            weightShowingAtBottom = true;
+            currentPiece = null;
+            return;
+        }
         super.hardDrop();
     }
 
     @Override
+    public boolean hold() {
+        // 특수 아이템 조각(WEIGHT, BOMB)은 hold 불가
+        if (currentPiece != null) {
+            var special = currentPiece.getSpecialKind();
+            if (special == org.example.model.TetrominoPosition.SpecialKind.WEIGHT ||
+                special == org.example.model.TetrominoPosition.SpecialKind.BOMB) {
+                return false; // hold 불가
+            }
+        }
+        
+        // hold 기능 구현 (아이템 정보 보존)
+        if (gameOver || !canHold || currentPiece == null) return false;
+
+        if (holdPiece == null) {
+            holdPiece = currentPiece;
+            spawnNewPiece();
+        } else {
+            TetrominoPosition temp = holdPiece;
+            holdPiece = currentPiece;
+
+            // Reset held piece to spawn position (아이템 정보 보존)
+            int spawnX = (org.example.model.GameBoard.WIDTH - temp.getType().getShape(0)[0].length) / 2;
+            int spawnY = org.example.model.GameBoard.BUFFER_ZONE - temp.getType().getShape(0).length;
+            
+            // 기존 조각을 복사한 후 위치만 변경 (아이템 정보 보존)
+            currentPiece = temp.copy();
+            currentPiece.setX(spawnX);
+            currentPiece.setY(spawnY);
+            currentPiece.setRotation(0);
+
+            if (!board.isValidPosition(currentPiece)) {
+                gameOver = true;
+                return false;
+            }
+        }
+
+        canHold = false;
+        return true;
+    }
+
+    @Override
     public boolean moveDown() {
-        if (weightActive) return false; // 효과 진행 중에는 입력 무시
-        return super.moveDown();
-    }
+        if (weightActive) return false;
+        if (gameOver || currentPiece == null) return false;
 
-    @Override
-    public boolean moveLeft() {
-        if (weightActive) return false; // 효과 진행 중에는 입력 무시
-        return super.moveLeft();
-    }
-
-    @Override
-    public boolean moveRight() {
-        if (weightActive) return false; // 효과 진행 중에는 입력 무시
-        return super.moveRight();
+        var special = currentPiece.getSpecialKind();
+        org.example.model.TetrominoPosition newPos = org.example.service.SuperRotationSystem.moveDown(currentPiece, board);
+        if (newPos != null) {
+            currentPiece = newPos;
+            score += SOFT_DROP_SCORE * calcScoreFactor();
+            return true;
+        } else {
+            if (special == org.example.model.TetrominoPosition.SpecialKind.BOMB) {
+                int topLeftRow = Math.max(0, currentPiece.getY());
+                int topLeftCol = Math.max(0, currentPiece.getX());
+                ((ItemGameBoard)board).triggerBombAt(topLeftRow, topLeftCol);
+                currentPiece = null;
+                spawnNewPiece();
+                return false;
+            } else if (special == org.example.model.TetrominoPosition.SpecialKind.WEIGHT) {
+                // moveDown 실패: 무게추 아래를 모두 지우고 바닥에 배치
+                ItemGameBoard igb = (ItemGameBoard) board;
+                weightShape = currentPiece.getCurrentShape();
+                weightStartCol = Math.max(0, currentPiece.getX());
+                
+                igb.triggerWeightEffect(currentPiece.getY(), weightStartCol, weightShape);
+                weightActive = true;
+                weightShowingAtBottom = true;
+                currentPiece = null;
+                return false;
+            }
+            // 일반 조각
+            lockPiece();
+            return false;
+        }
     }
 
     @Override
     public void update() {
         if (weightActive) {
-            ItemGameBoard igb = (ItemGameBoard) board;
-
-            // 현재 조각의 바로 아래 한 줄을 지움 (폭 4)
-            int rowToClear = currentPiece.getY() + currentPiece.getCurrentShape().length;
-
-            if (rowToClear <= org.example.model.GameBoard.HEIGHT + org.example.model.GameBoard.BUFFER_ZONE - 1) {
-                igb.clearWeightStep(rowToClear, weightStartCol);
-            } else {
+            if (weightShowingAtBottom) {
+                // 바닥에 무게추가 표시 중 -> 다음 틱에 제거하고 새 조각 생성
+                ItemGameBoard igb = (ItemGameBoard) board;
+                igb.clearWeight(weightStartCol, weightShape);
                 weightActive = false;
-                super.lockPiece();
-                if (board.isGameOver()) {
-                    gameOver = true;
-                } else {
-                    spawnNewPiece();
-                }
+                weightShowingAtBottom = false;
+                spawnNewPiece();
             }
             // 조각을 한 칸 아래로 이동시켜 내려가는 모습을 표시
             currentPiece.setY(currentPiece.getY() + 1);
@@ -238,11 +339,7 @@ public class ItemTetrisSystem extends TetrisSystem {
     public void reset() {
         super.reset();
         linesSinceLastItem = 0;
-        nextPieceShouldHaveItem = false;
-    }
-    
-    // 추가 getter
-    public boolean nextPieceHasItem() {
-        return nextPieceShouldHaveItem;
+        weightActive = false;
+        weightShowingAtBottom = false;
     }
 }

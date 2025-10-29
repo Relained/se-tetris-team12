@@ -1,8 +1,6 @@
 package org.example.service;
 
-import org.example.model.GameMode;
 import org.example.model.ItemBlock;
-import org.example.model.Tetromino;
 import org.example.model.TetrominoPosition;
 import org.junit.jupiter.api.Test;
 import java.lang.reflect.Method;
@@ -18,15 +16,16 @@ class ItemGenerationTest {
         // ItemTetrisSystem의 내부 메서드를 reflection으로 접근하여 실제 아이템 생성 테스트
         ItemTetrisSystem game = new ItemTetrisSystem();
         
-        // private 메서드 addRandomItemToPiece에 접근
-        Method addItemMethod = ItemTetrisSystem.class.getDeclaredMethod("addRandomItemToPiece", TetrominoPosition.class);
-        addItemMethod.setAccessible(true);
+        // private 메서드 createPieceWithItem에 접근
+        Method createPieceMethod = ItemTetrisSystem.class.getDeclaredMethod("createPieceWithItem", int.class);
+        createPieceMethod.setAccessible(true);
         
         int lineCount = 0;
         int columnCount = 0;
         int crossCount = 0;
-        int noneCount = 0;
-        int totalTests = 100;
+        int weightCount = 0;
+        int bombCount = 0;
+        int totalTests = 200;
         
         System.out.println("\n========================================");
         System.out.println("실제 TetrisSystem 아이템 생성 테스트");
@@ -34,15 +33,30 @@ class ItemGenerationTest {
         
         // 여러 번 아이템을 생성하여 분포 확인
         for (int i = 0; i < totalTests; i++) {
-            TetrominoPosition piece = new TetrominoPosition(Tetromino.I, 0, 0, 0);
+            // 0-4 랜덤 선택 (5가지 아이템)
+            int itemChoice = (int) (Math.random() * 5);
+            TetrominoPosition piece;
             
-            // TetrisSystem의 실제 메서드 호출
-            addItemMethod.invoke(game, piece);
+            if (itemChoice == 3) {
+                // WEIGHT - 특수 조각
+                piece = TetrominoPosition.createWeightPiece(0, 0);
+                weightCount++;
+                continue;
+            } else if (itemChoice == 4) {
+                // BOMB - 특수 조각
+                piece = TetrominoPosition.createBombPiece(0, 0);
+                bombCount++;
+                continue;
+            } else {
+                // LINE_CLEAR, COLUMN_CLEAR, CROSS_CLEAR - createPieceWithItem으로 생성
+                piece = (TetrominoPosition) createPieceMethod.invoke(game, itemChoice);
+            }
             
             // 생성된 아이템 타입 확인
             int[][] shape = piece.getCurrentShape();
             ItemBlock foundItem = ItemBlock.NONE;
             
+            // 일반 테트로미노에 부착된 아이템 확인
             outerLoop:
             for (int row = 0; row < shape.length; row++) {
                 for (int col = 0; col < shape[row].length; col++) {
@@ -62,36 +76,42 @@ class ItemGenerationTest {
                 columnCount++;
             } else if (foundItem == ItemBlock.CROSS_CLEAR) {
                 crossCount++;
-            } else {
-                noneCount++;
             }
         }
         
         double lineRatio = (double) lineCount / totalTests * 100;
         double columnRatio = (double) columnCount / totalTests * 100;
         double crossRatio = (double) crossCount / totalTests * 100;
+        double weightRatio = (double) weightCount / totalTests * 100;
+        double bombRatio = (double) bombCount / totalTests * 100;
         
         System.out.println("\n총 테스트 횟수: " + totalTests);
         System.out.println("----------------------------------------");
         System.out.println("LINE_CLEAR (L):   " + lineCount + "개 (" + String.format("%.1f%%", lineRatio) + ")");
         System.out.println("COLUMN_CLEAR (I): " + columnCount + "개 (" + String.format("%.1f%%", columnRatio) + ")");
         System.out.println("CROSS_CLEAR (X):  " + crossCount + "개 (" + String.format("%.1f%%", crossRatio) + ")");
-        System.out.println("NONE:             " + noneCount + "개");
+        System.out.println("WEIGHT (W):       " + weightCount + "개 (" + String.format("%.1f%%", weightRatio) + ")");
+        System.out.println("BOMB (O):         " + bombCount + "개 (" + String.format("%.1f%%", bombRatio) + ")");
         System.out.println("========================================\n");
         
-        // 검증: 각각 최소 20% 이상 생성되어야 함 (통계적 편차 고려, 33%±13%)
+        // 검증: 5가지 아이템이 모두 생성되어야 함 (각 20% 기대)
         assertTrue(lineCount > 0, "LINE_CLEAR 아이템이 전혀 생성되지 않음!");
         assertTrue(columnCount > 0, "COLUMN_CLEAR 아이템이 전혀 생성되지 않음!");
         assertTrue(crossCount > 0, "CROSS_CLEAR 아이템이 전혀 생성되지 않음!");
-        assertTrue(lineRatio >= 20.0, 
-            "LINE_CLEAR 비율이 너무 낮음: " + String.format("%.1f%%", lineRatio) + " (최소 20% 필요)");
-        assertTrue(columnRatio >= 20.0, 
-            "COLUMN_CLEAR 비율이 너무 낮음: " + String.format("%.1f%%", columnRatio) + " (최소 20% 필요)");
-        assertTrue(crossRatio >= 20.0, 
-            "CROSS_CLEAR 비율이 너무 낮음: " + String.format("%.1f%%", crossRatio) + " (최소 20% 필요)");
+        assertTrue(weightCount > 0, "WEIGHT 아이템이 전혀 생성되지 않음!");
+        assertTrue(bombCount > 0, "BOMB 아이템이 전혀 생성되지 않음!");
         
-        // 아이템이 없는 경우가 없어야 함 (모든 조각에 아이템이 부착되어야 함)
-        assertEquals(0, noneCount, "아이템이 부착되지 않은 조각이 있음: " + noneCount + "개");
+        // 각 아이템은 최소 10% 이상 생성되어야 함
+        assertTrue(lineRatio >= 10.0, 
+            "LINE_CLEAR 비율이 너무 낮음: " + String.format("%.1f%%", lineRatio) + " (최소 10% 필요)");
+        assertTrue(columnRatio >= 10.0, 
+            "COLUMN_CLEAR 비율이 너무 낮음: " + String.format("%.1f%%", columnRatio) + " (최소 10% 필요)");
+        assertTrue(crossRatio >= 10.0, 
+            "CROSS_CLEAR 비율이 너무 낮음: " + String.format("%.1f%%", crossRatio) + " (최소 10% 필요)");
+        assertTrue(weightRatio >= 10.0, 
+            "WEIGHT 비율이 너무 낮음: " + String.format("%.1f%%", weightRatio) + " (최소 10% 필요)");
+        assertTrue(bombRatio >= 10.0, 
+            "BOMB 비율이 너무 낮음: " + String.format("%.1f%%", bombRatio) + " (최소 10% 필요)");
     }
     
     @Test

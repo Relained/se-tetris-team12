@@ -14,9 +14,9 @@ public class TetrisSystem {
     protected final GameBoard board;
     protected TetrominoPosition currentPiece;
     protected TetrominoPosition holdPiece;
-    protected final Deque<Tetromino> nextQueue;
+    protected final Deque<TetrominoPosition> nextQueue;
     protected final Random random;
-    protected final ArrayList<Double> cumulativeWeights;
+    private final List<Double> cumulativeWeights;
 
     // 게임 상태
     protected int score;
@@ -62,19 +62,23 @@ public class TetrisSystem {
 
     protected void fillNextQueue() {
         while (nextQueue.size() < QUEUEING_SIZE) {
-            nextQueue.addLast(selectWeightedRandom());
+            Tetromino type = selectWeightedRandom();
+            nextQueue.addLast(new TetrominoPosition(type, 0, 0, 0));
         }
     }
 
     protected void spawnNewPiece() {
         fillNextQueue();
-        Tetromino nextType = nextQueue.pollFirst();
+        TetrominoPosition nextPiece = nextQueue.pollFirst();
 
         // Spawn position (top-center of board, accounting for buffer zone)
-        int spawnX = (GameBoard.WIDTH - nextType.getShape(0)[0].length) / 2;
-        int spawnY = GameBoard.BUFFER_ZONE - nextType.getShape(0).length;
+        int[][] shape = nextPiece.getCurrentShape();
+        int spawnX = (GameBoard.WIDTH - shape[0].length) / 2;
+        int spawnY = GameBoard.BUFFER_ZONE - shape.length;
 
-        currentPiece = new TetrominoPosition(nextType, spawnX, spawnY, 0);
+        currentPiece = nextPiece.copy();
+        currentPiece.setX(spawnX);
+        currentPiece.setY(spawnY);
         canHold = true;
 
         if (!board.isValidPosition(currentPiece)) {
@@ -244,10 +248,10 @@ public class TetrisSystem {
     public GameBoard getBoard() { return board; }
     public TetrominoPosition getCurrentPiece() { return currentPiece; }
     public TetrominoPosition getHoldPiece() { return holdPiece; }
-    public List<Tetromino> getNextQueue() {
-        List<Tetromino> preview = new ArrayList<>(5);
+    public List<TetrominoPosition> getNextQueue() {
+        List<TetrominoPosition> preview = new ArrayList<>(5);
         int i = 0;
-        for (Tetromino t : nextQueue) {
+        for (TetrominoPosition t : nextQueue) {
             if (i++ >= 5) break;
             preview.add(t);
         }

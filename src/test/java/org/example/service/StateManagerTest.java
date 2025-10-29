@@ -1,7 +1,6 @@
 package org.example.service;
 
 import javafx.stage.Stage;
-import org.example.model.SettingData;
 import org.example.state.BaseState;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -132,8 +131,11 @@ class StateManagerTest {
             resumeCalled = true;
         }
 
+        @SuppressWarnings("unused")
         public boolean isEnterCalled() { return enterCalled; }
+        @SuppressWarnings("unused")
         public boolean isExitCalled() { return exitCalled; }
+        @SuppressWarnings("unused")
         public boolean isResumeCalled() { return resumeCalled; }
     }
 }

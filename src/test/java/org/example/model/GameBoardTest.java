@@ -74,7 +74,6 @@ class GameBoardTest {
     void testClearOneLine() {
         // 바닥 줄을 거의 채우기 (한 칸만 남김)
         for (int col = 0; col < GameBoard.WIDTH; col++) {
-            TetrominoPosition pos = new TetrominoPosition(Tetromino.I, col, GameBoard.BUFFER_ZONE + GameBoard.HEIGHT - 1, 0);
             int[][] shape = new int[][]{{1}};
             TetrominoPosition singleBlock = new TetrominoPosition(Tetromino.I, col, GameBoard.BUFFER_ZONE + GameBoard.HEIGHT - 1, 0) {
                 @Override

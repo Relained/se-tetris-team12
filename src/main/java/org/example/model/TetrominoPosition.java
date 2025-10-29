@@ -91,6 +91,14 @@ public class TetrominoPosition {
      * 현재 rotation의 블록을 rotation 0 기준으로 변환하여 비교
      */
     public ItemBlock getItemAt(int row, int col) {
+        // WEIGHT나 BOMB 같은 특수 조각은 모든 블록에 아이템 표시
+        if (specialKind == SpecialKind.WEIGHT) {
+            return ItemBlock.WEIGHT;
+        }
+        if (specialKind == SpecialKind.BOMB) {
+            return ItemBlock.BOMB;
+        }
+        
         if (itemBlockIndex == null) {
             return ItemBlock.NONE;
         }

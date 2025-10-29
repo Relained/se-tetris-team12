@@ -29,9 +29,10 @@ class GameBoardAdvancedTest {
     @Test
     @DisplayName("버퍼 존 위로 벗어난 위치")
     void testAboveBufferZone() {
-        TetrominoPosition pos = new TetrominoPosition(Tetromino.I, 3, -5, 0);
         // 음수 Y 좌표도 부분적으로 허용될 수 있음 (블록의 일부만 보드 밖)
         // isValidPosition은 블록의 일부라도 유효한 위치에 있으면 true
+        TetrominoPosition pos = new TetrominoPosition(Tetromino.I, 3, -5, 0);
+        assertNotNull(pos); // 위치 객체 생성 확인
     }
 
     @Test
@@ -59,7 +60,7 @@ class GameBoardAdvancedTest {
 
     @Test
     @DisplayName("중간 줄만 클리어 - 위 줄이 내려옴")
-    void testClearMiddleLine() {
+    void testClearMiddleLine() throws InterruptedException {
         // 위쪽에 블록 배치
         fillSingleCell(0, GameBoard.BUFFER_ZONE + GameBoard.HEIGHT - 3);
         
@@ -70,6 +71,10 @@ class GameBoardAdvancedTest {
         
         int cleared = board.clearLines();
         assertEquals(1, cleared);
+        
+        // 지연 처리 대기 및 실행
+        Thread.sleep(600);
+        board.processPendingClearsIfDue();
         
         // 위에 있던 블록이 한 칸 내려왔는지 확인
         assertEquals(0, board.getCellColor(GameBoard.BUFFER_ZONE + GameBoard.HEIGHT - 3, 0));
@@ -143,13 +148,17 @@ class GameBoardAdvancedTest {
 
     @Test
     @DisplayName("클리어 후 빈 줄 확인")
-    void testEmptyLineAfterClear() {
+    void testEmptyLineAfterClear() throws InterruptedException {
         // 맨 아래 줄 채우기
         for (int col = 0; col < GameBoard.WIDTH; col++) {
             fillSingleCell(col, GameBoard.BUFFER_ZONE + GameBoard.HEIGHT - 1);
         }
         
         board.clearLines();
+        
+        // 지연 처리 대기 및 실행
+        Thread.sleep(600);
+        board.processPendingClearsIfDue();
         
         // 클리어 후 맨 아래 줄이 비어있어야 함
         for (int col = 0; col < GameBoard.WIDTH; col++) {
