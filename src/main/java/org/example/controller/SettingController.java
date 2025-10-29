@@ -19,11 +19,10 @@ public class SettingController {
     }
     
     /**
-     * Screen Size 버튼 클릭 시 처리
-     * TODO: 화면 크기 설정 기능 구현
+     * Screen Size 버튼 클릭 시 처리 - 화면 크기 설정 화면으로 이동
      */
     public void handleScreenSize() {
-        System.err.println("Set Screen Size");
+        stateManager.stackState("display_setting");
     }
     
     /**

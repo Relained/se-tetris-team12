@@ -35,6 +35,10 @@ public class SettingManager {
         currentSettings.colorBlindMode = mode;
     }
 
+    public void setScreenSize(SettingData.ScreenSize size) {
+        currentSettings.screenSize = size;
+    }
+
     public void applyColorSetting() {
         colorManager.setColorMode(currentSettings.colorBlindMode);
     }
