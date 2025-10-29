@@ -154,10 +154,10 @@ class ColorManagerTest {
         ColorManager manager = ColorManager.getInstance();
         
         manager.setColorMode(ColorBlindMode.Default);
-        Color defaultColor = manager.getColorFromIndex(1);
+        manager.getColorFromIndex(1);
         
         manager.setColorMode(ColorBlindMode.PROTANOPIA);
-        Color protanopiaColor = manager.getColorFromIndex(1);
+        manager.getColorFromIndex(1);
         
         // 색상이 다를 수 있음 (같을 수도 있지만, 모드가 변경되었는지 확인)
         assertEquals(ColorBlindMode.PROTANOPIA, manager.getCurrentMode());

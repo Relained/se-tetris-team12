@@ -208,7 +208,7 @@ class TetrisSystemAdvancedTest {
         }
         
         // 회전 시도 - 성공하거나 실패할 수 있음
-        boolean rotated = tetrisSystem.rotateClockwise();
+        tetrisSystem.rotateClockwise();
         
         // 회전 실패 시 피스는 원래 위치에 있어야 함
         assertNotNull(tetrisSystem.getCurrentPiece());

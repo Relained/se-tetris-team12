@@ -29,7 +29,7 @@ class GameBoardAdvancedTest {
     @Test
     @DisplayName("버퍼 존 위로 벗어난 위치")
     void testAboveBufferZone() {
-        TetrominoPosition pos = new TetrominoPosition(Tetromino.I, 3, -5, 0);
+        new TetrominoPosition(Tetromino.I, 3, -5, 0);
         // 음수 Y 좌표도 부분적으로 허용될 수 있음 (블록의 일부만 보드 밖)
         // isValidPosition은 블록의 일부라도 유효한 위치에 있으면 true
     }

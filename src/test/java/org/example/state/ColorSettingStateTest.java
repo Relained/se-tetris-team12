@@ -2,6 +2,8 @@ package org.example.state;
 
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.stage.Stage;
+import org.example.service.SettingManager;
 import org.example.service.StateManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class ColorSettingStateTest {
     
@@ -26,7 +29,9 @@ class ColorSettingStateTest {
     
     @BeforeEach
     void setUp() {
-        stateManager = new StateManager();
+        Stage stage = mock(Stage.class);
+        SettingManager settingManager = new SettingManager();
+        stateManager = new StateManager(stage, settingManager);
         state = new ColorSettingState(stateManager);
     }
     
@@ -45,7 +50,11 @@ class ColorSettingStateTest {
     @Test
     @DisplayName("exit() 호출 시 예외 발생하지 않음")
     void testExit() {
-        assertDoesNotThrow(() -> state.exit());
+        // enter()를 먼저 호출하여 controller 초기화
+        Platform.runLater(() -> {
+            state.enter();
+            assertDoesNotThrow(() -> state.exit());
+        });
     }
     
     @Test

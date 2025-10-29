@@ -122,8 +122,6 @@ class TetrisSystemTest {
     @DisplayName("하드 드롭 테스트")
     void testHardDrop() {
         int scoreBefore = tetrisSystem.getScore();
-        TetrominoPosition before = tetrisSystem.getCurrentPiece();
-        Tetromino typeBefore = before.getType();
         
         tetrisSystem.hardDrop();
         
@@ -224,9 +222,6 @@ class TetrisSystemTest {
     @Test
     @DisplayName("업데이트 테스트")
     void testUpdate() {
-        TetrominoPosition before = tetrisSystem.getCurrentPiece();
-        int beforeY = before.getY();
-        
         tetrisSystem.update();
         
         // 업데이트 후 피스가 아래로 이동했거나 락되었어야 함
@@ -260,7 +255,8 @@ class TetrisSystemTest {
         assertFalse(tetrisSystem.isGameOver());
         
         // 이동이 성공하거나 실패할 수 있음 (위치에 따라)
-        boolean canMove = tetrisSystem.moveLeft() || tetrisSystem.moveRight();
+        tetrisSystem.moveLeft();
+        tetrisSystem.moveRight();
         // 최소한 하나는 가능해야 함 (게임 시작 시)
     }
 

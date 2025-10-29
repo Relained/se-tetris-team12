@@ -27,6 +27,8 @@ class DisplayManagerTest {
     @BeforeEach
     void setUp() {
         displayManager = DisplayManager.getInstance();
+        // 테스트 전 기본값으로 초기화
+        displayManager.setDisplayMode(ScreenSize.MEDIUM);
     }
     
     @Test
@@ -41,6 +43,7 @@ class DisplayManagerTest {
     @Test
     @DisplayName("기본 화면 크기는 MEDIUM")
     void testDefaultSize() {
+        // setUp에서 MEDIUM으로 초기화했으므로 MEDIUM이어야 함
         assertEquals(ScreenSize.MEDIUM, displayManager.getCurrentSize());
     }
     

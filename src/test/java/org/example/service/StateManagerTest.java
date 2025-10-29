@@ -1,7 +1,6 @@
 package org.example.service;
 
 import javafx.stage.Stage;
-import org.example.model.SettingData;
 import org.example.state.BaseState;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,9 +103,6 @@ class StateManagerTest {
 
     // 테스트용 State 클래스
     private static class TestState extends BaseState {
-        private boolean enterCalled = false;
-        private boolean exitCalled = false;
-        private boolean resumeCalled = false;
 
         public TestState(StateManager stateManager) {
             super(stateManager);
@@ -114,12 +110,12 @@ class StateManagerTest {
 
         @Override
         public void enter() {
-            enterCalled = true;
+            // 진입 시 동작
         }
 
         @Override
         public void exit() {
-            exitCalled = true;
+            // 종료 시 동작
         }
 
         @Override
@@ -129,11 +125,7 @@ class StateManagerTest {
 
         @Override
         public void resume() {
-            resumeCalled = true;
+            // 재개 시 동작
         }
-
-        public boolean isEnterCalled() { return enterCalled; }
-        public boolean isExitCalled() { return exitCalled; }
-        public boolean isResumeCalled() { return resumeCalled; }
     }
 }

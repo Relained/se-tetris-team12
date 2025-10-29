@@ -2,6 +2,8 @@ package org.example.state;
 
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.stage.Stage;
+import org.example.service.SettingManager;
 import org.example.service.StateManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class ScoreboardStateTest {
     
@@ -26,7 +29,9 @@ class ScoreboardStateTest {
     
     @BeforeEach
     void setUp() {
-        stateManager = new StateManager();
+        Stage stage = mock(Stage.class);
+        SettingManager settingManager = new SettingManager();
+        stateManager = new StateManager(stage, settingManager);
         state = new ScoreboardState(stateManager, false);
     }
     
