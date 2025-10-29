@@ -22,10 +22,11 @@ public class PauseView extends BaseView {
      * @param onRestart Restart 버튼 클릭 시 실행될 콜백
      * @param onSettings Settings 버튼 클릭 시 실행될 콜백
      * @param onMainMenu Main Menu 버튼 클릭 시 실행될 콜백
+     * @param onExit Exit 버튼 클릭 시 실행될 콜백
      * @return 구성된 VBox root
      */
     public VBox createView(Runnable onResume, Runnable onRestart, 
-                          Runnable onSettings, Runnable onMainMenu) {
+                          Runnable onSettings, Runnable onMainMenu, Runnable onExit) {
         VBox root = new VBox(30);
         root.setAlignment(Pos.CENTER);
         root.setBackground(new Background(
@@ -40,9 +41,10 @@ public class PauseView extends BaseView {
         var restartButton = buttonSystem.createNavigableButton("Restart", onRestart);
         var settingsButton = buttonSystem.createNavigableButton("Settings", onSettings);
         var mainMenuButton = buttonSystem.createNavigableButton("Main Menu", onMainMenu);
+        var exitButton = buttonSystem.createNavigableButton("Exit", onExit);
 
         root.getChildren().add(title);
-        root.getChildren().addAll(resumeButton, restartButton, settingsButton, mainMenuButton);
+        root.getChildren().addAll(resumeButton, restartButton, settingsButton, mainMenuButton, exitButton);
 
         return root;
     }
