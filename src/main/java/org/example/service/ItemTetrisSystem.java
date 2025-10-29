@@ -1,6 +1,6 @@
 package org.example.service;
 
-import org.example.model.GameBoard;
+
 import org.example.model.ItemBlock;
 import org.example.model.TetrominoPosition;
 
@@ -14,7 +14,6 @@ import java.util.List;
  * - LINE_CLEAR, COLUMN_CLEAR, CROSS_CLEAR 아이템 지원
  */
 public class ItemTetrisSystem extends TetrisSystem {
-    
     private int linesSinceLastItem;  // 마지막 아이템 생성 이후 삭제된 줄 수
     private boolean nextPieceShouldHaveItem;  // 다음 생성될 블록에 아이템 포함 여부
     

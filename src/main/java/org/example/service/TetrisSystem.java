@@ -29,11 +29,6 @@ public class TetrisSystem {
     protected int levelFactor;
     protected boolean canHold;
     protected boolean gameOver;
-    
-    // 아이템 모드 관련
-    private final GameMode gameMode;
-    private int linesSinceLastItem;  // 마지막 아이템 생성 이후 삭제된 줄 수
-    private boolean nextPieceShouldHaveItem;  // 다음 생성될 블록에 아이템 포함 여부
 
     // 점수 시스템
     protected static final int[] LINE_SCORES = {0, 100, 300, 500, 800}; // 0, 1, 2, 3, 4 lines
@@ -53,8 +48,6 @@ public class TetrisSystem {
         this.levelFactor = 10;
         this.canHold = true;
         this.gameOver = false;
-        this.linesSinceLastItem = 0;
-        this.nextPieceShouldHaveItem = false;
 
         double cum = 0.0;
         for (int i = 0; i < Tetromino.values().length; i++) {
@@ -85,54 +78,6 @@ public class TetrisSystem {
 
         if (!board.isValidPosition(currentPiece)) {
             gameOver = true;
-        }
-    }
-    
-    /**
-     * 테트로미노에 랜덤한 위치와 랜덤한 타입의 아이템을 부착합니다.
-     * 아이템은 rotation 0 기준의 블록 인덱스에 저장되며, 회전과 무관하게 동일한 물리적 블록을 추적합니다.
-     * 아이템 타입은 LINE_CLEAR(가로줄)와 COLUMN_CLEAR(세로줄), CROSS_CLEAR(십자)가 각각 33%씩 확률로 선택됩니다.
-     * 
-     * @param piece 아이템을 부착할 테트로미노
-     */
-    private void addRandomItemToPiece(TetrominoPosition piece) {
-        // rotation 0 기준으로 블록 인덱스 계산 (회전에 독립적)
-        int[][] shape = piece.getType().getShape(0);
-        List<Integer> blockIndices = new ArrayList<>();
-        
-        // 블록이 있는 모든 위치의 인덱스 수집
-        int blockIndex = 0;
-        for (int row = 0; row < shape.length; row++) {
-            for (int col = 0; col < shape[row].length; col++) {
-                if (shape[row][col] == 1) {
-                    blockIndices.add(blockIndex);
-                    blockIndex++;
-                }
-            }
-        }
-        
-        // 랜덤한 블록 인덱스와 아이템 타입 선택
-        if (!blockIndices.isEmpty()) {
-            int randomBlockIndex = blockIndices.get(random.nextInt(blockIndices.size()));
-            
-            // 아이템 타입 랜덤 선택 (LINE_CLEAR: 33%, COLUMN_CLEAR: 33%, CROSS_CLEAR: 33%)
-            int itemChoice = random.nextInt(3);
-            ItemBlock itemType;
-            switch (itemChoice) {
-                case 0:
-                    itemType = ItemBlock.LINE_CLEAR;
-                    break;
-                case 1:
-                    itemType = ItemBlock.COLUMN_CLEAR;
-                    break;
-                case 2:
-                    itemType = ItemBlock.CROSS_CLEAR;
-                    break;
-                default:
-                    itemType = ItemBlock.LINE_CLEAR;
-            }
-            
-            piece.setItemAtBlockIndex(randomBlockIndex, itemType);
         }
     }
 
@@ -264,46 +209,11 @@ public class TetrisSystem {
     protected void lockPiece() {
         board.placeTetromino(currentPiece);
 
-        // 줄 삭제 (아이템 모드와 일반 모드 분기)
-        int clearedLines;
-        int clearedColumns = 0;
-        int clearedCrosses = 0;
-        
-        if (gameMode == GameMode.ITEM) {
-            // 십자 아이템을 먼저 처리 (가로+세로 동시 삭제)
-            clearedCrosses = board.clearCrossesWithItems();
-            // 그 다음 가로줄 아이템 처리
-            clearedLines = board.clearLinesWithItems();
-            // 마지막으로 세로줄 아이템 처리
-            clearedColumns = board.clearColumnsWithItems();
-        } else {
-            clearedLines = board.clearLines();
-        }
-        
-        int totalCleared = clearedLines + clearedColumns + clearedCrosses;
-        
-        if (totalCleared > 0) {
-            lines += totalCleared;
-            
-            int lineScore;
-            if (totalCleared <= LINE_SCORES.length - 1) {
-                lineScore = LINE_SCORES[totalCleared];
-            } else {
-                // 5줄 이상: 4줄 점수(800) + 추가 줄당 100점 (아이템 모드에서 가능)
-                lineScore = LINE_SCORES[4] + (totalCleared - 4) * 100;
-            }
-            score += lineScore * calcScoreFactor();
-            
+        int clearedLines = board.clearLines();
+        if (clearedLines > 0) {
+            lines += clearedLines;
+            score += LINE_SCORES[clearedLines] * calcScoreFactor();
             level = Math.min(20, (lines / levelFactor) + 1);
-            
-            // 아이템 모드: 10줄마다 새로운 아이템 블록 생성
-            if (gameMode == GameMode.ITEM) {
-                linesSinceLastItem += totalCleared;
-                if (linesSinceLastItem >= ItemBlock.LINES_FOR_ITEM_GENERATION) {
-                    nextPieceShouldHaveItem = true;
-                    linesSinceLastItem -= ItemBlock.LINES_FOR_ITEM_GENERATION;
-                }
-            }
         }
 
         if (board.isGameOver()) {
@@ -347,8 +257,6 @@ public class TetrisSystem {
     public int getLevel() { return level; }
     public boolean isGameOver() { return gameOver; }
     public int getDifficulty() { return difficulty; }
-    public GameMode getGameMode() { return gameMode; }
-    public boolean nextPieceHasItem() { return nextPieceShouldHaveItem; }
 
     public void reset() {
         board.clear();
