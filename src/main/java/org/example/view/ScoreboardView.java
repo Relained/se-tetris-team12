@@ -1,11 +1,13 @@
 package org.example.view;
 
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -77,7 +79,7 @@ public class ScoreboardView extends BaseView {
         titleLabel.setFill(Color.GOLD);
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
 
-        HBox headerBox = createHeaderRow();
+        GridPane headerGrid = createHeaderRow();
 
         scoresContainer = new VBox(8);
         scoresContainer.setAlignment(Pos.TOP_CENTER);
@@ -88,7 +90,7 @@ public class ScoreboardView extends BaseView {
         noScoresLabel.setFont(Font.font("Arial", 16));
         scoresContainer.getChildren().add(noScoresLabel);
 
-        container.getChildren().addAll(titleLabel, headerBox, scoresContainer);
+        container.getChildren().addAll(titleLabel, headerGrid, scoresContainer);
         return container;
     }
 
@@ -137,15 +139,12 @@ public class ScoreboardView extends BaseView {
         headerBox.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, diffBox, modeBox, dateBox);
         return headerBox;
     }
-
-    private VBox createAlignedTextBox(Text text, double width, Pos alignment) {
-        VBox box = new VBox();
-        box.setAlignment(alignment);
-        box.setPrefWidth(width);
-        box.setMaxWidth(width);
-        box.setMinWidth(width);
-        box.getChildren().add(text);
-        return box;
+    
+    private Text createHeaderText(String content) {
+        Text text = new Text(content);
+        text.setFill(Color.WHITE);
+        text.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        return text;
     }
 
     private VBox createButtonPanel(Runnable onBackToMenu, Runnable onClearScores, boolean afterGamePlay) {
@@ -188,7 +187,7 @@ public class ScoreboardView extends BaseView {
 
         for (int i = 0; i < Math.min(topScores.size(), MAX_DISPLAY_SCORES); i++) {
             ScoreRecord record = topScores.get(i);
-            HBox scoreRow = createScoreRow(i + 1, record);
+            GridPane scoreRow = createScoreRow(i + 1, record);
             scoresContainer.getChildren().add(scoreRow);
         }
     }

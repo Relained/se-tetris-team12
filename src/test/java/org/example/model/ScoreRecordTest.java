@@ -70,6 +70,16 @@ class ScoreRecordTest {
     }
     
     @Test
+    @DisplayName("setPlayerName - 플레이어 이름 설정")
+    void testSetPlayerName() {
+        ScoreRecord record = new ScoreRecord(500, 5, 3, 1);
+        assertEquals("", record.getPlayerName());
+        
+        record.setPlayerName("NewPlayer");
+        assertEquals("NewPlayer", record.getPlayerName());
+    }
+    
+    @Test
     @DisplayName("여러 ScoreRecord 정렬 테스트")
     void testSortingMultipleRecords() {
         ScoreRecord record1 = new ScoreRecord(500, 5, 3, 1);

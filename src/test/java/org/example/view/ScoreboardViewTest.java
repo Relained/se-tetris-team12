@@ -16,6 +16,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ScoreboardViewTest extends ApplicationTest {
     
+    // 헬퍼 메서드: ScoreRecord 생성
+    private ScoreRecord createScoreRecord(String name, int score, int lines, int level) {
+        ScoreRecord record = new ScoreRecord(score, lines, level, 1);
+        record.setPlayerName(name);
+        return record;
+    }
+    
     @BeforeAll
     static void initJavaFX() {
         try {

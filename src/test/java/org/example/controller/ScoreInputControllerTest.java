@@ -61,6 +61,7 @@ class ScoreInputControllerTest {
     void testHandleSubmitWithValidName() {
         String playerName = "TestPlayer";
         when(scoreInputView.getPlayerName()).thenReturn(playerName);
+        when(stateManager.getCurrentState()).thenReturn(mock(org.example.state.ScoreboardState.class));
         
         controller.handleSubmit();
         
@@ -71,6 +72,8 @@ class ScoreInputControllerTest {
     @Test
     @DisplayName("Skip 핸들러 - 점수 저장 건너뛰기")
     void testHandleSkip() {
+        when(stateManager.getCurrentState()).thenReturn(mock(org.example.state.ScoreboardState.class));
+        
         controller.handleSkip();
         
         verify(scoreboardState).setScoreBoardScene(false);
