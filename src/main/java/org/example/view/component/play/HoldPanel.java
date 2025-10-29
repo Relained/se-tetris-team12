@@ -30,8 +30,10 @@ public class HoldPanel extends VBox {
 
         if (holdPiece == null) return;
 
-        int[][] shape = holdPiece.getType().getShape(0);
-        Color color = holdPiece.getType().getColor();
+        // getCurrentShape()를 사용하여 customShape도 반영
+        int[][] shape = holdPiece.getCurrentShape();
+        // getDisplayColor()를 사용하여 customColor도 반영
+        Color color = holdPiece.getDisplayColor(org.example.service.ColorManager.getInstance());
 
         // Center the piece in the canvas
         double offsetX = (holdCanvas.getWidth() - shape[0].length * CELL_SIZE) / 2;
@@ -49,6 +51,16 @@ public class HoldPanel extends VBox {
                     gc.setStroke(Color.DARKGRAY);
                     gc.setLineWidth(1);
                     gc.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+                    
+                    // 아이템 글자 표시
+                    org.example.model.ItemBlock item = holdPiece.getItemAt(row, col);
+                    if (item != null && item.isItem()) {
+                        gc.setFill(Color.WHITE);
+                        gc.setFont(Font.font("Arial", javafx.scene.text.FontWeight.BOLD, CELL_SIZE * 0.8));
+                        gc.fillText(String.valueOf(item.getSymbol()), 
+                                  x + CELL_SIZE * 0.2, 
+                                  y + CELL_SIZE * 0.8);
+                    }
                 }
             }
         }

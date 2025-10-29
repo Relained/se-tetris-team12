@@ -92,7 +92,7 @@ public class PlayView extends BaseView {
                              org.example.model.TetrominoPosition currentPiece,
                              org.example.model.TetrominoPosition ghostPiece,
                              org.example.model.TetrominoPosition holdPiece,
-                             java.util.List<org.example.model.Tetromino> nextQueue,
+                             java.util.List<org.example.model.TetrominoPosition> nextQueue,
                              int score, int lines, int level) {
         if (gameCanvas != null) {
             gameCanvas.updateBoard(board, currentPiece, ghostPiece);

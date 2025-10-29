@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
 import java.util.List;
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,7 +44,7 @@ class TetrisSystemTest {
     @Test
     @DisplayName("다음 큐가 비어있지 않음")
     void testNextQueueNotEmpty() {
-        List<Tetromino> nextQueue = tetrisSystem.getNextQueue();
+        List<TetrominoPosition> nextQueue = tetrisSystem.getNextQueue();
         assertNotNull(nextQueue);
         assertTrue(nextQueue.size() > 0);
         assertTrue(nextQueue.size() <= 5);
@@ -144,7 +147,8 @@ class TetrisSystemTest {
         assertTrue(held);
         assertNotNull(tetrisSystem.getHoldPiece());
         assertEquals(currentType, tetrisSystem.getHoldPiece().getType());
-        assertNotEquals(currentType, tetrisSystem.getCurrentPiece().getType());
+        //assertNotEquals(currentType, tetrisSystem.getCurrentPiece().getType());
+        //RWS로 바꾸면서 다음 피스가 같을 수 있음
     }
 
     @Test
@@ -263,7 +267,7 @@ class TetrisSystemTest {
     @Test
     @DisplayName("다음 큐는 최대 5개까지만 반환")
     void testNextQueueMaxFive() {
-        List<Tetromino> nextQueue = tetrisSystem.getNextQueue();
+        List<TetrominoPosition> nextQueue = tetrisSystem.getNextQueue();
         assertTrue(nextQueue.size() <= 5);
     }
 
@@ -272,5 +276,52 @@ class TetrisSystemTest {
     void testHoldPieceInitiallyNull() {
         TetrisSystem newSystem = new TetrisSystem();
         assertNull(newSystem.getHoldPiece());
+    }
+
+    @Test
+    @DisplayName("RWS 테스트")
+    void testRouletteSelectionWeightedIPiece() throws Exception {
+        // Stabilize randomness for reproducibility
+        Field rndField = TetrisSystem.class.getDeclaredField("random");
+        rndField.setAccessible(true);
+        rndField.set(tetrisSystem, new Random(12345L));
+
+        // Increase I piece weight by 100% (2.0 vs 1.0 others)
+        tetrisSystem.setTetrominoWeight(Tetromino.I, 2);
+
+        // Access private selection method via reflection
+        Method picker = TetrisSystem.class.getDeclaredMethod("selectWeightedRandom");
+        picker.setAccessible(true);
+
+        int trials = 1000;
+        int countI = 0;
+        int countO = 0; // use O as a representative of weight=1.0 pieces
+
+        for (int i = 0; i < trials; i++) {
+            Tetromino t = (Tetromino) picker.invoke(tetrisSystem);
+            if (t == Tetromino.I) countI++;
+            if (t == Tetromino.O) countO++;
+        }
+
+        // Expected probabilities for I weight = 2.0, others = 1.0:
+        // total weight = 2 + 6 * 1.0 = 8
+        // P(I) = 2 / 8 = 0.25 => expected count = 250
+        double pI = 0.25;
+        double expectedI = trials * pI; // = 250
+        double sigma = Math.sqrt(trials * pI * (1.0 - pI)); // std-dev for binomial
+
+        // Assert I count within 3σ window to avoid flakiness
+        double lower = expectedI - 3 * sigma;
+        double upper = expectedI + 3 * sigma;
+        assertTrue(countI >= lower && countI <= upper,
+            String.format("I count %d outside expected range [%.1f, %.1f]", countI, lower, upper));
+
+        // Also check relative ratio against a 1.0-weight piece roughly matches 2.0x
+        // Avoid division by zero in pathological randomness
+        assertTrue(countO > 0, "O count should be > 0 in 1000 trials");
+        double ratio = (double) countI / (double) countO;
+        // Expect ~2.0 ratio (I has double weight). Allow ±0.25 tolerance to absorb randomness
+        assertTrue(Math.abs(ratio - 2.0) < 0.25,
+            String.format("I/O ratio %.3f not close to 2.0 (counts: I=%d, O=%d)", ratio, countI, countO));
     }
 }

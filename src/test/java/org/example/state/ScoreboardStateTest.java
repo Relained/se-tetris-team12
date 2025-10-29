@@ -2,6 +2,7 @@ package org.example.state;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.example.model.ScoreRecord;
 import org.example.service.SettingManager;
 import org.example.service.StateManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.testfx.framework.junit5.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
-
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -24,7 +24,7 @@ class ScoreboardStateTest extends ApplicationTest {
         Stage stage = mock(Stage.class);
         SettingManager settingManager = new SettingManager();
         stateManager = new StateManager(stage, settingManager);
-        state = new ScoreboardState(stateManager, false);
+        state = new ScoreboardState(stateManager);
     }
     
     @Test
@@ -42,25 +42,20 @@ class ScoreboardStateTest extends ApplicationTest {
     }
     
     @Test
-    @DisplayName("생성자 - Scoreboard 모드 (highlight 지정)")
-    void testConstructorScoreboardModeWithHighlight() {
-        ScoreboardState state = new ScoreboardState(stateManager, true);
-        assertNotNull(state);
-        assertEquals(ScoreboardState.Mode.SCOREBOARD, state.getCurrentMode());
-    }
-    
-    @Test
     @DisplayName("생성자 - Scoreboard 모드 (게임 플레이 후)")
     void testConstructorScoreboardModeAfterGamePlay() {
-        ScoreboardState state = new ScoreboardState(stateManager, true, 5000, 50, 10, true);
+        ScoreRecord record = new ScoreRecord(5000, 50, 10, 1);
+        ScoreboardState state = new ScoreboardState(stateManager, record, true);
         assertNotNull(state);
-        assertEquals(ScoreboardState.Mode.SCOREBOARD, state.getCurrentMode());
+        // ScoreRecord를 전달하면 INPUT 모드로 시작됨
+        assertEquals(ScoreboardState.Mode.INPUT, state.getCurrentMode());
     }
     
     @Test
     @DisplayName("생성자 - Input 모드 (상위 10위 내)")
     void testConstructorInputMode() {
-        ScoreboardState state = new ScoreboardState(stateManager, 5000, 50, 10, true);
+        ScoreRecord record = new ScoreRecord(5000, 50, 10, 1);
+        ScoreboardState state = new ScoreboardState(stateManager, record, true);
         assertNotNull(state);
         assertEquals(ScoreboardState.Mode.INPUT, state.getCurrentMode());
         assertEquals(5000, state.getFinalScore());
@@ -71,7 +66,8 @@ class ScoreboardStateTest extends ApplicationTest {
     @Test
     @DisplayName("생성자 - Not Eligible 모드 (상위 10위 밖)")
     void testConstructorNotEligibleMode() {
-        ScoreboardState state = new ScoreboardState(stateManager, 100, 5, 1, false);
+        ScoreRecord record = new ScoreRecord(100, 5, 1, 1);
+        ScoreboardState state = new ScoreboardState(stateManager, record, false);
         assertNotNull(state);
         assertEquals(ScoreboardState.Mode.NOT_ELIGIBLE, state.getCurrentMode());
     }
@@ -79,7 +75,8 @@ class ScoreboardStateTest extends ApplicationTest {
     @Test
     @DisplayName("점수 입력이 필요한 상태로 생성")
     void testStateWithScoreInput() {
-        ScoreboardState stateWithInput = new ScoreboardState(stateManager, 1000, 10, 5, true);
+        ScoreRecord record = new ScoreRecord(1000, 10, 5, 1);
+        ScoreboardState stateWithInput = new ScoreboardState(stateManager, record, true);
         assertNotNull(stateWithInput);
     }
     
@@ -117,7 +114,8 @@ class ScoreboardStateTest extends ApplicationTest {
     @Test
     @DisplayName("createScene() - Input 모드 Scene 생성")
     void testCreateSceneInputMode() {
-        ScoreboardState inputState = new ScoreboardState(stateManager, 5000, 50, 10, true);
+        ScoreRecord record = new ScoreRecord(5000, 50, 10, 1);
+        ScoreboardState inputState = new ScoreboardState(stateManager, record, true);
         javafx.application.Platform.runLater(() -> {
             inputState.enter();
             Scene scene = inputState.createScene();
@@ -132,7 +130,8 @@ class ScoreboardStateTest extends ApplicationTest {
     @Test
     @DisplayName("createScene() - Not Eligible 모드 Scene 생성")
     void testCreateSceneNotEligibleMode() {
-        ScoreboardState notEligibleState = new ScoreboardState(stateManager, 100, 5, 1, false);
+        ScoreRecord record = new ScoreRecord(100, 5, 1, 1);
+        ScoreboardState notEligibleState = new ScoreboardState(stateManager, record, false);
         javafx.application.Platform.runLater(() -> {
             notEligibleState.enter();
             Scene scene = notEligibleState.createScene();
@@ -200,21 +199,24 @@ class ScoreboardStateTest extends ApplicationTest {
     @Test
     @DisplayName("getFinalScore() - Input 모드에서 점수 반환")
     void testGetFinalScore() {
-        ScoreboardState inputState = new ScoreboardState(stateManager, 5000, 50, 10, true);
+        ScoreRecord record = new ScoreRecord(5000, 50, 10, 1);
+        ScoreboardState inputState = new ScoreboardState(stateManager, record, true);
         assertEquals(5000, inputState.getFinalScore());
     }
     
     @Test
     @DisplayName("getFinalLines() - Input 모드에서 라인 수 반환")
     void testGetFinalLines() {
-        ScoreboardState inputState = new ScoreboardState(stateManager, 5000, 50, 10, true);
+        ScoreRecord record = new ScoreRecord(5000, 50, 10, 1);
+        ScoreboardState inputState = new ScoreboardState(stateManager, record, true);
         assertEquals(50, inputState.getFinalLines());
     }
     
     @Test
     @DisplayName("getFinalLevel() - Input 모드에서 레벨 반환")
     void testGetFinalLevel() {
-        ScoreboardState inputState = new ScoreboardState(stateManager, 5000, 50, 10, true);
+        ScoreRecord record = new ScoreRecord(5000, 50, 10, 1);
+        ScoreboardState inputState = new ScoreboardState(stateManager, record, true);
         assertEquals(10, inputState.getFinalLevel());
     }
 }

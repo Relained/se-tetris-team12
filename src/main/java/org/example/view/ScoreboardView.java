@@ -1,11 +1,13 @@
 package org.example.view;
 
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -69,15 +71,15 @@ public class ScoreboardView extends BaseView {
         container.setSpacing(15);
         container.setPadding(new Insets(20));
         container.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
-        container.setMaxWidth(550);
-        container.setPrefWidth(550);
+        container.setMaxWidth(650);
+        container.setPrefWidth(650);
         container.setMinHeight(550);
 
         titleLabel = new Text("HIGH SCORES");
         titleLabel.setFill(Color.GOLD);
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
 
-        HBox headerBox = createHeaderRow();
+        GridPane headerGrid = createHeaderRow();
 
         scoresContainer = new VBox(8);
         scoresContainer.setAlignment(Pos.TOP_CENTER);
@@ -88,7 +90,7 @@ public class ScoreboardView extends BaseView {
         noScoresLabel.setFont(Font.font("Arial", 16));
         scoresContainer.getChildren().add(noScoresLabel);
 
-        container.getChildren().addAll(titleLabel, headerBox, scoresContainer);
+        container.getChildren().addAll(titleLabel, headerGrid, scoresContainer);
         return container;
     }
 
@@ -96,7 +98,7 @@ public class ScoreboardView extends BaseView {
         HBox headerBox = new HBox(10);
         headerBox.setAlignment(Pos.CENTER_LEFT);
         headerBox.setPadding(new Insets(0, 0, 10, 0));
-        headerBox.setMaxWidth(500);
+        headerBox.setMaxWidth(600);
 
         Text rankHeader = new Text("RANK");
         rankHeader.setFill(Color.WHITE);
@@ -114,6 +116,14 @@ public class ScoreboardView extends BaseView {
         levelHeader.setFill(Color.WHITE);
         levelHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
 
+        Text diffHeader = new Text("DIFF");
+        diffHeader.setFill(Color.WHITE);
+        diffHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
+        Text modeHeader = new Text("MODE");
+        modeHeader.setFill(Color.WHITE);
+        modeHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
         Text dateHeader = new Text("DATE");
         dateHeader.setFill(Color.WHITE);
         dateHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
@@ -121,21 +131,20 @@ public class ScoreboardView extends BaseView {
         VBox rankBox = createAlignedTextBox(rankHeader, 60, Pos.CENTER);
         VBox nameBox = createAlignedTextBox(nameHeader, 80, Pos.CENTER);
         VBox scoreBox = createAlignedTextBox(scoreHeader, 120, Pos.CENTER_RIGHT);
-        VBox levelBox = createAlignedTextBox(levelHeader, 80, Pos.CENTER);
+        VBox levelBox = createAlignedTextBox(levelHeader, 60, Pos.CENTER);
+        VBox diffBox = createAlignedTextBox(diffHeader, 70, Pos.CENTER);
+        VBox modeBox = createAlignedTextBox(modeHeader, 70, Pos.CENTER);
         VBox dateBox = createAlignedTextBox(dateHeader, 120, Pos.CENTER);
 
-        headerBox.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, dateBox);
+        headerBox.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, diffBox, modeBox, dateBox);
         return headerBox;
     }
-
-    private VBox createAlignedTextBox(Text text, double width, Pos alignment) {
-        VBox box = new VBox();
-        box.setAlignment(alignment);
-        box.setPrefWidth(width);
-        box.setMaxWidth(width);
-        box.setMinWidth(width);
-        box.getChildren().add(text);
-        return box;
+    
+    private Text createHeaderText(String content) {
+        Text text = new Text(content);
+        text.setFill(Color.WHITE);
+        text.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        return text;
     }
 
     private VBox createButtonPanel(Runnable onBackToMenu, Runnable onClearScores, boolean afterGamePlay) {
@@ -144,7 +153,7 @@ public class ScoreboardView extends BaseView {
         buttonPanel.setPadding(new Insets(30, 0, 40, 0));
 
         var backButton = buttonSystem.createNavigableButton(
-            afterGamePlay ? "Continue" : "Back to Menu", 
+            afterGamePlay ? "Continue" : "Go Back", 
             onBackToMenu
         );
         backButton.setPrefWidth(200);
@@ -178,7 +187,7 @@ public class ScoreboardView extends BaseView {
 
         for (int i = 0; i < Math.min(topScores.size(), MAX_DISPLAY_SCORES); i++) {
             ScoreRecord record = topScores.get(i);
-            HBox scoreRow = createScoreRow(i + 1, record);
+            GridPane scoreRow = createScoreRow(i + 1, record);
             scoresContainer.getChildren().add(scoreRow);
         }
     }
@@ -186,12 +195,14 @@ public class ScoreboardView extends BaseView {
     private HBox createScoreRow(int rank, ScoreRecord record) {
         HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setMaxWidth(500);
+        row.setMaxWidth(600);
 
         Text rankText = new Text(String.valueOf(rank));
         Text nameText = new Text(record.getPlayerName());
         Text scoreText = new Text(String.format("%,d", record.getScore()));
         Text levelText = new Text(String.valueOf(record.getLevel()));
+        Text diffText = new Text(mapDifficulty(record.getDifficulty()));
+        Text modeText = new Text(mapGameMode(record.getGameMode()));
         Text dateText = new Text(record.getPlayDate().format(DateTimeFormatter.ofPattern("MM/dd/yy")));
 
         // Rank에 따른 색상 지정
@@ -200,6 +211,8 @@ public class ScoreboardView extends BaseView {
         nameText.setFill(textColor);
         scoreText.setFill(textColor);
         levelText.setFill(textColor);
+        diffText.setFill(textColor);
+        modeText.setFill(textColor);
         dateText.setFill(textColor);
 
         Font font = Font.font("Courier New", 13);
@@ -211,6 +224,8 @@ public class ScoreboardView extends BaseView {
             nameText.setUnderline(true);
             scoreText.setUnderline(true);
             levelText.setUnderline(true);
+            diffText.setUnderline(true);
+            modeText.setUnderline(true);
             dateText.setUnderline(true);
         }
         
@@ -218,16 +233,39 @@ public class ScoreboardView extends BaseView {
         nameText.setFont(font);
         scoreText.setFont(font);
         levelText.setFont(font);
+        diffText.setFont(font);
+        modeText.setFont(font);
         dateText.setFont(font);
 
         VBox rankBox = createAlignedTextBox(rankText, 60, Pos.CENTER);
         VBox nameBox = createAlignedTextBox(nameText, 80, Pos.CENTER);
         VBox scoreBox = createAlignedTextBox(scoreText, 120, Pos.CENTER_RIGHT);
-        VBox levelBox = createAlignedTextBox(levelText, 80, Pos.CENTER);
+        VBox levelBox = createAlignedTextBox(levelText, 60, Pos.CENTER);
+        VBox diffBox = createAlignedTextBox(diffText, 70, Pos.CENTER);
+        VBox modeBox = createAlignedTextBox(modeText, 70, Pos.CENTER);
         VBox dateBox = createAlignedTextBox(dateText, 120, Pos.CENTER);
 
-        row.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, dateBox);
+        row.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, diffBox, modeBox, dateBox);
         return row;
+    }
+
+    private String mapDifficulty(int difficulty) {
+        return switch (difficulty) {
+            case 1 -> "Easy";
+            case 2 -> "Normal";
+            case 3 -> "Hard";
+            default -> "-"; // legacy/unknown
+        };
+    }
+
+    private String mapGameMode(org.example.model.GameMode gameMode) {
+        if (gameMode == null) {
+            return "Normal"; // null인 경우 기본값
+        }
+        return switch (gameMode) {
+            case NORMAL -> "Normal";
+            case ITEM -> "Item";
+        };
     }
 
     private Color getColorForRank(int rank) {

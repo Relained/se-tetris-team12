@@ -13,7 +13,7 @@ public class DisplayManager {
     private Stage primaryStage;
 
     // 각 크기별 화면 설정
-    private static final int SMALL_WIDTH = 500;
+    private static final int SMALL_WIDTH = 650;
     private static final int SMALL_HEIGHT = 800;
     private static final int MEDIUM_WIDTH = 700;
     private static final int MEDIUM_HEIGHT = 900;

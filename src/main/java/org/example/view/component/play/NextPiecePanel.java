@@ -6,7 +6,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import org.example.model.Tetromino;
+import org.example.model.TetrominoPosition;
 
 import java.util.List;
 
@@ -41,13 +41,13 @@ public class NextPiecePanel extends VBox {
         setStyle("-fx-background-color: #333; -fx-padding: 10;");
     }
 
-    public void updateNextPieces(List<Tetromino> nextPieces) {
+    public void updateNextPieces(List<TetrominoPosition> nextPieces) {
         for (int i = 0; i < nextCanvases.length && i < nextPieces.size(); i++) {
             drawTetromino(nextCanvases[i], nextPieces.get(i), i);
         }
     }
 
-    private void drawTetromino(Canvas canvas, Tetromino tetromino, int index) {
+    private void drawTetromino(Canvas canvas, TetrominoPosition piece, int index) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
@@ -60,8 +60,10 @@ public class NextPiecePanel extends VBox {
             gc.strokeRoundRect(1, 1, canvas.getWidth() - 2, canvas.getHeight() - 2, 5, 5);
         }
 
-        int[][] shape = tetromino.getShape(0);
-        Color color = tetromino.getColor();
+        // getCurrentShape()를 사용하여 customShape도 반영
+        int[][] shape = piece.getCurrentShape();
+        // getDisplayColor()를 사용하여 customColor도 반영
+        Color color = piece.getDisplayColor(org.example.service.ColorManager.getInstance());
 
         // 인덱스에 따라 다른 셀 크기 사용
         double cellSize = (index == 0) ? CELL_SIZE : SMALL_CELL_SIZE;
@@ -82,6 +84,16 @@ public class NextPiecePanel extends VBox {
                     gc.setStroke(Color.DARKGRAY);
                     gc.setLineWidth(1);
                     gc.strokeRect(x, y, cellSize, cellSize);
+                    
+                    // 아이템 글자 표시
+                    org.example.model.ItemBlock item = piece.getItemAt(row, col);
+                    if (item != null && item.isItem()) {
+                        gc.setFill(Color.WHITE);
+                        gc.setFont(Font.font("Arial", javafx.scene.text.FontWeight.BOLD, cellSize * 0.8));
+                        gc.fillText(String.valueOf(item.getSymbol()), 
+                                  x + cellSize * 0.2, 
+                                  y + cellSize * 0.8);
+                    }
                 }
             }
         }

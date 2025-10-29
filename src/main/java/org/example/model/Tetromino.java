@@ -73,4 +73,75 @@ public enum Tetromino {
     public int[][][] getAllRotations() {
         return rotations;
     }
+    
+    /**
+     * 각 rotation에서 블록 순서를 rotation 0 기준 인덱스로 변환하는 매핑 반환
+     * 
+     * 반환값: blockMappings[rotation][currentBlockIndex] = rotation0BlockIndex
+     * 
+     * 설명:
+     * - currentBlockIndex: 현재 rotation에서 왼쪽 위부터 스캔한 블록 순서 (0,1,2,3)
+     * - rotation0BlockIndex: 이 블록이 rotation 0에서 몇 번째 블록이었는지
+     */
+    public int[][] getBlockIndexMappings() {
+        switch (this) {
+            case I:
+                // I 블록: 물리적 회전 추적 (pivot: (1.5, 1.5))
+                return new int[][]{
+                    {0, 1, 2, 3},
+                    {0, 1, 2, 3},
+                    {3, 2, 1, 0},
+                    {3, 2, 1, 0}
+                };
+            case O:
+                // O 블록: 아이템 모드를 위해 물리적 회전 필요 (pivot: 블록 중심 0.5, 1.5)
+                return new int[][]{
+                    {0, 1, 2, 3},
+                    {2, 0, 3, 1},
+                    {3, 2, 1, 0},
+                    {1, 3, 0, 2}
+                };
+            case T:
+                // T 블록: 물리적 회전 추적 (pivot: (1,1))
+                return new int[][]{
+                    {0, 1, 2, 3},
+                    {1, 2, 0, 3},
+                    {3, 2, 1, 0},
+                    {3, 0, 2, 1}
+                };
+            case S:
+                // S 블록: 물리적 회전 추적 (pivot: (1,1))
+                return new int[][]{
+                    {0, 1, 2, 3},
+                    {2, 3, 0, 1},
+                    {3, 2, 1, 0},
+                    {1, 0, 3, 2}
+                };
+            case Z:
+                // Z 블록: 물리적 회전 추적 (pivot: (1,1))
+                return new int[][]{
+                    {0, 1, 2, 3},
+                    {0, 2, 1, 3},
+                    {3, 2, 1, 0},
+                    {3, 1, 2, 0}
+                };
+            case J:
+                // J 블록: 물리적 회전 추적 (pivot: (1,1))
+                return new int[][]{
+                    {0, 1, 2, 3},
+                    {1, 0, 2, 3},
+                    {3, 2, 1, 0},
+                    {3, 2, 0, 1}
+                };
+            case L:
+                // L 블록: 물리적 회전 추적 (pivot: (1,1))
+                return new int[][]{
+                    {0, 1, 2, 3},
+                    {1, 2, 3, 0},
+                    {3, 2, 1, 0},
+                    {0, 3, 2, 1}
+                };
+        }
+        throw new IllegalStateException("Unknown Tetromino type: " + this);
+    }
 }

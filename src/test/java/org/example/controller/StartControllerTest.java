@@ -34,20 +34,19 @@ class StartControllerTest {
     }
     
     @Test
-    @DisplayName("Start Game 핸들러 - play 상태로 전환")
+    @DisplayName("Start Game 핸들러 - difficulty 상태 스택")
     void testHandleStartGame() {
         controller.handleStartGame();
         
-        verify(stateManager).setState("play");
+        verify(stateManager).stackState("gamemode");
     }
     
     @Test
-    @DisplayName("View Scoreboard 핸들러 - scoreboard 상태 추가 및 전환")
+    @DisplayName("View Scoreboard 핸들러 - scoreboard 상태 스택")
     void testHandleViewScoreboard() {
         controller.handleViewScoreboard();
         
-        verify(stateManager).addState(eq("scoreboard"), any());
-        verify(stateManager).setState("scoreboard");
+        verify(stateManager).stackState("scoreboard");
     }
     
     @Test

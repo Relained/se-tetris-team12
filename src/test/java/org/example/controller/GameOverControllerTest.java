@@ -42,7 +42,7 @@ class GameOverControllerTest {
     @Test
     @DisplayName("점수 제출 여부와 함께 컨트롤러 생성")
     void testControllerWithScoreSubmitted() {
-        GameOverController controllerWithScore = new GameOverController(stateManager, gameOverView, true);
+        GameOverController controllerWithScore = new GameOverController(stateManager, gameOverView);
         assertNotNull(controllerWithScore);
     }
     
@@ -59,8 +59,7 @@ class GameOverControllerTest {
     void testHandleViewScoreboard() {
         controller.handleViewScoreboard();
         
-        verify(stateManager).addState(eq("scoreboard"), any());
-        verify(stateManager).setState("scoreboard");
+        verify(stateManager).stackState("scoreboard");
     }
     
     @Test

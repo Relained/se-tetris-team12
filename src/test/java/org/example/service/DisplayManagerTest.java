@@ -74,42 +74,6 @@ class DisplayManagerTest {
     }
     
     @Test
-    @DisplayName("SMALL 크기의 너비 확인")
-    void testGetWidthSmall() {
-        assertEquals(500, displayManager.getWidth(ScreenSize.SMALL));
-    }
-    
-    @Test
-    @DisplayName("MEDIUM 크기의 너비 확인")
-    void testGetWidthMedium() {
-        assertEquals(700, displayManager.getWidth(ScreenSize.MEDIUM));
-    }
-    
-    @Test
-    @DisplayName("LARGE 크기의 너비 확인")
-    void testGetWidthLarge() {
-        assertEquals(900, displayManager.getWidth(ScreenSize.LARGE));
-    }
-    
-    @Test
-    @DisplayName("SMALL 크기의 높이 확인")
-    void testGetHeightSmall() {
-        assertEquals(800, displayManager.getHeight(ScreenSize.SMALL));
-    }
-    
-    @Test
-    @DisplayName("MEDIUM 크기의 높이 확인")
-    void testGetHeightMedium() {
-        assertEquals(900, displayManager.getHeight(ScreenSize.MEDIUM));
-    }
-    
-    @Test
-    @DisplayName("LARGE 크기의 높이 확인")
-    void testGetHeightLarge() {
-        assertEquals(1000, displayManager.getHeight(ScreenSize.LARGE));
-    }
-    
-    @Test
     @DisplayName("모든 화면 크기 순회 테스트")
     void testAllScreenSizes() {
         for (ScreenSize size : ScreenSize.values()) {

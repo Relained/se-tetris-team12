@@ -26,7 +26,7 @@ public class PauseController {
     }
     
     /**
-     * Restart 버튼 클릭 시 처리 - 게임 재시작
+     * Restart 버튼 클릭 시 처리 - 현재 게임 모드로 재시작
      */
     public void handleRestart() {
         stateManager.setState("play");

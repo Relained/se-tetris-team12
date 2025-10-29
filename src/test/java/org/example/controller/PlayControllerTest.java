@@ -24,6 +24,7 @@ class PlayControllerTest extends ApplicationTest {
     private PlayView playView;
     private TetrisSystem tetrisSystem;
     private SettingManager settingManager;
+    private GameBoard gameBoard;
     
     @BeforeEach
     void setUp() {
@@ -31,17 +32,27 @@ class PlayControllerTest extends ApplicationTest {
         playView = mock(PlayView.class);
         tetrisSystem = mock(TetrisSystem.class);
         settingManager = mock(SettingManager.class);
+        gameBoard = mock(GameBoard.class);
         
         // StateManager에 SettingManager 주입
         stateManager.settingManager = settingManager;
         
-        // 기본 ControlData 설정
-        ControlData controlData = new ControlData();
+        // 기본 KeyData 설정
         SettingData settingData = new SettingData();
-        settingData.controlData = controlData;
         when(settingManager.getCurrentSettings()).thenReturn(settingData);
         
-        controller = new PlayController(stateManager, playView, tetrisSystem);
+        // 기본 게임 상태 mock
+        when(tetrisSystem.getDifficulty()).thenReturn(1);
+        when(tetrisSystem.getScore()).thenReturn(0);
+        when(tetrisSystem.getLines()).thenReturn(0);
+        when(tetrisSystem.getLevel()).thenReturn(1);
+        when(tetrisSystem.getBoard()).thenReturn(gameBoard);
+        when(tetrisSystem.getDropInterval()).thenReturn(1000L);
+        when(tetrisSystem.getCurrentPiece()).thenReturn(null);
+        when(tetrisSystem.getHoldPiece()).thenReturn(null);
+        when(tetrisSystem.getNextQueue()).thenReturn(Arrays.asList());
+        
+        controller = new PlayController(stateManager, playView, tetrisSystem, org.example.model.GameMode.NORMAL);
     }
     
     @Test
@@ -75,7 +86,7 @@ class PlayControllerTest extends ApplicationTest {
     @Test
     @DisplayName("업데이트 호출 - TetrisSystem이 null일 때")
     void testUpdateWithNullSystem() {
-        controller = new PlayController(stateManager, playView, null);
+        controller = new PlayController(stateManager, playView, null, org.example.model.GameMode.NORMAL);
         
         assertDoesNotThrow(() -> controller.update(0.016));
     }
@@ -85,7 +96,10 @@ class PlayControllerTest extends ApplicationTest {
     void testUpdateNormal() throws InterruptedException {
         GameBoard board = new GameBoard();
         TetrominoPosition currentPiece = new TetrominoPosition(Tetromino.I, 3, 0, 0);
-        List<Tetromino> nextQueue = Arrays.asList(Tetromino.T, Tetromino.O);
+        List<TetrominoPosition> nextQueue = Arrays.asList(
+            new TetrominoPosition(Tetromino.T, 0, 0, 0),
+            new TetrominoPosition(Tetromino.O, 0, 0, 0)
+        );
         
         when(tetrisSystem.getBoard()).thenReturn(board);
         when(tetrisSystem.getCurrentPiece()).thenReturn(currentPiece);
@@ -225,6 +239,7 @@ class PlayControllerTest extends ApplicationTest {
         when(tetrisSystem.getScore()).thenReturn(500);
         when(tetrisSystem.getLines()).thenReturn(25);
         when(tetrisSystem.getLevel()).thenReturn(3);
+        when(tetrisSystem.getDifficulty()).thenReturn(1);
         when(tetrisSystem.getDropInterval()).thenReturn(1000L);
         
         controller.update(0.016);
