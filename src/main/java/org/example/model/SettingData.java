@@ -14,6 +14,5 @@ public class SettingData implements Serializable {
     }
     public ScreenSize screenSize = ScreenSize.MEDIUM;
     public ColorBlindMode colorBlindMode = ColorBlindMode.Default;
-    public ControlData controlData = new ControlData();
+    public KeyData controlData = new KeyData();
 }
-

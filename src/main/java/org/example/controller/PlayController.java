@@ -4,11 +4,14 @@ import javafx.scene.input.KeyCode;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.example.model.ControlData;
+import org.example.model.KeyData;
 import org.example.service.StateManager;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
+import org.example.state.ScoreboardState;
+import org.example.service.ScoreManager;
 import org.example.view.PlayView;
+import org.example.model.ScoreRecord;
 
 /**
  * PlayState의 게임 로직과 입력을 처리하는 Controller
@@ -99,7 +102,7 @@ public class PlayController {
         if (tetrisSystem == null || tetrisSystem.isGameOver()) return;
 
         // SettingManager를 통해 최신 키 설정 가져오기
-        ControlData data = stateManager.settingManager.getCurrentSettings().controlData;
+        KeyData data = stateManager.settingManager.getCurrentSettings().controlData;
 
         // 한 번만 실행되는 입력 처리
         for (KeyCode key : justPressedKeys) {
@@ -139,17 +142,14 @@ public class PlayController {
      * 게임 오버 처리
      */
     public void handleGameOver() {
-        // Get final scores
-        int finalScore = tetrisSystem.getScore();
-        int finalLines = tetrisSystem.getLines();
-        int finalLevel = tetrisSystem.getLevel();
-        
         // Controller가 점수 저장 자격 확인 후 ScoreboardState 생성
-        boolean isEligible = org.example.service.ScoreManager.getInstance()
-            .isScoreEligibleForSaving(finalScore);
-        
-        org.example.state.ScoreboardState scoreboardState = 
-            new org.example.state.ScoreboardState(stateManager, finalScore, finalLines, finalLevel, isEligible);
+        boolean isEligible = ScoreManager.getInstance()
+            .isScoreEligibleForSaving(tetrisSystem.getScore());
+
+        ScoreRecord record = new ScoreRecord(tetrisSystem.getScore(), tetrisSystem.getLines(), 
+            tetrisSystem.getLevel(), tetrisSystem.getDifficulty());
+
+        ScoreboardState scoreboardState = new ScoreboardState(stateManager, record, isEligible);
         stateManager.addState("scoreboard", scoreboardState);
         stateManager.setState("scoreboard");
     }
