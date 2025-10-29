@@ -65,13 +65,6 @@ public class SettingManager {
     }
 
     /**
-     * DisplayManager를 활용하여 화면 크기를 적용합니다. (이전 버전 호환)
-     */
-    public void applyScreenSize() {
-        displayManager.setDisplayMode(currentSettings.screenSize);
-    }
-
-    /**
      * DisplayManager 인스턴스를 반환합니다.
      * @return DisplayManager 인스턴스
      */
