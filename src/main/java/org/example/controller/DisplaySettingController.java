@@ -18,7 +18,6 @@ public class DisplaySettingController {
     public DisplaySettingController(StateManager stateManager, DisplaySettingView displaySettingView) {
         this.stateManager = stateManager;
         this.displaySettingView = displaySettingView;
-        // 현재 설정된 화면 크기를 가져옴
         this.selectedSize = stateManager.settingManager.getCurrentSettings().screenSize;
     }
     
@@ -58,31 +57,9 @@ public class DisplaySettingController {
         selectedSize = size;
         displaySettingView.updateCurrentSize(size);
         
-        // 설정을 SettingManager에 즉시 저장하고 적용
+        // 설정을 SettingManager에 즉시 저장하고 DisplayManager를 통해 적용
         stateManager.settingManager.setScreenSize(size);
-        applyScreenSize(size);
-    }
-    
-    /**
-     * 화면 크기를 실시간으로 적용합니다.
-     * @param size 적용할 화면 크기
-     */
-    private void applyScreenSize(ScreenSize size) {
-        var stage = stateManager.getPrimaryStage();
-        switch (size) {
-            case SMALL:
-                stage.setWidth(800);
-                stage.setHeight(600);
-                break;
-            case MEDIUM:
-                stage.setWidth(1000);
-                stage.setHeight(700);
-                break;
-            case LARGE:
-                stage.setWidth(1200);
-                stage.setHeight(800);
-                break;
-        }
+        stateManager.settingManager.applyScreenSize(stateManager.getPrimaryStage());
     }
     
     /**

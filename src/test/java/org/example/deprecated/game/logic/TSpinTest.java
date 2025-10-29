@@ -5,10 +5,6 @@ import org.example.model.Tetromino;
 import org.example.model.TetrominoPosition;
 import org.example.service.SuperRotationSystem;
 
-import org.example.model.GameBoard;
-import org.example.model.Tetromino;
-import org.example.model.TetrominoPosition;
-import org.example.service.SuperRotationSystem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -162,7 +158,6 @@ class TSpinTest {
         // Create T-spin double setup
         // Board pattern:
         // ........T.
-        // XXX.....XX
         // XXXXXXXXXX
 
         // Fill bottom line completely

@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.io.ObjectInputStream;
 import java.io.FileNotFoundException;
+import javafx.stage.Stage;
 import org.example.model.SettingData;
 
 public class SettingManager {
@@ -14,10 +15,12 @@ public class SettingManager {
     SettingData currentSettings;
     private ColorManager colorManager;
     private KeySettingManager keySettingManager;
+    private DisplayManager displayManager;
 
     public SettingManager() {
         this.colorManager = ColorManager.getInstance();
         this.keySettingManager = KeySettingManager.getInstance();
+        this.displayManager = DisplayManager.getInstance();
         
         // KeySettingManager에 자신을 주입
         this.keySettingManager.setSettingManager(this);
@@ -51,6 +54,29 @@ public class SettingManager {
 
     public void applyColorSetting() {
         colorManager.setColorMode(currentSettings.colorBlindMode);
+    }
+
+    /**
+     * DisplayManager를 활용하여 화면 크기를 적용합니다.
+     * @param stage 크기를 적용할 Stage
+     */
+    public void applyScreenSize(Stage stage) {
+        displayManager.applyDisplayMode(stage, currentSettings.screenSize);
+    }
+
+    /**
+     * DisplayManager를 활용하여 화면 크기를 적용합니다. (이전 버전 호환)
+     */
+    public void applyScreenSize() {
+        displayManager.setDisplayMode(currentSettings.screenSize);
+    }
+
+    /**
+     * DisplayManager 인스턴스를 반환합니다.
+     * @return DisplayManager 인스턴스
+     */
+    public DisplayManager getDisplayManager() {
+        return displayManager;
     }
 
     public void saveSettingData() {
