@@ -7,27 +7,28 @@ import org.example.model.Tetromino;
 import org.example.model.TetrominoPosition;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Deque;
 import java.util.ArrayDeque;
 
 public class TetrisSystem {
-    private final GameBoard board;
-    private TetrominoPosition currentPiece;
-    private TetrominoPosition holdPiece;
-    private final Deque<Tetromino> nextQueue;
-    private final Random random;
-    private final ArrayList<Double> cumulativeWeights;
+    protected final GameBoard board;
+    protected TetrominoPosition currentPiece;
+    protected TetrominoPosition holdPiece;
+    protected final Deque<Tetromino> nextQueue;
+    protected final Random random;
+    protected final ArrayList<Double> cumulativeWeights;
 
     // 게임 상태
-    private int score;
-    private int lines;
-    private int level;
-    private int difficulty;
-    private int levelFactor;
-    private boolean canHold;
-    private boolean gameOver;
+    protected int score;
+    protected int lines;
+    protected int level;
+    protected int difficulty;
+    protected int levelFactor;
+    protected boolean canHold;
+    protected boolean gameOver;
     
     // 아이템 모드 관련
     private final GameMode gameMode;
@@ -35,17 +36,12 @@ public class TetrisSystem {
     private boolean nextPieceShouldHaveItem;  // 다음 생성될 블록에 아이템 포함 여부
 
     // 점수 시스템
-    private static final int[] LINE_SCORES = {0, 100, 300, 500, 800}; // 0, 1, 2, 3, 4 lines
-    private static final int SOFT_DROP_SCORE = 1;
-    private static final int HARD_DROP_SCORE = 2;
-    private static final int QUEUEING_SIZE = 7;
+    protected static final int[] LINE_SCORES = {0, 100, 300, 500, 800}; // 0, 1, 2, 3, 4 lines
+    protected static final int SOFT_DROP_SCORE = 1;
+    protected static final int HARD_DROP_SCORE = 2;
+    protected static final int QUEUEING_SIZE = 7;
 
     public TetrisSystem() {
-        this(GameMode.NORMAL);
-    }
-    
-    public TetrisSystem(GameMode mode) {
-        this.gameMode = mode;
         this.board = new GameBoard();
         this.nextQueue = new ArrayDeque<>();
         this.random = new Random();
@@ -70,13 +66,13 @@ public class TetrisSystem {
         spawnNewPiece();
     }
 
-    private void fillNextQueue() {
+    protected void fillNextQueue() {
         while (nextQueue.size() < QUEUEING_SIZE) {
             nextQueue.addLast(selectWeightedRandom());
         }
     }
 
-    private void spawnNewPiece() {
+    protected void spawnNewPiece() {
         fillNextQueue();
         Tetromino nextType = nextQueue.pollFirst();
 
@@ -85,13 +81,6 @@ public class TetrisSystem {
         int spawnY = GameBoard.BUFFER_ZONE - nextType.getShape(0).length;
 
         currentPiece = new TetrominoPosition(nextType, spawnX, spawnY, 0);
-        
-        // 아이템 모드에서 아이템 추가
-        if (gameMode == GameMode.ITEM && nextPieceShouldHaveItem) {
-            addRandomItemToPiece(currentPiece);
-            nextPieceShouldHaveItem = false;
-        }
-        
         canHold = true;
 
         if (!board.isValidPosition(currentPiece)) {
@@ -272,11 +261,7 @@ public class TetrisSystem {
         return true;
     }
 
-    /**
-     * 블록을 보드에 고정하고 줄 삭제, 점수 계산, 레벨 업데이트를 처리합니다.
-     * 아이템 모드에서는 LINE_CLEAR 아이템이 있는 줄도 삭제합니다.
-     */
-    private void lockPiece() {
+    protected void lockPiece() {
         board.placeTetromino(currentPiece);
 
         // 줄 삭제 (아이템 모드와 일반 모드 분기)
@@ -375,8 +360,6 @@ public class TetrisSystem {
         level = 1;
         canHold = true;
         gameOver = false;
-        linesSinceLastItem = 0;
-        nextPieceShouldHaveItem = false;
 
         fillNextQueue();
         spawnNewPiece();

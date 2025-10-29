@@ -6,6 +6,7 @@ import javafx.scene.layout.HBox;
 
 import org.example.controller.PlayController;
 import org.example.model.GameMode;
+import org.example.service.ItemTetrisSystem;
 import org.example.service.StateManager;
 import org.example.service.TetrisSystem;
 import org.example.view.PlayView;
@@ -34,7 +35,13 @@ public class PlayState extends BaseState {
     @Override
     public void enter() {
         // State 진입 시 게임 로직, View, Controller 초기화
-        gameLogic = new TetrisSystem(gameMode);
+        // 게임 모드에 따라 적절한 시스템 생성
+        if (gameMode == GameMode.ITEM) {
+            gameLogic = new ItemTetrisSystem();
+        } else {
+            gameLogic = new TetrisSystem();
+        }
+        
         playView = new PlayView();
         controller = new PlayController(stateManager, playView, gameLogic);
 

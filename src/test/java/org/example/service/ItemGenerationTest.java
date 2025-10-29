@@ -15,11 +15,11 @@ class ItemGenerationTest {
 
     @Test
     void testActualItemGeneration() throws Exception {
-        // TetrisSystem의 내부 메서드를 reflection으로 접근하여 실제 아이템 생성 테스트
-        TetrisSystem game = new TetrisSystem(GameMode.ITEM);
+        // ItemTetrisSystem의 내부 메서드를 reflection으로 접근하여 실제 아이템 생성 테스트
+        ItemTetrisSystem game = new ItemTetrisSystem();
         
         // private 메서드 addRandomItemToPiece에 접근
-        Method addItemMethod = TetrisSystem.class.getDeclaredMethod("addRandomItemToPiece", TetrominoPosition.class);
+        Method addItemMethod = ItemTetrisSystem.class.getDeclaredMethod("addRandomItemToPiece", TetrominoPosition.class);
         addItemMethod.setAccessible(true);
         
         int lineCount = 0;

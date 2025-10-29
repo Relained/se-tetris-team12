@@ -1,5 +1,6 @@
 package org.example.model;
 
+import org.example.service.ItemTetrisSystem;
 import org.example.service.TetrisSystem;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,14 +17,14 @@ class ItemModeTest {
     @Test
     void testNormalModeCreation() {
         TetrisSystem game = new TetrisSystem();
-        assertEquals(GameMode.NORMAL, game.getGameMode());
-        assertFalse(game.nextPieceHasItem());
+        assertNotNull(game);
+        assertFalse(game instanceof ItemTetrisSystem);
     }
 
     @Test
     void testItemModeCreation() {
-        TetrisSystem game = new TetrisSystem(GameMode.ITEM);
-        assertEquals(GameMode.ITEM, game.getGameMode());
+        ItemTetrisSystem game = new ItemTetrisSystem();
+        assertNotNull(game);
         assertFalse(game.nextPieceHasItem());
     }
 
