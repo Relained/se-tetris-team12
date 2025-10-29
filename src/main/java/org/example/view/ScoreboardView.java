@@ -114,6 +114,10 @@ public class ScoreboardView extends BaseView {
         levelHeader.setFill(Color.WHITE);
         levelHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
 
+        Text diffHeader = new Text("DIFF");
+        diffHeader.setFill(Color.WHITE);
+        diffHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
         Text dateHeader = new Text("DATE");
         dateHeader.setFill(Color.WHITE);
         dateHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
@@ -122,9 +126,10 @@ public class ScoreboardView extends BaseView {
         VBox nameBox = createAlignedTextBox(nameHeader, 80, Pos.CENTER);
         VBox scoreBox = createAlignedTextBox(scoreHeader, 120, Pos.CENTER_RIGHT);
         VBox levelBox = createAlignedTextBox(levelHeader, 80, Pos.CENTER);
+        VBox diffBox = createAlignedTextBox(diffHeader, 80, Pos.CENTER);
         VBox dateBox = createAlignedTextBox(dateHeader, 120, Pos.CENTER);
 
-        headerBox.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, dateBox);
+        headerBox.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, diffBox, dateBox);
         return headerBox;
     }
 
@@ -192,6 +197,7 @@ public class ScoreboardView extends BaseView {
         Text nameText = new Text(record.getPlayerName());
         Text scoreText = new Text(String.format("%,d", record.getScore()));
         Text levelText = new Text(String.valueOf(record.getLevel()));
+        Text diffText = new Text(mapDifficulty(record.getDifficulty()));
         Text dateText = new Text(record.getPlayDate().format(DateTimeFormatter.ofPattern("MM/dd/yy")));
 
         // Rank에 따른 색상 지정
@@ -200,6 +206,7 @@ public class ScoreboardView extends BaseView {
         nameText.setFill(textColor);
         scoreText.setFill(textColor);
         levelText.setFill(textColor);
+        diffText.setFill(textColor);
         dateText.setFill(textColor);
 
         Font font = Font.font("Courier New", 13);
@@ -211,6 +218,7 @@ public class ScoreboardView extends BaseView {
             nameText.setUnderline(true);
             scoreText.setUnderline(true);
             levelText.setUnderline(true);
+            diffText.setUnderline(true);
             dateText.setUnderline(true);
         }
         
@@ -218,16 +226,27 @@ public class ScoreboardView extends BaseView {
         nameText.setFont(font);
         scoreText.setFont(font);
         levelText.setFont(font);
+        diffText.setFont(font);
         dateText.setFont(font);
 
         VBox rankBox = createAlignedTextBox(rankText, 60, Pos.CENTER);
         VBox nameBox = createAlignedTextBox(nameText, 80, Pos.CENTER);
         VBox scoreBox = createAlignedTextBox(scoreText, 120, Pos.CENTER_RIGHT);
         VBox levelBox = createAlignedTextBox(levelText, 80, Pos.CENTER);
+        VBox diffBox = createAlignedTextBox(diffText, 80, Pos.CENTER);
         VBox dateBox = createAlignedTextBox(dateText, 120, Pos.CENTER);
 
-        row.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, dateBox);
+        row.getChildren().addAll(rankBox, nameBox, scoreBox, levelBox, diffBox, dateBox);
         return row;
+    }
+
+    private String mapDifficulty(int difficulty) {
+        return switch (difficulty) {
+            case 1 -> "Easy";
+            case 2 -> "Normal";
+            case 3 -> "Hard";
+            default -> "-"; // legacy/unknown
+        };
     }
 
     private Color getColorForRank(int rank) {

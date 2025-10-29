@@ -17,6 +17,7 @@ import org.example.service.StateManager;
 import org.example.view.ScoreInputView;
 import org.example.view.ScoreboardView;
 import org.example.view.component.NavigableButtonSystem;
+import org.example.model.ScoreRecord;
 
 
 /**
@@ -38,33 +39,23 @@ public class ScoreboardState extends BaseState {
     private Mode currentMode;
     
     // Score 입력 관련 필드
-    private int finalScore;
-    private int finalLines;
-    private int finalLevel;
+    private ScoreRecord record;
     private ScoreInputView scoreInputView;
     private ScoreInputController scoreInputController;
 
     // Scoreboard 관련 필드
     private ScoreboardView scoreboardView;
     private ScoreboardController scoreboardController;
-    private boolean showNewlyAddedHighlight;
     private boolean isAfterGamePlay = false; // 게임 플레이 후인지 여부
-    
-    private int gameScore;
-    private int gameLines;
-    private int gameLevel;
     private boolean scoreWasSubmitted;
     
     // Not eligible mode fields
     private NavigableButtonSystem notEligibleButtonSystem;
 
-    // Controller가 확인한 eligible 여부로 모드 결정
-    public ScoreboardState(StateManager stateManager, int score, int lines, int level, boolean isEligible) {
+    // 게임 끝나고 점수 입력 확인 절차 거치는 생성자
+    public ScoreboardState(StateManager stateManager, ScoreRecord record, boolean isEligible) {
         super(stateManager);
-        this.finalScore = score;
-        this.finalLines = lines;
-        this.finalLevel = level;
-        this.showNewlyAddedHighlight = true;
+        this.record = record;
         
         if (isEligible) {
             this.currentMode = Mode.INPUT;
@@ -73,30 +64,19 @@ public class ScoreboardState extends BaseState {
         }
     }
 
-    // scoreboard viewing mode constructor
-    public ScoreboardState(StateManager stateManager, boolean showNewlyAddedHighlight) {
+    // 단순히 스코어보드 보여주는 생성자
+    public ScoreboardState(StateManager stateManager) {
         super(stateManager);
         this.currentMode = Mode.SCOREBOARD;
-        this.showNewlyAddedHighlight = showNewlyAddedHighlight;
         this.isAfterGamePlay = false;
-    }
-    
-    // Constructor for scoreboard viewing mode after game play
-    public ScoreboardState(StateManager stateManager, boolean showNewlyAddedHighlight, 
-                          int score, int lines, int level, boolean scoreSubmitted) {
-        super(stateManager);
-        this.currentMode = Mode.SCOREBOARD;
-        this.showNewlyAddedHighlight = showNewlyAddedHighlight;
-        this.isAfterGamePlay = true;
-        this.gameScore = score;
-        this.gameLines = lines;
-        this.gameLevel = level;
-        this.scoreWasSubmitted = scoreSubmitted;
+        this.scoreWasSubmitted = false;
     }
 
-    // Constructor for scoreboard viewing mode (default highlight)
-    public ScoreboardState(StateManager stateManager) {
-        this(stateManager, true);
+    // 점수 입력 절차 끝나고 스코어보드로 넘어가도록 설정하는 함수
+    public void SetScoreBoardReady(boolean scoreWasSubmitted) {
+        this.currentMode = Mode.SCOREBOARD;
+        this.isAfterGamePlay = true;
+        this.scoreWasSubmitted = scoreWasSubmitted;
     }
 
     @Override
@@ -136,14 +116,13 @@ public class ScoreboardState extends BaseState {
         root.setBackground(new Background(new BackgroundFill(Color.rgb(0, 0, 0, 0.8), null, null)));
 
         scoreInputView = new ScoreInputView();
-        scoreInputController = new ScoreInputController(stateManager, scoreInputView, 
-                                                       finalScore, finalLines, finalLevel);
+        scoreInputController = new ScoreInputController(stateManager, scoreInputView, record);
         
         VBox inputBox = scoreInputView.createView(
             scoreInputController.getRank(),  // Controller에서 rank를 계산해서 전달
-            finalScore, 
-            finalLines, 
-            finalLevel,
+            record.getScore(), 
+            record.getLines(), 
+            record.getLevel(),
             () -> scoreInputController.handleSubmit(),
             () -> scoreInputController.handleSkip()
         );
@@ -170,7 +149,7 @@ public class ScoreboardState extends BaseState {
         messageText.setFont(Font.font("Arial", 18));
         messageText.setTextAlignment(TextAlignment.CENTER);
         
-        Text scoreText = new Text("Final Score: " + finalScore);
+        Text scoreText = new Text("Final Score: " + record.getScore());
         scoreText.setFill(Color.YELLOW);
         scoreText.setFont(Font.font("Arial", 20));
         scoreText.setTextAlignment(TextAlignment.CENTER);
@@ -179,14 +158,14 @@ public class ScoreboardState extends BaseState {
         var scoreboardButton = notEligibleButtonSystem.createNavigableButton("View Scoreboard", () -> {
             // Switch to scoreboard mode
             currentMode = Mode.SCOREBOARD;
-            showNewlyAddedHighlight = false;
+            scoreWasSubmitted = false;
             Scene newScene = createScoreboardScene();
             stateManager.getPrimaryStage().setScene(newScene);
         });
         var gameOverButton = notEligibleButtonSystem.createNavigableButton("Continue", () -> {
             // Go to Game Over screen with score info
             GameOverState gameOverState = 
-                new GameOverState(stateManager, finalScore, finalLines, finalLevel);
+                new GameOverState(stateManager, record.getScore(), record.getLines(), record.getLevel());
             stateManager.addState("gameOver", gameOverState);
             stateManager.setState("gameOver");
         });
@@ -199,7 +178,7 @@ public class ScoreboardState extends BaseState {
             if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
                 // Go to Game Over screen on ESC
                 GameOverState gameOverState = 
-                    new GameOverState(stateManager, finalScore, finalLines, finalLevel);
+                    new GameOverState(stateManager, record.getScore(), record.getLines(), record.getLevel());
                 stateManager.addState("gameOver", gameOverState);
                 stateManager.setState("gameOver");
             } else {
@@ -214,12 +193,12 @@ public class ScoreboardState extends BaseState {
     }
 
     private Scene createScoreboardScene() {
-        scoreboardView = new ScoreboardView(showNewlyAddedHighlight, isAfterGamePlay);
+        scoreboardView = new ScoreboardView(scoreWasSubmitted, isAfterGamePlay);
         
         // 게임 플레이 후인지에 따라 다른 생성자 사용
         if (isAfterGamePlay) {
             scoreboardController = new ScoreboardController(stateManager, scoreboardView,
-                                                           gameScore, gameLines, gameLevel, scoreWasSubmitted);
+                                                           record, scoreWasSubmitted);
         } else {
             scoreboardController = new ScoreboardController(stateManager, scoreboardView);
         }
@@ -242,17 +221,9 @@ public class ScoreboardState extends BaseState {
     }
 
     // Getters for score information
-    public int getFinalScore() {
-        return finalScore;
-    }
-
-    public int getFinalLines() {
-        return finalLines;
-    }
-
-    public int getFinalLevel() {
-        return finalLevel;
-    }
+    public int getFinalScore() { return record.getScore(); }
+    public int getFinalLines() { return record.getLines(); }
+    public int getFinalLevel() { return record.getLevel(); }
 
     public Mode getCurrentMode() {
         return currentMode;

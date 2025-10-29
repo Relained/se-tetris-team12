@@ -7,7 +7,6 @@ import org.example.model.TetrominoPosition;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 import java.util.Deque;
 import java.util.ArrayDeque;
 
@@ -253,6 +252,7 @@ public class TetrisSystem {
     public int getLines() { return lines; }
     public int getLevel() { return level; }
     public boolean isGameOver() { return gameOver; }
+    public int getDifficulty() { return difficulty; }
 
     public void reset() {
         board.clear();

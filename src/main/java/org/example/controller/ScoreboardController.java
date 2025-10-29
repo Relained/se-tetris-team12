@@ -1,8 +1,11 @@
 package org.example.controller;
 
 import javafx.scene.input.KeyEvent;
+
+import org.example.model.ScoreRecord;
 import org.example.service.ScoreManager;
 import org.example.service.StateManager;
+import org.example.state.GameOverState;
 import org.example.view.ScoreboardView;
 
 /**
@@ -12,10 +15,8 @@ public class ScoreboardController {
     
     private StateManager stateManager;
     private ScoreboardView scoreboardView;
+    private ScoreRecord record;
     private boolean isAfterGamePlay;
-    private int gameScore;
-    private int gameLines;
-    private int gameLevel;
     private boolean scoreWasSubmitted;
     
     // 일반 조회용 생성자
@@ -27,13 +28,11 @@ public class ScoreboardController {
     
     // 게임 플레이 후용 생성자
     public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView,
-                               int score, int lines, int level, boolean scoreSubmitted) {
+                               ScoreRecord record, boolean scoreSubmitted) {
         this.stateManager = stateManager;
         this.scoreboardView = scoreboardView;
         this.isAfterGamePlay = true;
-        this.gameScore = score;
-        this.gameLines = lines;
-        this.gameLevel = level;
+        this.record = record;
         this.scoreWasSubmitted = scoreSubmitted;
     }
     
@@ -43,8 +42,8 @@ public class ScoreboardController {
     public void handleBackToMenu() {
         if (isAfterGamePlay) {
             // 게임 플레이 후라면 GameOver 화면으로
-            org.example.state.GameOverState gameOverState = 
-                new org.example.state.GameOverState(stateManager, gameScore, gameLines, gameLevel, scoreWasSubmitted);
+            GameOverState gameOverState = 
+                new GameOverState(stateManager, record.getScore(), record.getLines(), record.getLevel(), scoreWasSubmitted);
             stateManager.addState("gameOver", gameOverState);
             stateManager.setState("gameOver");
         } else {

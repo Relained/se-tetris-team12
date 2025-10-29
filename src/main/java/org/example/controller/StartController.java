@@ -31,7 +31,7 @@ public class StartController {
      * View Scoreboard 버튼 클릭 시 처리
      */
     public void handleViewScoreboard() {
-        ScoreboardState scoreboardState = new ScoreboardState(stateManager, false);
+        ScoreboardState scoreboardState = new ScoreboardState(stateManager);
         stateManager.addState("scoreboard", scoreboardState);
         stateManager.setState("scoreboard");
     }

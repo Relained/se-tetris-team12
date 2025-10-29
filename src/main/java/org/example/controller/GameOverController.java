@@ -37,9 +37,7 @@ public class GameOverController {
      * 점수가 제출되었다면 하이라이트 표시
      */
     public void handleViewScoreboard() {
-        // 점수가 제출되었으면 하이라이트 활성화, 아니면 비활성화
-        ScoreboardState scoreboardState = new ScoreboardState(stateManager, scoreWasSubmitted);
-        stateManager.addState("scoreboard", scoreboardState);
+        // 점수가 제출되었는지 안됐는지는 이전 state에 저장돼있음
         stateManager.setState("scoreboard");
     }
     

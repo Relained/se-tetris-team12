@@ -147,7 +147,8 @@ class TetrisSystemTest {
         assertTrue(held);
         assertNotNull(tetrisSystem.getHoldPiece());
         assertEquals(currentType, tetrisSystem.getHoldPiece().getType());
-        assertNotEquals(currentType, tetrisSystem.getCurrentPiece().getType());
+        //assertNotEquals(currentType, tetrisSystem.getCurrentPiece().getType());
+        //RWS로 바꾸면서 다음 피스가 같을 수 있음
     }
 
     @Test
