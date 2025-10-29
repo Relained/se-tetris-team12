@@ -88,26 +88,15 @@ public class GameBoard {
     }
     
     /**
-     * 아이템 모드용 줄 삭제 메서드
      * - 꽉 찬 줄 삭제 (기본)
      * - LINE_CLEAR 아이템이 있는 줄 삭제 (아이템 모드 특성)
-     * 
-     * 삭제 시 아이템 보드도 함께 업데이트되며, 아래에서 위로 반복 검사하여
-     * 여러 줄이 연쇄적으로 삭제될 수 있습니다.
-     * 
-     * @return 삭제된 줄 수
      */
     public int clearLinesWithItems() {
         int linesCleared = 0;
         
         // 아래에서 위로 검사하며 삭제 (기존 clearLines와 동일한 방식)
         for (int row = HEIGHT + BUFFER_ZONE - 1; row >= 0; row--) {
-            boolean shouldClear = false;
-            
-            // 꽉 찬 줄인지 확인
-            if (isLineFull(row)) {
-                shouldClear = true;
-            }
+            boolean shouldClear = isLineFull(row);
             
             // LINE_CLEAR 아이템이 있는지 확인
             if (!shouldClear) {
@@ -130,6 +119,63 @@ public class GameBoard {
         
         return linesCleared;
     }
+    
+    /**
+     * COLUMN_CLEAR 아이템을 포함한 세로줄을 검사하고 삭제
+     * - COLUMN_CLEAR 아이템이 있는 열 전체 삭제
+     */
+    public int clearColumnsWithItems() {
+        int columnsCleared = 0;
+        
+        // 왼쪽에서 오른쪽으로 검사하며 COLUMN_CLEAR 아이템 찾기
+        for (int col = 0; col < WIDTH; col++) {
+            boolean shouldClear = false;
+            
+            // COLUMN_CLEAR 아이템이 있는지 확인
+            for (int row = 0; row < HEIGHT + BUFFER_ZONE; row++) {
+                ItemBlock item = itemBoard.get(toKey(row, col));
+                if (item == ItemBlock.COLUMN_CLEAR) {
+                    shouldClear = true;
+                    break;
+                }
+            }
+            
+            // 세로줄 삭제 (중력 적용 없이 그냥 비움)
+            if (shouldClear) {
+                clearColumnWithItems(col);
+                columnsCleared++;
+            }
+        }
+        
+        return columnsCleared;
+    }
+    
+    /**
+     * CROSS_CLEAR 아이템을 포함한 십자를 검사하고 삭제
+     * - CROSS_CLEAR 아이템이 있는 위치의 가로줄과 세로줄 모두 삭제
+     */
+    public int clearCrossesWithItems() {
+        int crossesCleared = 0;
+        
+        // CROSS_CLEAR 아이템 위치 찾기
+        for (int row = HEIGHT + BUFFER_ZONE - 1; row >= 0; row--) {
+            for (int col = 0; col < WIDTH; col++) {
+                ItemBlock item = itemBoard.get(toKey(row, col));
+                if (item == ItemBlock.CROSS_CLEAR) {
+                    // 가로줄 먼저 삭제
+                    clearLineWithItems(row);
+                    // 세로줄 삭제 (가로줄 삭제 후)
+                    clearColumnWithItems(col);
+                    crossesCleared++;
+                    // 가로줄이 삭제되었으므로 같은 행을 다시 검사
+                    row++;
+                    break; // 이 행의 다른 열 검사 중단
+                }
+            }
+        }
+        
+        return crossesCleared;
+    }
 
     private boolean isLineFull(int row) {
         for (int col = 0; col < WIDTH; col++) {
@@ -151,7 +197,7 @@ public class GameBoard {
     }
     
     /**
-     * 특정 줄을 삭제하고 아이템 보드도 함께 업데이트합니다.
+     * 특정 줄을 삭제하고 아이템 보드도 함께 업데이트
      * - 삭제된 줄의 아이템 제거
      * - 위쪽 줄들을 한 칸씩 아래로 이동
      * 
@@ -183,6 +229,35 @@ public class GameBoard {
         }
         for (int col = 0; col < WIDTH; col++) {
             board[0][col] = 0;
+        }
+    }
+    
+    /**
+     * 특정 세로줄을 삭제하고 아이템 보드도 함께 업데이트
+     * - 삭제된 열의 모든 블록을 빈 공간으로 변경
+     * - 삭제된 열의 아이템 제거
+     * - 다른 열들은 이동하지 않음 (공백만 생성)
+     * 
+     * @param colIndex 삭제할 열의 인덱스
+     */
+    private void clearColumnWithItems(int colIndex) {
+        // 아이템 보드 처리: 해당 열의 아이템만 제거
+        Map<Integer, ItemBlock> newItemBoard = new HashMap<>();
+        for (Map.Entry<Integer, ItemBlock> entry : itemBoard.entrySet()) {
+            int key = entry.getKey();
+            int col = key % WIDTH;
+            
+            // 삭제되는 열이 아닌 경우만 유지
+            if (col != colIndex) {
+                newItemBoard.put(key, entry.getValue());
+            }
+        }
+        itemBoard.clear();
+        itemBoard.putAll(newItemBoard);
+        
+        // 일반 보드 처리: 해당 열을 모두 비움 (다른 열 이동 없음)
+        for (int row = 0; row < HEIGHT + BUFFER_ZONE; row++) {
+            board[row][colIndex] = 0;
         }
     }
 
@@ -219,7 +294,7 @@ public class GameBoard {
         }
         itemBoard.clear();
     }
-        
+
     /**
      * 보드의 특정 위치에 있는 아이템 정보를 반환합니다.
      * 

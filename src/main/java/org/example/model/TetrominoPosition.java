@@ -5,6 +5,7 @@ public class TetrominoPosition {
     private int rotation;
     private Tetromino type;
     private Integer itemBlockIndex; // 아이템이 부착된 블록의 인덱스 (rotation 0 기준, 0부터 시작)
+    private ItemBlock itemType;     // 아이템 타입 (LINE_CLEAR, COLUMN_CLEAR, NONE)
 
     public TetrominoPosition(Tetromino type, int x, int y, int rotation) {
         this.type = type;
@@ -12,14 +13,16 @@ public class TetrominoPosition {
         this.y = y;
         this.rotation = rotation;
         this.itemBlockIndex = null;
+        this.itemType = ItemBlock.NONE;
     }
     
-    private TetrominoPosition(Tetromino type, int x, int y, int rotation, Integer itemBlockIndex) {
+    private TetrominoPosition(Tetromino type, int x, int y, int rotation, Integer itemBlockIndex, ItemBlock itemType) {
         this.type = type;
         this.x = x;
         this.y = y;
         this.rotation = rotation;
         this.itemBlockIndex = itemBlockIndex;
+        this.itemType = itemType;
     }
 
     public int getX() { return x; }
@@ -38,17 +41,30 @@ public class TetrominoPosition {
     }
 
     public TetrominoPosition copy() {
-        return new TetrominoPosition(type, x, y, rotation, itemBlockIndex);
+        return new TetrominoPosition(type, x, y, rotation, itemBlockIndex, itemType);
     }
     
     // ===== 아이템 관련 메서드 =====
     
     /**
-     * 테트로미노의 특정 블록에 아이템을 부착
+     * 테트로미노의 특정 블록에 아이템을 부착 (기본: LINE_CLEAR)
      * 아이템은 rotation 0 기준의 블록 인덱스로 저장되어 회전과 무관하게 동일한 물리적 블록을 추적
      */
     public void setItemAtBlockIndex(int blockIndex) {
         this.itemBlockIndex = blockIndex;
+        this.itemType = ItemBlock.LINE_CLEAR;
+    }
+    
+    /**
+     * 테트로미노의 특정 블록에 특정 타입의 아이템을 부착
+     * 아이템은 rotation 0 기준의 블록 인덱스로 저장되어 회전과 무관하게 동일한 물리적 블록을 추적
+     * 
+     * @param blockIndex 블록 인덱스 (rotation 0 기준)
+     * @param itemType 아이템 타입 (LINE_CLEAR, COLUMN_CLEAR)
+     */
+    public void setItemAtBlockIndex(int blockIndex, ItemBlock itemType) {
+        this.itemBlockIndex = blockIndex;
+        this.itemType = itemType;
     }
     
     /**
@@ -65,7 +81,7 @@ public class TetrominoPosition {
         int rotation0Index = convertToRotation0Index(row, col);
         
         if (rotation0Index == itemBlockIndex) {
-            return ItemBlock.LINE_CLEAR;
+            return itemType;
         }
         return ItemBlock.NONE;
     }
