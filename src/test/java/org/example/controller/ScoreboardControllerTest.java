@@ -31,7 +31,7 @@ class ScoreboardControllerTest {
         stateManager = mock(StateManager.class);
         stateManager.settingManager = mock(org.example.service.SettingManager.class);
         scoreboardView = mock(ScoreboardView.class);
-        controller = new ScoreboardController(stateManager, scoreboardView);
+        controller = new ScoreboardController(stateManager, scoreboardView, false);
     }
     
     @Test
@@ -44,28 +44,27 @@ class ScoreboardControllerTest {
     @DisplayName("게임 플레이 후 컨트롤러 생성")
     void testControllerAfterGamePlay() {
         ScoreboardController afterGame = new ScoreboardController(
-            stateManager, scoreboardView, 1000, 10, 5, true);
+            stateManager, scoreboardView, true);
         assertNotNull(afterGame);
     }
     
     @Test
-    @DisplayName("Back to Menu 핸들러 - 일반 조회 시")
-    void testHandleBackToMenuNormal() {
-        controller.handleBackToMenu();
+    @DisplayName("Go Back 핸들러 - 일반 조회 시")
+    void testHandleGoBackNormal() {
+        controller.handleGoBack();
         
-        verify(stateManager).setState("start");
+        verify(stateManager).popState();
     }
     
     @Test
-    @DisplayName("Back to Menu 핸들러 - 게임 플레이 후")
-    void testHandleBackToMenuAfterGame() {
+    @DisplayName("Go Back 핸들러 - 게임 플레이 후")
+    void testHandleGoBackAfterGame() {
         ScoreboardController afterGame = new ScoreboardController(
-            stateManager, scoreboardView, 1000, 10, 5, true);
+            stateManager, scoreboardView, true);
         
-        afterGame.handleBackToMenu();
+        afterGame.handleGoBack();
         
-        verify(stateManager).addState(eq("gameOver"), any());
-        verify(stateManager).setState("gameOver");
+        verify(stateManager).setState("gameover");
     }
     
     @Test

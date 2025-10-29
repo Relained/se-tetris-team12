@@ -38,7 +38,7 @@ class StartControllerTest {
     void testHandleStartGame() {
         controller.handleStartGame();
         
-        verify(stateManager).setState("play");
+        verify(stateManager).stackState("gamemode");
     }
     
     @Test
@@ -46,8 +46,7 @@ class StartControllerTest {
     void testHandleViewScoreboard() {
         controller.handleViewScoreboard();
         
-        verify(stateManager).addState(eq("scoreboard"), any());
-        verify(stateManager).setState("scoreboard");
+        verify(stateManager).stackState("scoreboard");
     }
     
     @Test

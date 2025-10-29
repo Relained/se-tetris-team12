@@ -2,6 +2,7 @@ package org.example.state;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.example.model.GameMode;
 import org.example.service.SettingManager;
 import org.example.service.StateManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,12 +19,26 @@ class PlayStateTest extends ApplicationTest {
     
     private StateManager stateManager;
     private PlayState state;
+    private DifficultyState difficultyState;
     
     @BeforeEach
     void setUp() {
         Stage stage = mock(Stage.class);
         SettingManager settingManager = new SettingManager();
+        
+        // DifficultyState를 먼저 생성
+        difficultyState = mock(DifficultyState.class);
+        when(difficultyState.getGameMode()).thenReturn(GameMode.NORMAL);
+        when(difficultyState.getDifficulty()).thenReturn(1);
+        
+        // StateManager 생성
         stateManager = new StateManager(stage, settingManager);
+        
+        // PlayState는 enter() 시 getCurrentState()를 호출하므로
+        // StateManager를 spy로 만들어서 getCurrentState를 stub
+        stateManager = spy(stateManager);
+        doReturn(difficultyState).when(stateManager).getCurrentState();
+        
         state = new PlayState(stateManager);
     }
     

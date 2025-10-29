@@ -1,7 +1,9 @@
 package org.example.controller;
 
 import javafx.application.Platform;
+import org.example.model.ScoreRecord;
 import org.example.service.StateManager;
+import org.example.state.ScoreboardState;
 import org.example.view.ScoreInputView;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,9 +18,8 @@ class ScoreInputControllerTest {
     private ScoreInputController controller;
     private StateManager stateManager;
     private ScoreInputView scoreInputView;
-    private int testScore = 1000;
-    private int testLines = 10;
-    private int testLevel = 5;
+    private ScoreboardState scoreboardState;
+    private ScoreRecord testRecord;
     
     @BeforeAll
     static void initJavaFX() {
@@ -33,7 +34,13 @@ class ScoreInputControllerTest {
     void setUp() {
         stateManager = mock(StateManager.class);
         scoreInputView = mock(ScoreInputView.class);
-        controller = new ScoreInputController(stateManager, scoreInputView, testScore, testLines, testLevel);
+        scoreboardState = mock(ScoreboardState.class);
+        testRecord = new ScoreRecord(1000, 10, 5, 1);
+        
+        // Mock getCurrentState to return scoreboardState
+        when(stateManager.getCurrentState()).thenReturn(scoreboardState);
+        
+        controller = new ScoreInputController(stateManager, scoreInputView, testRecord);
     }
     
     @Test
@@ -58,8 +65,7 @@ class ScoreInputControllerTest {
         controller.handleSubmit();
         
         verify(scoreInputView).getPlayerName();
-        verify(stateManager).addState(eq("scoreboardAfterSubmit"), any());
-        verify(stateManager).setState("scoreboardAfterSubmit");
+        verify(scoreboardState).setScoreBoardScene(true);
     }
     
     @Test
@@ -67,7 +73,6 @@ class ScoreInputControllerTest {
     void testHandleSkip() {
         controller.handleSkip();
         
-        verify(stateManager).addState(eq("scoreboardAfterSkip"), any());
-        verify(stateManager).setState("scoreboardAfterSkip");
+        verify(scoreboardState).setScoreBoardScene(false);
     }
 }

@@ -41,20 +41,6 @@ class GameOverStateTest extends ApplicationTest {
     }
     
     @Test
-    @DisplayName("생성자 - 점수 정보 포함")
-    void testConstructorWithScoreInfo() {
-        GameOverState state = new GameOverState(stateManager, 1000, 10, 5);
-        assertNotNull(state);
-    }
-    
-    @Test
-    @DisplayName("생성자 - 점수 정보와 제출 상태 포함")
-    void testConstructorWithScoreInfoAndSubmission() {
-        GameOverState state = new GameOverState(stateManager, 1000, 10, 5, true);
-        assertNotNull(state);
-    }
-    
-    @Test
     @DisplayName("enter() 호출 시 예외 발생하지 않음")
     void testEnter() {
         assertDoesNotThrow(() -> state.enter());
@@ -113,7 +99,7 @@ class GameOverStateTest extends ApplicationTest {
     @Test
     @DisplayName("createScene() - 점수 정보 포함하여 생성")
     void testCreateSceneWithScoreInfo() {
-        GameOverState stateWithScore = new GameOverState(stateManager, 5000, 50, 10);
+        GameOverState stateWithScore = new GameOverState(stateManager);
         javafx.application.Platform.runLater(() -> {
             stateWithScore.enter();
             Scene scene = stateWithScore.createScene();
@@ -126,7 +112,7 @@ class GameOverStateTest extends ApplicationTest {
     @Test
     @DisplayName("createScene() - 점수 제출 상태 포함")
     void testCreateSceneWithSubmissionStatus() {
-        GameOverState stateWithSubmission = new GameOverState(stateManager, 5000, 50, 10, true);
+        GameOverState stateWithSubmission = new GameOverState(stateManager);
         javafx.application.Platform.runLater(() -> {
             stateWithSubmission.enter();
             Scene scene = stateWithSubmission.createScene();
@@ -176,7 +162,7 @@ class GameOverStateTest extends ApplicationTest {
     @Test
     @DisplayName("점수 0인 경우")
     void testWithZeroScore() {
-        GameOverState stateZeroScore = new GameOverState(stateManager, 0, 0, 1);
+        GameOverState stateZeroScore = new GameOverState(stateManager);
         javafx.application.Platform.runLater(() -> {
             stateZeroScore.enter();
             Scene scene = stateZeroScore.createScene();
