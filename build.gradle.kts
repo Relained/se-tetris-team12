@@ -43,10 +43,14 @@ dependencies {
     testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")
     testImplementation("org.testfx:testfx-core:4.0.18")
     testImplementation("org.testfx:testfx-junit5:4.0.18")
+    testImplementation("org.hamcrest:hamcrest:2.2")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    maxParallelForks = 4  // 4개의 병렬 프로세스로 실행
+    forkEvery = 100  // 100개 테스트마다 새 JVM 프로세스 시작
+    
     finalizedBy(tasks.jacocoTestReport) // 테스트 후 자동으로 리포트 생성
 }
 

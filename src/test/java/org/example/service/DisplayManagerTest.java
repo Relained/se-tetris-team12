@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.testfx.util.WaitForAsyncUtils;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -146,10 +148,14 @@ class DisplayManagerTest {
     @DisplayName("applyDisplayMode with Stage 파라미터")
     void testApplyDisplayModeWithStageParameter() {
         Platform.runLater(() -> {
-            Stage stage = new Stage();
-            displayManager.applyDisplayMode(stage, ScreenSize.LARGE);
-            
-            assertEquals(ScreenSize.LARGE, displayManager.getCurrentSize());
+            try {
+                Stage stage = new Stage();
+                displayManager.applyDisplayMode(stage, ScreenSize.LARGE);
+                
+                assertEquals(ScreenSize.LARGE, displayManager.getCurrentSize());
+            } finally {
+            }
         });
+        WaitForAsyncUtils.waitForFxEvents();
     }
 }

@@ -1,31 +1,23 @@
 package org.example.state;
 
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.example.service.SettingManager;
 import org.example.service.StateManager;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.testfx.framework.junit5.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class GameOverStateTest {
+class GameOverStateTest extends ApplicationTest {
     
     private StateManager stateManager;
     private GameOverState state;
-    
-    @BeforeAll
-    static void initJavaFX() {
-        try {
-            Platform.startup(() -> {});
-        } catch (IllegalStateException e) {
-            // 이미 초기화된 경우 무시
-        }
-    }
     
     @BeforeEach
     void setUp() {
@@ -38,6 +30,27 @@ class GameOverStateTest {
     @Test
     @DisplayName("State 생성 시 null이 아닌지 확인")
     void testStateNotNull() {
+        assertNotNull(state);
+    }
+    
+    @Test
+    @DisplayName("생성자 - StateManager만 전달")
+    void testConstructorWithStateManager() {
+        GameOverState state = new GameOverState(stateManager);
+        assertNotNull(state);
+    }
+    
+    @Test
+    @DisplayName("생성자 - 점수 정보 포함")
+    void testConstructorWithScoreInfo() {
+        GameOverState state = new GameOverState(stateManager, 1000, 10, 5);
+        assertNotNull(state);
+    }
+    
+    @Test
+    @DisplayName("생성자 - 점수 정보와 제출 상태 포함")
+    void testConstructorWithScoreInfoAndSubmission() {
+        GameOverState state = new GameOverState(stateManager, 1000, 10, 5, true);
         assertNotNull(state);
     }
     
@@ -62,12 +75,114 @@ class GameOverStateTest {
     @Test
     @DisplayName("createScene() - Scene 생성 확인")
     void testCreateScene() {
-        Platform.runLater(() -> {
+        javafx.application.Platform.runLater(() -> {
             state.enter();
             Scene scene = state.createScene();
             
             assertNotNull(scene);
             assertNotNull(state.getScene());
         });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("createScene() - Scene 크기")
+    void testCreateSceneSize() {
+        javafx.application.Platform.runLater(() -> {
+            state.enter();
+            Scene scene = state.createScene();
+            
+            assertEquals(1000, scene.getWidth());
+            assertEquals(700, scene.getHeight());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("createScene() - 키 이벤트 핸들러 설정됨")
+    void testCreateSceneKeyHandler() {
+        javafx.application.Platform.runLater(() -> {
+            state.enter();
+            Scene scene = state.createScene();
+            
+            assertNotNull(scene.getOnKeyPressed());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("createScene() - 점수 정보 포함하여 생성")
+    void testCreateSceneWithScoreInfo() {
+        GameOverState stateWithScore = new GameOverState(stateManager, 5000, 50, 10);
+        javafx.application.Platform.runLater(() -> {
+            stateWithScore.enter();
+            Scene scene = stateWithScore.createScene();
+            
+            assertNotNull(scene);
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("createScene() - 점수 제출 상태 포함")
+    void testCreateSceneWithSubmissionStatus() {
+        GameOverState stateWithSubmission = new GameOverState(stateManager, 5000, 50, 10, true);
+        javafx.application.Platform.runLater(() -> {
+            stateWithSubmission.enter();
+            Scene scene = stateWithSubmission.createScene();
+            
+            assertNotNull(scene);
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("여러 번 enter() 호출")
+    void testMultipleEnter() {
+        assertDoesNotThrow(() -> {
+            state.enter();
+            state.enter();
+            state.enter();
+        });
+    }
+    
+    @Test
+    @DisplayName("enter() 없이 createScene() 호출")
+    void testCreateSceneWithoutEnter() {
+        javafx.application.Platform.runLater(() -> {
+            assertThrows(NullPointerException.class, () -> state.createScene());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("getScene() - Scene 생성 전 null 반환")
+    void testGetSceneBeforeCreate() {
+        assertNull(state.getScene());
+    }
+    
+    @Test
+    @DisplayName("getScene() - Scene 생성 후 반환")
+    void testGetSceneAfterCreate() {
+        javafx.application.Platform.runLater(() -> {
+            state.enter();
+            state.createScene();
+            
+            assertNotNull(state.getScene());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("점수 0인 경우")
+    void testWithZeroScore() {
+        GameOverState stateZeroScore = new GameOverState(stateManager, 0, 0, 1);
+        javafx.application.Platform.runLater(() -> {
+            stateZeroScore.enter();
+            Scene scene = stateZeroScore.createScene();
+            
+            assertNotNull(scene);
+        });
+        WaitForAsyncUtils.waitForFxEvents();
     }
 }

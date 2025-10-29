@@ -1,31 +1,23 @@
 package org.example.state;
 
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.example.service.SettingManager;
 import org.example.service.StateManager;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.testfx.framework.junit5.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class ColorSettingStateTest {
+class ColorSettingStateTest extends ApplicationTest {
     
     private StateManager stateManager;
     private ColorSettingState state;
-    
-    @BeforeAll
-    static void initJavaFX() {
-        try {
-            Platform.startup(() -> {});
-        } catch (IllegalStateException e) {
-            // 이미 초기화된 경우 무시
-        }
-    }
     
     @BeforeEach
     void setUp() {
@@ -50,11 +42,11 @@ class ColorSettingStateTest {
     @Test
     @DisplayName("exit() 호출 시 예외 발생하지 않음")
     void testExit() {
-        // enter()를 먼저 호출하여 controller 초기화
-        Platform.runLater(() -> {
+        javafx.application.Platform.runLater(() -> {
             state.enter();
             assertDoesNotThrow(() -> state.exit());
         });
+        WaitForAsyncUtils.waitForFxEvents();
     }
     
     @Test
@@ -66,12 +58,100 @@ class ColorSettingStateTest {
     @Test
     @DisplayName("createScene() - Scene 생성 확인")
     void testCreateScene() {
-        Platform.runLater(() -> {
+        javafx.application.Platform.runLater(() -> {
             state.enter();
             Scene scene = state.createScene();
             
             assertNotNull(scene);
             assertNotNull(state.getScene());
         });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("createScene() - Scene 크기")
+    void testCreateSceneSize() {
+        javafx.application.Platform.runLater(() -> {
+            state.enter();
+            Scene scene = state.createScene();
+            
+            assertEquals(1000, scene.getWidth());
+            assertEquals(700, scene.getHeight());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("createScene() - 키 이벤트 핸들러 설정됨")
+    void testCreateSceneKeyHandler() {
+        javafx.application.Platform.runLater(() -> {
+            state.enter();
+            Scene scene = state.createScene();
+            
+            assertNotNull(scene.getOnKeyPressed());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("enter() - View와 Controller 초기화")
+    void testEnterInitializesComponents() {
+        state.enter();
+        
+        assertDoesNotThrow(() -> {
+            javafx.application.Platform.runLater(() -> {
+                Scene scene = state.createScene();
+                assertNotNull(scene);
+            });
+        });
+    }
+    
+    @Test
+    @DisplayName("exit() - 색상 모드 설정 저장")
+    void testExitSavesSettings() {
+        javafx.application.Platform.runLater(() -> {
+            state.enter();
+            state.createScene();
+            
+            assertDoesNotThrow(() -> state.exit());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("여러 번 enter() 호출")
+    void testMultipleEnter() {
+        assertDoesNotThrow(() -> {
+            state.enter();
+            state.enter();
+            state.enter();
+        });
+    }
+    
+    @Test
+    @DisplayName("enter() 없이 createScene() 호출")
+    void testCreateSceneWithoutEnter() {
+        javafx.application.Platform.runLater(() -> {
+            assertThrows(NullPointerException.class, () -> state.createScene());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+    
+    @Test
+    @DisplayName("getScene() - Scene 생성 전 null 반환")
+    void testGetSceneBeforeCreate() {
+        assertNull(state.getScene());
+    }
+    
+    @Test
+    @DisplayName("getScene() - Scene 생성 후 반환")
+    void testGetSceneAfterCreate() {
+        javafx.application.Platform.runLater(() -> {
+            state.enter();
+            state.createScene();
+            
+            assertNotNull(state.getScene());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
     }
 }
