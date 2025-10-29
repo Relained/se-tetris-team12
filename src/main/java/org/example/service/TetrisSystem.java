@@ -1,6 +1,8 @@
 package org.example.service;
 
 import org.example.model.GameBoard;
+import org.example.model.GameMode;
+import org.example.model.ItemBlock;
 import org.example.model.Tetromino;
 import org.example.model.TetrominoPosition;
 
@@ -18,6 +20,7 @@ public class TetrisSystem {
     private final Random random;
     private final ArrayList<Double> cumulativeWeights;
 
+    // 게임 상태
     private int score;
     private int lines;
     private int level;
@@ -25,14 +28,24 @@ public class TetrisSystem {
     private int levelFactor;
     private boolean canHold;
     private boolean gameOver;
+    
+    // 아이템 모드 관련
+    private final GameMode gameMode;
+    private int linesSinceLastItem;  // 마지막 아이템 생성 이후 삭제된 줄 수
+    private boolean nextPieceShouldHaveItem;  // 다음 생성될 블록에 아이템 포함 여부
 
-    // Scoring system
+    // 점수 시스템
     private static final int[] LINE_SCORES = {0, 100, 300, 500, 800}; // 0, 1, 2, 3, 4 lines
     private static final int SOFT_DROP_SCORE = 1;
     private static final int HARD_DROP_SCORE = 2;
     private static final int QUEUEING_SIZE = 7;
 
     public TetrisSystem() {
+        this(GameMode.NORMAL);
+    }
+    
+    public TetrisSystem(GameMode mode) {
+        this.gameMode = mode;
         this.board = new GameBoard();
         this.nextQueue = new ArrayDeque<>();
         this.random = new Random();
@@ -44,6 +57,8 @@ public class TetrisSystem {
         this.levelFactor = 10;
         this.canHold = true;
         this.gameOver = false;
+        this.linesSinceLastItem = 0;
+        this.nextPieceShouldHaveItem = false;
 
         double cum = 0.0;
         for (int i = 0; i < Tetromino.values().length; i++) {
@@ -70,10 +85,46 @@ public class TetrisSystem {
         int spawnY = GameBoard.BUFFER_ZONE - nextType.getShape(0).length;
 
         currentPiece = new TetrominoPosition(nextType, spawnX, spawnY, 0);
+        
+        // 아이템 모드에서 아이템 추가
+        if (gameMode == GameMode.ITEM && nextPieceShouldHaveItem) {
+            addRandomItemToPiece(currentPiece);
+            nextPieceShouldHaveItem = false;
+        }
+        
         canHold = true;
 
         if (!board.isValidPosition(currentPiece)) {
             gameOver = true;
+        }
+    }
+    
+    /**
+     * 테트로미노에 랜덤한 위치에 LINE_CLEAR 아이템을 부착합니다.
+     * 아이템은 rotation 0 기준의 블록 인덱스에 저장되며, 회전과 무관하게 동일한 물리적 블록을 추적합니다.
+     * 
+     * @param piece 아이템을 부착할 테트로미노
+     */
+    private void addRandomItemToPiece(TetrominoPosition piece) {
+        // rotation 0 기준으로 블록 인덱스 계산 (회전에 독립적)
+        int[][] shape = piece.getType().getShape(0);
+        List<Integer> blockIndices = new ArrayList<>();
+        
+        // 블록이 있는 모든 위치의 인덱스 수집
+        int blockIndex = 0;
+        for (int row = 0; row < shape.length; row++) {
+            for (int col = 0; col < shape[row].length; col++) {
+                if (shape[row][col] == 1) {
+                    blockIndices.add(blockIndex);
+                    blockIndex++;
+                }
+            }
+        }
+        
+        // 랜덤한 블록 인덱스에 아이템 부착
+        if (!blockIndices.isEmpty()) {
+            int randomBlockIndex = blockIndices.get(random.nextInt(blockIndices.size()));
+            piece.setItemAtBlockIndex(randomBlockIndex);
         }
     }
 
@@ -202,14 +253,43 @@ public class TetrisSystem {
         return true;
     }
 
+    /**
+     * 블록을 보드에 고정하고 줄 삭제, 점수 계산, 레벨 업데이트를 처리합니다.
+     * 아이템 모드에서는 LINE_CLEAR 아이템이 있는 줄도 삭제합니다.
+     */
     private void lockPiece() {
         board.placeTetromino(currentPiece);
 
-        int clearedLines = board.clearLines();
+        // 줄 삭제 (아이템 모드와 일반 모드 분기)
+        int clearedLines;
+        if (gameMode == GameMode.ITEM) {
+            clearedLines = board.clearLinesWithItems();
+        } else {
+            clearedLines = board.clearLines();
+        }
+        
         if (clearedLines > 0) {
             lines += clearedLines;
-            score += LINE_SCORES[clearedLines] * calcScoreFactor();
+            
+            int lineScore;
+            if (clearedLines <= LINE_SCORES.length - 1) {
+                lineScore = LINE_SCORES[clearedLines];
+            } else {
+                // 5줄 이상: 4줄 점수(800) + 추가 줄당 100점 (아이템 모드에서 가능)
+                lineScore = LINE_SCORES[4] + (clearedLines - 4) * 100;
+            }
+            score += lineScore * calcScoreFactor();
+            
             level = Math.min(20, (lines / levelFactor) + 1);
+            
+            // 아이템 모드: 10줄마다 새로운 아이템 블록 생성
+            if (gameMode == GameMode.ITEM) {
+                linesSinceLastItem += clearedLines;
+                if (linesSinceLastItem >= ItemBlock.LINES_FOR_ITEM_GENERATION) {
+                    nextPieceShouldHaveItem = true;
+                    linesSinceLastItem -= ItemBlock.LINES_FOR_ITEM_GENERATION;
+                }
+            }
         }
 
         if (board.isGameOver()) {
@@ -253,6 +333,8 @@ public class TetrisSystem {
     public int getLevel() { return level; }
     public boolean isGameOver() { return gameOver; }
     public int getDifficulty() { return difficulty; }
+    public GameMode getGameMode() { return gameMode; }
+    public boolean nextPieceHasItem() { return nextPieceShouldHaveItem; }
 
     public void reset() {
         board.clear();
@@ -264,6 +346,8 @@ public class TetrisSystem {
         level = 1;
         canHold = true;
         gameOver = false;
+        linesSinceLastItem = 0;
+        nextPieceShouldHaveItem = false;
 
         fillNextQueue();
         spawnNewPiece();

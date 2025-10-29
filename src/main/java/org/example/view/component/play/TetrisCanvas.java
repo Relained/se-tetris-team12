@@ -83,6 +83,12 @@ public class TetrisCanvas extends Canvas {
                     continue;
                 Color color = colorManager.getColorFromIndex(visibleBoard[row][col]);
                 drawCell(gc, col, row, color);
+                
+                // 보드에 배치된 블록의 아이템 표시
+                org.example.model.ItemBlock item = board.getItemAt(row + GameBoard.BUFFER_ZONE, col);
+                if (item != null && item.isItem()) {
+                    drawItemMark(gc, col, row, item.getSymbol());
+                }
             }
         }
 
@@ -116,6 +122,12 @@ public class TetrisCanvas extends Canvas {
                             drawGhostCell(gc, x, y);
                         } else {
                             drawCell(gc, x, y, color);
+                            
+                            // 아이템이 있으면 'L' 표시
+                            org.example.model.ItemBlock item = piece.getItemAt(row, col);
+                            if (item != null && item.isItem()) {
+                                drawItemMark(gc, x, y, item.getSymbol());
+                            }
                         }
                     }
                 }
@@ -157,5 +169,33 @@ public class TetrisCanvas extends Canvas {
             double y = i * cellSize;
             gc.strokeLine(0, y, getWidth(), y);
         }
+    }
+
+    private void drawItemMark(GraphicsContext gc, int x, int y, char symbol) {
+        double pixelX = x * cellSize;
+        double pixelY = y * cellSize;
+        
+        // 텍스트 설정
+        gc.setFill(Color.WHITE);
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(2);
+        
+        // 폰트 크기를 셀 크기에 맞게 조정
+        double fontSize = cellSize * 0.7;
+        gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, fontSize));
+        
+        // 텍스트 중앙 정렬을 위한 계산
+        javafx.scene.text.Text text = new javafx.scene.text.Text(String.valueOf(symbol));
+        text.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, fontSize));
+        double textWidth = text.getLayoutBounds().getWidth();
+        double textHeight = text.getLayoutBounds().getHeight();
+        
+        double textX = pixelX + (cellSize - textWidth) / 2;
+        double textY = pixelY + (cellSize + textHeight) / 2 - 2;
+        
+        // 검은 테두리
+        gc.strokeText(String.valueOf(symbol), textX, textY);
+        // 흰색 글자
+        gc.fillText(String.valueOf(symbol), textX, textY);
     }
 }

@@ -27,6 +27,13 @@ public class StartController {
     }
     
     /**
+     * Start Game (Item Mode) 버튼 클릭 시 처리
+     */
+    public void handleStartItemGame() {
+        stateManager.setState("playItem");
+    }
+    
+    /**
      * View Scoreboard 버튼 클릭 시 처리
      */
     public void handleViewScoreboard() {
