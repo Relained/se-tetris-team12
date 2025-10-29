@@ -4,7 +4,7 @@ import javafx.scene.input.KeyCode;
 
 import java.io.Serializable;      
 
-public class ControlData implements Serializable {
+public class KeyData implements Serializable {
     public KeyCode moveLeft = KeyCode.LEFT;
     public KeyCode moveRight = KeyCode.RIGHT;
     public KeyCode softDrop = KeyCode.DOWN;

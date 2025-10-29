@@ -38,8 +38,6 @@ public class KeySettingController {
      * Go Back 버튼 클릭 시 처리 - 키 설정을 저장하고 이전 화면으로 복귀
      */
     public void handleGoBack() {
-        // 키 설정 저장
-        keySettingManager.saveKeySettings();
         // 이전 상태로 복귀
         stateManager.popState();
     }

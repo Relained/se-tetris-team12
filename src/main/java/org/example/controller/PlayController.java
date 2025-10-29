@@ -4,7 +4,7 @@ import javafx.scene.input.KeyCode;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.example.model.ControlData;
+import org.example.model.KeyData;
 import org.example.service.StateManager;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
@@ -102,7 +102,7 @@ public class PlayController {
         if (tetrisSystem == null || tetrisSystem.isGameOver()) return;
 
         // SettingManager를 통해 최신 키 설정 가져오기
-        ControlData data = stateManager.settingManager.getCurrentSettings().controlData;
+        KeyData data = stateManager.settingManager.getCurrentSettings().controlData;
 
         // 한 번만 실행되는 입력 처리
         for (KeyCode key : justPressedKeys) {

@@ -2,6 +2,7 @@ package org.example.service;
 
 import java.io.FileOutputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.ObjectOutputStream;
 import java.io.FileInputStream;
 import java.io.BufferedInputStream;
@@ -10,8 +11,9 @@ import java.io.FileNotFoundException;
 import org.example.model.SettingData;
 
 public class SettingManager {
-    final String fileName = "setting.ser";
-    SettingData currentSettings;
+    final String SETTING_SAVE_PATH = System.getProperty("user.home") 
+            + File.separator + "tetris_settings.ser";
+    private SettingData currentSettings;
     private ColorManager colorManager;
     private KeySettingManager keySettingManager;
 
@@ -19,13 +21,13 @@ public class SettingManager {
         this.colorManager = ColorManager.getInstance();
         this.keySettingManager = KeySettingManager.getInstance();
         
-        // KeySettingManager에 자신을 주입
-        this.keySettingManager.setSettingManager(this);
-        
         boolean success = loadSettingData();
         if (!success) {
             currentSettings = new SettingData();
         }
+        // KeySettingManager에 자신을 주입
+        this.keySettingManager.setSettingManager(this);
+
         applyColorSetting();
     }
 
@@ -50,7 +52,7 @@ public class SettingManager {
     }
 
     public void saveSettingData() {
-        try (var fos = new FileOutputStream(fileName);
+        try (var fos = new FileOutputStream(SETTING_SAVE_PATH);
              var bos = new BufferedOutputStream(fos);
              var objStream = new ObjectOutputStream(bos)) {
             
@@ -62,7 +64,7 @@ public class SettingManager {
     }
 
     public boolean loadSettingData() {
-        try (var fis = new FileInputStream(fileName);
+        try (var fis = new FileInputStream(SETTING_SAVE_PATH);
              var bis = new BufferedInputStream(fis);
              var objStream = new ObjectInputStream(bis)) {
 

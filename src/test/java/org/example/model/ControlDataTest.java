@@ -11,7 +11,7 @@ class ControlDataTest {
     @Test
     @DisplayName("ControlData 기본 키 매핑 테스트")
     void testDefaultKeyMapping() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         
         assertEquals(KeyCode.LEFT, controls.moveLeft);
         assertEquals(KeyCode.RIGHT, controls.moveRight);
@@ -26,7 +26,7 @@ class ControlDataTest {
     @Test
     @DisplayName("moveLeft 키 변경 테스트")
     void testSetMoveLeft() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         controls.moveLeft = KeyCode.A;
         
         assertEquals(KeyCode.A, controls.moveLeft);
@@ -35,7 +35,7 @@ class ControlDataTest {
     @Test
     @DisplayName("moveRight 키 변경 테스트")
     void testSetMoveRight() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         controls.moveRight = KeyCode.D;
         
         assertEquals(KeyCode.D, controls.moveRight);
@@ -44,7 +44,7 @@ class ControlDataTest {
     @Test
     @DisplayName("softDrop 키 변경 테스트")
     void testSetSoftDrop() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         controls.softDrop = KeyCode.S;
         
         assertEquals(KeyCode.S, controls.softDrop);
@@ -53,7 +53,7 @@ class ControlDataTest {
     @Test
     @DisplayName("hardDrop 키 변경 테스트")
     void testSetHardDrop() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         controls.hardDrop = KeyCode.W;
         
         assertEquals(KeyCode.W, controls.hardDrop);
@@ -62,7 +62,7 @@ class ControlDataTest {
     @Test
     @DisplayName("rotateCounterClockwise 키 변경 테스트")
     void testSetRotateCounterClockwise() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         controls.rotateCounterClockwise = KeyCode.Q;
         
         assertEquals(KeyCode.Q, controls.rotateCounterClockwise);
@@ -71,7 +71,7 @@ class ControlDataTest {
     @Test
     @DisplayName("rotateClockwise 키 변경 테스트")
     void testSetRotateClockwise() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         controls.rotateClockwise = KeyCode.E;
         
         assertEquals(KeyCode.E, controls.rotateClockwise);
@@ -80,7 +80,7 @@ class ControlDataTest {
     @Test
     @DisplayName("hold 키 변경 테스트")
     void testSetHold() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         controls.hold = KeyCode.SHIFT;
         
         assertEquals(KeyCode.SHIFT, controls.hold);
@@ -89,7 +89,7 @@ class ControlDataTest {
     @Test
     @DisplayName("pause 키 변경 테스트")
     void testSetPause() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         controls.pause = KeyCode.P;
         
         assertEquals(KeyCode.P, controls.pause);
@@ -98,14 +98,14 @@ class ControlDataTest {
     @Test
     @DisplayName("Serializable 인터페이스 구현 확인")
     void testSerializable() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         assertTrue(controls instanceof java.io.Serializable);
     }
 
     @Test
     @DisplayName("모든 키가 null이 아님")
     void testAllKeysNotNull() {
-        ControlData controls = new ControlData();
+        KeyData controls = new KeyData();
         
         assertNotNull(controls.moveLeft);
         assertNotNull(controls.moveRight);

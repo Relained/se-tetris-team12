@@ -1,7 +1,6 @@
 package org.example.controller;
 
 import org.example.service.StateManager;
-import org.example.state.ScoreboardState;
 import org.example.view.StartView;
 
 import javafx.scene.input.KeyEvent;

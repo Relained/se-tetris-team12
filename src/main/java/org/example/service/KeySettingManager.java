@@ -1,22 +1,13 @@
 package org.example.service;
 
 import javafx.scene.input.KeyCode;
-import org.example.model.ControlData;
-
-import java.io.FileOutputStream;
-import java.io.BufferedOutputStream;
-import java.io.ObjectOutputStream;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
-import java.io.ObjectInputStream;
-import java.io.FileNotFoundException;
+import org.example.model.KeyData;
 
 /**
  * 키 설정을 관리하는 Manager 클래스
  * SettingManager의 ControlData를 직접 참조하여 키 바인딩을 관리합니다.
  */
 public class KeySettingManager {
-    private static final String KEY_SETTING_FILE = "keysetting.ser";
     private SettingManager settingManager;
     private static KeySettingManager instance;
 
@@ -45,17 +36,15 @@ public class KeySettingManager {
      */
     public void setSettingManager(SettingManager settingManager) {
         this.settingManager = settingManager;
-        // 저장된 키 설정이 있으면 불러오기
-        loadKeySettings();
     }
 
     /**
      * 현재 키 설정 데이터를 반환합니다.
-     * @return ControlData 객체
+     * @return KeyData 객체
      */
-    public ControlData getControlData() {
+    public KeyData getKeyData() {
         if (settingManager == null) {
-            return new ControlData(); // 기본값 반환
+            return new KeyData(); // 기본값 반환
         }
         return settingManager.getCurrentSettings().controlData;
     }
@@ -71,7 +60,7 @@ public class KeySettingManager {
             return false;
         }
 
-        ControlData controlData = getControlData();
+        KeyData controlData = getKeyData();
         
         // 중복 키 체크
         if (isDuplicateKey(keyCode, action)) {
@@ -115,7 +104,7 @@ public class KeySettingManager {
      * @return 해당 액션에 바인딩된 KeyCode (없으면 null)
      */
     public KeyCode getKeyBinding(String action) {
-        ControlData controlData = getControlData();
+        KeyData controlData = getKeyData();
         
         switch (action) {
             case "moveLeft":
@@ -146,51 +135,7 @@ public class KeySettingManager {
         if (settingManager == null) {
             return;
         }
-        settingManager.getCurrentSettings().controlData = new ControlData();
-    }
-
-    /**
-     * 키 설정을 파일에 저장합니다.
-     */
-    public void saveKeySettings() {
-        if (settingManager == null) {
-            return;
-        }
-        
-        try (var fos = new FileOutputStream(KEY_SETTING_FILE);
-             var bos = new BufferedOutputStream(fos);
-             var objStream = new ObjectOutputStream(bos)) {
-            
-            objStream.writeObject(getControlData());
-            
-        } catch (Exception e) {
-            System.err.println("Error saving key settings: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 키 설정을 파일에서 불러옵니다.
-     * @return 불러오기 성공 여부
-     */
-    public boolean loadKeySettings() {
-        if (settingManager == null) {
-            return false;
-        }
-        
-        try (var fis = new FileInputStream(KEY_SETTING_FILE);
-             var bis = new BufferedInputStream(fis);
-             var objStream = new ObjectInputStream(bis)) {
-
-            ControlData loadedData = (ControlData) objStream.readObject();
-            settingManager.getCurrentSettings().controlData = loadedData;
-            return true;
-
-        } catch (FileNotFoundException e) {
-            return false;
-        } catch (Exception e) {
-            System.err.println("Error loading key settings: " + e.getMessage());
-            return false;
-        }
+        settingManager.getCurrentSettings().controlData = new KeyData();
     }
 
     /**
@@ -200,7 +145,7 @@ public class KeySettingManager {
      * @return 중복 여부
      */
     private boolean isDuplicateKey(KeyCode keyCode, String excludeAction) {
-        ControlData controlData = getControlData();
+        KeyData controlData = getKeyData();
         
         if (!excludeAction.equals("moveLeft") && controlData.moveLeft == keyCode) {
             return true;
