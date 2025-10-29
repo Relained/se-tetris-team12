@@ -48,7 +48,8 @@ public class PauseState extends BaseState {
             () -> controller.handleResume(),      // Resume 버튼
             () -> controller.handleRestart(),     // Restart 버튼
             () -> controller.handleSettings(),    // Settings 버튼
-            () -> controller.handleMainMenu()     // Main Menu 버튼
+            () -> controller.handleMainMenu(),    // Main Menu 버튼
+            () -> controller.handleExit()         // Exit 버튼
         );
 
         scene = new Scene(root, 1000, 700);

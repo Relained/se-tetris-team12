@@ -45,6 +45,10 @@ public class PauseController {
     public void handleMainMenu() {
         stateManager.setState("start");
     }
+
+    public void handleExit() {
+        System.exit(0);
+    }
     
     /**
      * 키보드 입력 처리
