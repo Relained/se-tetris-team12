@@ -41,7 +41,7 @@ public class PlayState extends BaseState {
         }
         
         playView = new PlayView();
-        controller = new PlayController(stateManager, playView, gameLogic);
+        controller = new PlayController(stateManager, playView, gameLogic, gameMode);
 
         // 게임 루프 시작
         gameTimer = new AnimationTimer() {

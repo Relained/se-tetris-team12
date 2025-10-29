@@ -12,7 +12,7 @@ public enum ItemBlock {
     NONE(' ');          // 아이템 없음
     
     private final char symbol;
-    public static final int LINES_FOR_ITEM_GENERATION = 1; // 아이템 생성 주기 (10줄마다)
+    public static final int LINES_FOR_ITEM_GENERATION = 10; // 아이템 생성 주기 (10줄마다)
     
     ItemBlock(char symbol) {
         this.symbol = symbol;

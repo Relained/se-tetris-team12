@@ -52,7 +52,7 @@ class PlayControllerTest extends ApplicationTest {
         when(tetrisSystem.getHoldPiece()).thenReturn(null);
         when(tetrisSystem.getNextQueue()).thenReturn(Arrays.asList());
         
-        controller = new PlayController(stateManager, playView, tetrisSystem);
+        controller = new PlayController(stateManager, playView, tetrisSystem, org.example.model.GameMode.NORMAL);
     }
     
     @Test
@@ -86,7 +86,7 @@ class PlayControllerTest extends ApplicationTest {
     @Test
     @DisplayName("업데이트 호출 - TetrisSystem이 null일 때")
     void testUpdateWithNullSystem() {
-        controller = new PlayController(stateManager, playView, null);
+        controller = new PlayController(stateManager, playView, null, org.example.model.GameMode.NORMAL);
         
         assertDoesNotThrow(() -> controller.update(0.016));
     }
