@@ -102,25 +102,48 @@ public class ItemTetrisSystem extends TetrisSystem {
 
     // ===== 특수 아이템 동작 상태 =====
     private boolean weightActive = false;
-    private int weightCurrentRow;
     private int weightStartCol;
     
     @Override
     protected void lockPiece() {
+        TetrominoPosition.SpecialKind special = currentPiece != null ? currentPiece.getSpecialKind() : TetrominoPosition.SpecialKind.NONE;
+
+        // 특수 조각 처리
+        if (special == TetrominoPosition.SpecialKind.BOMB) {
+            int topLeftRow = Math.max(0, currentPiece.getY());
+            int topLeftCol = Math.max(0, currentPiece.getX());
+            ((ItemGameBoard) board).triggerBombAt(topLeftRow, topLeftCol);
+
+            // 폭발 후 다음 조각 생성
+            currentPiece = null;
+            if (board.isGameOver()) {
+                gameOver = true;
+            } else {
+                spawnNewPiece();
+            }
+            return;
+        }
+
+        if (special == TetrominoPosition.SpecialKind.WEIGHT) {
+            weightActive = true;
+            weightStartCol = Math.max(0, Math.min(currentPiece.getX(), org.example.model.GameBoard.WIDTH - 4));
+            return;
+        }
+
+        // 일반 조각: 보드에 고정 후 아이템 효과 처리
         board.placeTetromino(currentPiece);
 
-        // 일반 아이템 효과 처리 (WEIGHT/BOMB는 moveDown에서 처리)
         ItemGameBoard itemBoard = (ItemGameBoard) board;
 
         int clearedCrosses = itemBoard.clearCrossesWithItems();
         int clearedLines = itemBoard.clearLinesWithItems();
         int clearedColumns = itemBoard.clearColumnsWithItems();
-        
+
         int totalCleared = clearedLines + clearedColumns + clearedCrosses;
-        
+
         if (totalCleared > 0) {
             lines += totalCleared;
-            
+
             int lineScore;
             if (totalCleared <= LINE_SCORES.length - 1) {
                 lineScore = LINE_SCORES[totalCleared];
@@ -129,13 +152,12 @@ public class ItemTetrisSystem extends TetrisSystem {
                 lineScore = LINE_SCORES[4] + (totalCleared - 4) * 100;
             }
             score += lineScore * calcScoreFactor();
-            
+
             level = Math.min(20, (lines / levelFactor) + 1);
-            
+
             // 10줄마다 새로운 아이템 생성
             linesSinceLastItem += totalCleared;
             if (linesSinceLastItem >= ItemBlock.LINES_FOR_ITEM_GENERATION) {
-                // 아이템 생성 주기 충족 시 다음 조각에 아이템 부착
                 nextPieceShouldHaveItem = true;
                 linesSinceLastItem = 0;
             }
@@ -162,69 +184,51 @@ public class ItemTetrisSystem extends TetrisSystem {
 
     @Override
     public void hardDrop() {
-        if (gameOver || currentPiece == null) return;
-        var special = currentPiece.getSpecialKind();
-        if (special == org.example.model.TetrominoPosition.SpecialKind.BOMB) {
-            // 즉시 바닥 위치로 가정하고 폭탄 효과 적용
-            int topLeftRow = Math.max(0, currentPiece.getY());
-            int topLeftCol = Math.max(0, currentPiece.getX());
-            ((ItemGameBoard)board).triggerBombAt(topLeftRow, topLeftCol);
-            currentPiece = null;
-            spawnNewPiece();
-            return;
-        } else if (special == org.example.model.TetrominoPosition.SpecialKind.WEIGHT) {
-            // 락 후 단계적 제거 시작
-            weightActive = true;
-            weightCurrentRow = Math.max(0, currentPiece.getY() + (currentPiece.getCurrentShape().length - 1));
-            weightStartCol = Math.max(0, currentPiece.getX());
-            currentPiece = null;
-            return;
-        }
+        // 아이템 사용 체크는 lockPiece에서만 처리
+        if (weightActive) return; // 효과 진행 중에는 입력 무시
         super.hardDrop();
     }
 
     @Override
     public boolean moveDown() {
-        if (weightActive) return false;
-        if (gameOver || currentPiece == null) return false;
+        if (weightActive) return false; // 효과 진행 중에는 입력 무시
+        return super.moveDown();
+    }
 
-        var special = currentPiece.getSpecialKind();
-        org.example.model.TetrominoPosition newPos = org.example.service.SuperRotationSystem.moveDown(currentPiece, board);
-        if (newPos != null) {
-            currentPiece = newPos;
-            score += SOFT_DROP_SCORE * calcScoreFactor();
-            return true;
-        } else {
-            if (special == org.example.model.TetrominoPosition.SpecialKind.BOMB) {
-                int topLeftRow = Math.max(0, currentPiece.getY());
-                int topLeftCol = Math.max(0, currentPiece.getX());
-                ((ItemGameBoard)board).triggerBombAt(topLeftRow, topLeftCol);
-                currentPiece = null;
-                spawnNewPiece();
-                return false;
-            } else if (special == org.example.model.TetrominoPosition.SpecialKind.WEIGHT) {
-                weightActive = true;
-                weightCurrentRow = Math.max(0, currentPiece.getY() + (currentPiece.getCurrentShape().length - 1));
-                weightStartCol = Math.max(0, currentPiece.getX());
-                currentPiece = null;
-                return false;
-            }
-            // 일반 조각
-            lockPiece();
-            return false;
-        }
+    @Override
+    public boolean moveLeft() {
+        if (weightActive) return false; // 효과 진행 중에는 입력 무시
+        return super.moveLeft();
+    }
+
+    @Override
+    public boolean moveRight() {
+        if (weightActive) return false; // 효과 진행 중에는 입력 무시
+        return super.moveRight();
     }
 
     @Override
     public void update() {
         if (weightActive) {
             ItemGameBoard igb = (ItemGameBoard) board;
-            igb.clearWeightStep(weightCurrentRow, weightStartCol, 4);
-            weightCurrentRow += 4;
-            if (weightCurrentRow > org.example.model.GameBoard.HEIGHT + org.example.model.GameBoard.BUFFER_ZONE - 1) {
+
+            // 현재 조각의 바로 아래 한 줄을 지움 (폭 4)
+            int rowToClear = currentPiece.getY() + currentPiece.getCurrentShape().length;
+
+            if (rowToClear <= org.example.model.GameBoard.HEIGHT + org.example.model.GameBoard.BUFFER_ZONE - 1) {
+                igb.clearWeightStep(rowToClear, weightStartCol);
+            } else {
                 weightActive = false;
-                spawnNewPiece();
+                super.lockPiece();
+                if (board.isGameOver()) {
+                    gameOver = true;
+                } else {
+                    spawnNewPiece();
+                }
             }
+            // 조각을 한 칸 아래로 이동시켜 내려가는 모습을 표시
+            currentPiece.setY(currentPiece.getY() + 1);
+
             return;
         }
         super.update();

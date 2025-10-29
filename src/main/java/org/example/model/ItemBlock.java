@@ -8,7 +8,7 @@ public enum ItemBlock {
     COLUMN_CLEAR('I'),  // 세로줄 삭제 아이템 - 블록이 고정되면 해당 세로줄 삭제
     CROSS_CLEAR('X'),   // 십자 삭제 아이템 - 블록이 고정되면 해당 가로줄과 세로줄 모두 삭제
     WEIGHT('W'),       // 무게 아이템 - 아래 방향으로 다 삭제
-    BOMB('O'),          // 폭탄 아이템 - 주변 6*6 영역 삭제
+    BOMB('B'),          // 폭탄 아이템 - 주변 6*6 영역 삭제
     NONE(' ');          // 아이템 없음
     
     private final char symbol;

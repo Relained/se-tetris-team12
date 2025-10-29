@@ -123,10 +123,17 @@ public class TetrisCanvas extends Canvas {
                         } else {
                             drawCell(gc, x, y, color);
                             
-                            // 아이템이 있으면 'L' 표시
                             org.example.model.ItemBlock item = piece.getItemAt(row, col);
                             if (item != null && item.isItem()) {
                                 drawItemMark(gc, x, y, item.getSymbol());
+                            }
+
+                            // 특수 조각(WEIGHT/BOMB) 표식 표시
+                            var special = piece.getSpecialKind();
+                            if (special == TetrominoPosition.SpecialKind.WEIGHT) {
+                                drawItemMark(gc, x, y, 'W');
+                            } else if (special == TetrominoPosition.SpecialKind.BOMB) {
+                                drawItemMark(gc, x, y, 'B');
                             }
                         }
                     }

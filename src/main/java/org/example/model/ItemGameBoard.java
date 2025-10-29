@@ -29,7 +29,7 @@ public class ItemGameBoard extends GameBoard {
                     int boardX = startX + col;
                     int boardY = startY + row;
                     if (boardY >= 0 && boardY < HEIGHT + BUFFER_ZONE &&
-                        boardX >= 0 && boardX < WIDTH) {
+                            boardX >= 0 && boardX < WIDTH) {
                         board[boardY][boardX] = color;
 
                         // 아이템이 있으면 itemBoard에 저장
@@ -121,47 +121,6 @@ public class ItemGameBoard extends GameBoard {
         return crossesCleared;
     }
 
-    /**
-     * WEIGHT, BOMB와 같은 특수 아이템의 효과를 즉시 적용합니다.
-     * - WEIGHT: 현재 위치에서 보드의 바닥까지, 너비 4칸 영역을 모두 비웁니다.
-     * - BOMB: 현재 위치를 중심으로 6x6 영역을 모두 비웁니다.
-     * 아이템 자체는 일회성으로 간주하여 적용 후 제거합니다.
-     */
-    public void applyWeightAndBombEffects() {
-        // 현재 아이템 스냅샷을 만들어 순회 중 변경으로부터 보호
-        java.util.List<Map.Entry<Integer, ItemBlock>> entries = new java.util.ArrayList<>(itemBoard.entrySet());
-
-        for (Map.Entry<Integer, ItemBlock> entry : entries) {
-            int key = entry.getKey();
-            int row = key / WIDTH;
-            int col = key % WIDTH;
-            ItemBlock item = entry.getValue();
-
-            if (item == ItemBlock.WEIGHT) {
-                applyWeightEffect(row, col);
-                // 일회성 처리 후 제거
-                itemBoard.remove(key);
-            } else if (item == ItemBlock.BOMB) {
-                applyBombEffect(row, col);
-                itemBoard.remove(key);
-            }
-        }
-    }
-
-    // WEIGHT 아이템 효과: (row, col)에서 시작해 바닥까지, 가로 4칸 영역을 모두 비움
-    private void applyWeightEffect(int startRow, int startCol) {
-        int endRow = HEIGHT + BUFFER_ZONE - 1;
-        int left = Math.max(0, startCol);
-        int right = Math.min(WIDTH - 1, startCol + 3); // 너비 4칸
-
-        for (int r = Math.max(0, startRow); r <= endRow; r++) {
-            for (int c = left; c <= right; c++) {
-                board[r][c] = 0;
-                itemBoard.remove(toKey(r, c));
-            }
-        }
-    }
-
     // BOMB 아이템 효과: (row, col) 중심의 6x6 영역을 모두 비움
     private void applyBombEffect(int centerRow, int centerCol) {
         // 중심의 2x2가 가운데 놓이도록 위로 2칸, 아래로 3칸 (총 6)
@@ -183,18 +142,13 @@ public class ItemGameBoard extends GameBoard {
         applyBombEffect(topLeftRowOf2x2, topLeftColOf2x2);
     }
 
-    // WEIGHT 단계적 제거: startRow부터 stepRows만큼, 가로 4칸 영역을 비움
-    public void clearWeightStep(int startRow, int startCol, int stepRows) {
-        int endRow = Math.min(HEIGHT + BUFFER_ZONE - 1, startRow + stepRows - 1);
-        int left = Math.max(0, startCol);
-        int right = Math.min(WIDTH - 1, startCol + 3);
-        if (endRow < 0 || left > right) return;
-
-        for (int r = Math.max(0, startRow); r <= endRow; r++) {
-            for (int c = left; c <= right; c++) {
-                board[r][c] = 0;
-                itemBoard.remove(toKey(r, c));
-            }
+    // WEIGHT 단계적 제거: startRow 가로 4칸 영역을 비움
+    public void clearWeightStep(int startRow, int startCol) {
+        int left = startCol;
+        int right = startCol + 3;
+        for (int c = left; c <= right; c++) {
+            board[startRow][c] = 0;
+            itemBoard.remove(toKey(startRow, c));
         }
     }
 

@@ -160,7 +160,7 @@ public class TetrominoPosition {
             {1,1,1,1}
         };
         p.rotationLocked = true;
-        p.customColor = javafx.scene.paint.Color.DARKGRAY;
+        p.customColor = javafx.scene.paint.Color.GOLD;
         p.specialKind = SpecialKind.WEIGHT;
         return p;
     }
