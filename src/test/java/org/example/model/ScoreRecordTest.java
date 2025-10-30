@@ -71,7 +71,7 @@ class ScoreRecordTest {
     
     @Test
     @DisplayName("setPlayerName - 플레이어 이름 설정")
-    void testSetPlayerName() {
+    void testPlayerName() {
         ScoreRecord record = new ScoreRecord(500, 5, 3, 1);
         assertEquals("", record.getPlayerName());
         
