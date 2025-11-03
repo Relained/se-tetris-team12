@@ -231,7 +231,7 @@ public class ScoreboardView extends BaseView {
         Font font = Font.font("Courier New", 13);
         
         // Highlight가 활성화된 경우 새로 추가된 점수에 밑줄 적용
-        if (showNewlyAddedHighlight && record.isNewlyAdded()) {
+        if (showNewlyAddedHighlight && record.isNewAndEligible()) {
             font = Font.font("Courier New", FontWeight.BOLD, 13);
             rankText.setUnderline(true);
             nameText.setUnderline(true);

@@ -16,22 +16,17 @@ public class ScoreRecord implements Serializable, Comparable<ScoreRecord> {
     private int difficulty;
     private GameMode gameMode; // 게임 모드 추가
     private LocalDateTime playDate;
-    private transient boolean isNewlyAdded = false; // transient로 직렬화에서 제외
+    private transient boolean isNewAndEligible = false; // transient로 직렬화에서 제외
 
-    public ScoreRecord(int score, int lines, int level, int difficulty, GameMode gameMode) {
+    public ScoreRecord(int score, int lines, int level, int difficulty, GameMode gameMode, boolean isNewAndEligible) {
         this.playerName = "";
         this.score = score;
         this.lines = lines;
         this.level = level;
         this.difficulty = difficulty;
+        this.isNewAndEligible = isNewAndEligible; //new 여도 not Eligible 이면 의미가 없음. 따라서 생성 때 Eligible 여부도 합쳐서 저장
         this.gameMode = gameMode != null ? gameMode : GameMode.NORMAL; // null 방지
         this.playDate = LocalDateTime.now();
-        this.isNewlyAdded = true; // 생성 시에는 새로운 점수로 설정
-    }
-    
-    // 하위 호환성을 위한 생성자 (기존 코드 지원)
-    public ScoreRecord(int score, int lines, int level, int difficulty) {
-        this(score, lines, level, difficulty, GameMode.NORMAL);
     }
 
     // Getters
@@ -42,10 +37,10 @@ public class ScoreRecord implements Serializable, Comparable<ScoreRecord> {
     public int getDifficulty() { return difficulty; }
     public GameMode getGameMode() { return gameMode; }
     public LocalDateTime getPlayDate() { return playDate; }
-    public boolean isNewlyAdded() { return isNewlyAdded; }
+    public boolean isNewAndEligible() { return isNewAndEligible; }
     
     // Setter for newly added flag
-    public void setNewlyAdded(boolean newlyAdded) { this.isNewlyAdded = newlyAdded; }
+    public void setNewAndEligible(boolean newlyAdded) { this.isNewAndEligible = newlyAdded; }
 
     // Setter for player name (to fill after game over)
     public void setPlayerName(String playerName) { this.playerName = playerName; }

@@ -16,10 +16,10 @@ public class PauseState extends BaseState {
     private PauseView pauseView;
     private PauseController controller;
     
-    public PauseState(StateManager stateManager) {
+    public PauseState(StateManager stateManager, Runnable gamePlayResetCallback) {
         super(stateManager);
         pauseView = new PauseView();
-        controller = new PauseController(stateManager, pauseView);
+        controller = new PauseController(stateManager, pauseView, gamePlayResetCallback);
     }
 
     @Override

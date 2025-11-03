@@ -5,7 +5,6 @@ import javafx.scene.input.KeyEvent;
 import org.example.model.GameMode;
 import org.example.service.StateManager;
 import org.example.state.DifficultyState;
-import org.example.state.GameModeState;
 import org.example.view.GameModeView;
 
 /**

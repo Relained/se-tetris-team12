@@ -53,10 +53,10 @@ public class ScoreboardState extends BaseState {
     private NavigableButtonSystem notEligibleButtonSystem;
 
     // 게임 끝나고 점수 입력 확인 절차 거치는 생성자
-    public ScoreboardState(StateManager stateManager, ScoreRecord record, boolean isEligible) {
+    public ScoreboardState(StateManager stateManager, ScoreRecord record) {
         super(stateManager);
         this.record = record;
-        if (isEligible) {
+        if (record.isNewAndEligible()) {
             this.currentMode = Mode.INPUT;
         } else {
             this.currentMode = Mode.NOT_ELIGIBLE;
@@ -64,11 +64,11 @@ public class ScoreboardState extends BaseState {
     }
 
     // 단순히 스코어보드 보여주는 생성자
-    public ScoreboardState(StateManager stateManager) {
+    public ScoreboardState(StateManager stateManager, boolean scoreWasSubmitted) {
         super(stateManager);
         this.currentMode = Mode.SCOREBOARD;
         this.isAfterGamePlay = false;
-        this.scoreWasSubmitted = false;
+        this.scoreWasSubmitted = scoreWasSubmitted;
     }
 
     // 점수 입력 절차 끝나고 스코어보드 화면으로 전환하는 메서드
@@ -153,7 +153,7 @@ public class ScoreboardState extends BaseState {
         notEligibleButtonSystem = new NavigableButtonSystem();
         var gameOverButton = notEligibleButtonSystem.createNavigableButton("Continue", () -> {
             currentMode = Mode.SCOREBOARD;
-            stateManager.setState("gameover");
+            stateManager.setState(new GameOverState(stateManager, record));
         });
         
         messageBox.getChildren().addAll(messageText, scoreText, gameOverButton);
@@ -162,7 +162,7 @@ public class ScoreboardState extends BaseState {
         scene = new Scene(root, 800, 600);
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
-                stateManager.setState("gameover");
+                stateManager.setState(new GameOverState(stateManager, record));
             } else {
                 notEligibleButtonSystem.handleInput(event);
             }
@@ -176,7 +176,7 @@ public class ScoreboardState extends BaseState {
 
     private Scene createScoreboardScene() {
         scoreboardView = new ScoreboardView(scoreWasSubmitted, isAfterGamePlay);
-        scoreboardController = new ScoreboardController(stateManager, scoreboardView, isAfterGamePlay);
+        scoreboardController = new ScoreboardController(stateManager, scoreboardView, isAfterGamePlay, record);
         
         BorderPane root = scoreboardView.createView(
             () -> scoreboardController.handleGoBack(),
@@ -193,14 +193,5 @@ public class ScoreboardState extends BaseState {
         scene.getRoot().requestFocus();
 
         return scene;
-    }
-
-    // Getters for score information
-    public int getFinalScore() { return record.getScore(); }
-    public int getFinalLines() { return record.getLines(); }
-    public int getFinalLevel() { return record.getLevel(); }
-
-    public Mode getCurrentMode() {
-        return currentMode;
     }
 }

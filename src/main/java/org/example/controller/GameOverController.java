@@ -2,7 +2,11 @@ package org.example.controller;
 
 import javafx.scene.input.KeyEvent;
 
+import org.example.model.ScoreRecord;
 import org.example.service.StateManager;
+import org.example.state.PlayState;
+import org.example.state.ScoreboardState;
+import org.example.state.StartState;
 import org.example.view.GameOverView;
 
 /**
@@ -12,17 +16,19 @@ public class GameOverController {
     
     private StateManager stateManager;
     private GameOverView gameOverView;
+    private ScoreRecord record;
     
-    public GameOverController(StateManager stateManager, GameOverView gameOverView) {
+    public GameOverController(StateManager stateManager, GameOverView gameOverView, ScoreRecord record) {
         this.stateManager = stateManager;
         this.gameOverView = gameOverView;
+        this.record = record;
     }
 
     /**
      * Play Again 버튼 클릭 시 처리 - 게임을 다시 시작
      */
     public void handlePlayAgain() {
-        stateManager.setState("play");
+        stateManager.setState(new PlayState(stateManager, record.getGameMode(), record.getDifficulty()));
     }
     
     /**
@@ -30,15 +36,14 @@ public class GameOverController {
      * 점수가 제출되었다면 하이라이트 표시
      */
     public void handleViewScoreboard() {
-        // 상태가 저장돼있어서 전환만 하면 됨
-        stateManager.stackState("scoreboard");
+        stateManager.stackState(new ScoreboardState(stateManager, record.isNewAndEligible()));
     }
     
     /**
      * Main Menu 버튼 클릭 시 처리 - 시작 화면으로 이동
      */
     public void handleMainMenu() {
-        stateManager.setState("start");
+        stateManager.setState(new StartState(stateManager));
     }
     
     /**

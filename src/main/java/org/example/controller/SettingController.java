@@ -3,6 +3,9 @@ package org.example.controller;
 import javafx.scene.input.KeyEvent;
 
 import org.example.service.StateManager;
+import org.example.state.ColorSettingState;
+import org.example.state.DisplaySettingState;
+import org.example.state.KeySettingState;
 import org.example.view.SettingView;
 
 /**
@@ -22,7 +25,7 @@ public class SettingController {
      * Screen Size 버튼 클릭 시 처리 - 화면 크기 설정 화면으로 이동
      */
     public void handleScreenSize() {
-        stateManager.stackState("display_setting");
+        stateManager.stackState(new DisplaySettingState(stateManager));
     }
     
     /**
@@ -30,14 +33,14 @@ public class SettingController {
      * 키 설정 화면으로 이동
      */
     public void handleControls() {
-        stateManager.stackState("key_setting");
+        stateManager.stackState(new KeySettingState(stateManager));
     }
     
     /**
      * Color Blind Setting 버튼 클릭 시 처리 - 색상 블라인드 설정 화면으로 이동
      */
     public void handleColorBlindSetting() {
-        stateManager.stackState("color_setting");
+        stateManager.stackState(new ColorSettingState(stateManager));
     }
     
     /**

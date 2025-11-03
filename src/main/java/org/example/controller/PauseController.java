@@ -3,7 +3,10 @@ package org.example.controller;
 import javafx.scene.input.KeyEvent;
 
 import org.example.service.StateManager;
+import org.example.state.SettingState;
+import org.example.state.StartState;
 import org.example.view.PauseView;
+
 
 /**
  * PauseState의 입력을 처리하는 Controller
@@ -12,10 +15,12 @@ public class PauseController {
     
     private StateManager stateManager;
     private PauseView pauseView;
+    private Runnable gamePlayResetCallback;
     
-    public PauseController(StateManager stateManager, PauseView pauseView) {
+    public PauseController(StateManager stateManager, PauseView pauseView, Runnable gamePlayResetCallback) {
         this.stateManager = stateManager;
         this.pauseView = pauseView;
+        this.gamePlayResetCallback = gamePlayResetCallback;
     }
     
     /**
@@ -29,21 +34,22 @@ public class PauseController {
      * Restart 버튼 클릭 시 처리 - 현재 게임 모드로 재시작
      */
     public void handleRestart() {
-        stateManager.setState("play");
+        gamePlayResetCallback.run();
+        stateManager.popState();
     }
     
     /**
      * Settings 버튼 클릭 시 처리 - 설정 화면으로 이동
      */
     public void handleSettings() {
-        stateManager.stackState("setting");
+        stateManager.stackState(new SettingState(stateManager));
     }
     
     /**
      * Main Menu 버튼 클릭 시 처리 - 메인 메뉴로 이동
      */
     public void handleMainMenu() {
-        stateManager.setState("start");
+        stateManager.setState(new StartState(stateManager));
     }
 
     public void handleExit() {

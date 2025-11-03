@@ -2,8 +2,10 @@ package org.example.controller;
 
 import javafx.scene.input.KeyEvent;
 
+import org.example.model.ScoreRecord;
 import org.example.service.ScoreManager;
 import org.example.service.StateManager;
+import org.example.state.GameOverState;
 import org.example.view.ScoreboardView;
 
 /**
@@ -14,19 +16,21 @@ public class ScoreboardController {
     private StateManager stateManager;
     private ScoreboardView scoreboardView;
     private boolean isAfterGamePlay;
+    private ScoreRecord record;
     
     // 일반 조회용 생성자
-    public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView, boolean isAfterGamePlay) {
+    public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView, boolean isAfterGamePlay, ScoreRecord record) {
         this.stateManager = stateManager;
         this.scoreboardView = scoreboardView;
         this.isAfterGamePlay = isAfterGamePlay;
+        this.record = record;
     }
     
     /**
      * Go Back 버튼 클릭 시 처리
      */
     public void handleGoBack() {
-        if (isAfterGamePlay) stateManager.setState("gameover");
+        if (isAfterGamePlay) stateManager.setState(new GameOverState(stateManager, record));
         else stateManager.popState();
     }
     

@@ -5,6 +5,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import org.example.controller.GameOverController;
+import org.example.model.ScoreRecord;
 import org.example.service.StateManager;
 import org.example.view.GameOverView;
 
@@ -20,13 +21,13 @@ public class GameOverState extends BaseState {
     private int lines;
     private int level;
 
-    public GameOverState(StateManager stateManager, int score, int lines, int level) {
+    public GameOverState(StateManager stateManager, ScoreRecord record) {
         super(stateManager);
         gameOverView = new GameOverView();
-        controller = new GameOverController(stateManager, gameOverView);
-        this.score = score;
-        this.lines = lines;
-        this.level = level;
+        controller = new GameOverController(stateManager, gameOverView, record);
+        this.score = record.getScore();
+        this.lines = record.getLines();
+        this.level = record.getLevel();
     }
 
     @Override

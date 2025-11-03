@@ -19,20 +19,21 @@ public class PlayState extends BaseState {
     
     private PlayView playView;
     private PlayController controller;
-    private TetrisSystem tetrisSystem;
     private AnimationTimer gameTimer;
 
     public PlayState(StateManager stateManager, GameMode gameMode, int difficulty) {
         super(stateManager);
-        playView = new PlayView();
-        controller = new PlayController(stateManager, playView, tetrisSystem, gameMode);
-
+        TetrisSystem tetrisSystem;
+        
         if (gameMode == GameMode.ITEM) {
             tetrisSystem = new ItemTetrisSystem();
         } else {
             tetrisSystem = new TetrisSystem();
         }
         tetrisSystem.setDifficulty(difficulty);
+
+        playView = new PlayView();
+        controller = new PlayController(stateManager, playView, tetrisSystem, gameMode);
 
         gameTimer = new AnimationTimer() {
             @Override
@@ -45,21 +46,16 @@ public class PlayState extends BaseState {
 
     @Override
     public void exit() {
-        if (gameTimer != null) {
-            gameTimer.stop();
-        }
+        gameTimer.stop();
     }
 
     @Override
     public void resume() {
-        if (gameTimer != null) {
-            gameTimer.start();
-        }
+        gameTimer.start();
     }
 
     @Override
     public Scene createScene() {
-        tetrisSystem.reset();
         // View로부터 UI 구성 요소를 받아옴
         HBox root = playView.createView();
 

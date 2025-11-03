@@ -9,6 +9,7 @@ import org.example.model.KeyData;
 import org.example.service.StateManager;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
+import org.example.state.PauseState;
 import org.example.state.ScoreboardState;
 import org.example.service.ScoreManager;
 import org.example.view.PlayView;
@@ -18,16 +19,16 @@ import org.example.model.ScoreRecord;
  * PlayState의 게임 로직과 입력을 처리하는 Controller
  */
 public class PlayController {
-    
+
     private StateManager stateManager;
     private PlayView playView;
     private TetrisSystem tetrisSystem;
     private GameMode gameMode;
-    
+
     private long lastDropTime;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
-    
+
     public PlayController(StateManager stateManager, PlayView playView, TetrisSystem tetrisSystem, GameMode gameMode) {
         this.stateManager = stateManager;
         this.playView = playView;
@@ -35,13 +36,11 @@ public class PlayController {
         this.gameMode = gameMode;
         this.lastDropTime = System.currentTimeMillis();
     }
-    
+
     /**
      * 게임 업데이트 로직
      */
     public void update(double deltaTime) {
-        if (tetrisSystem == null) return;
-
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastDropTime >= tetrisSystem.getDropInterval()) {
             tetrisSystem.update();
@@ -59,17 +58,16 @@ public class PlayController {
             handleGameOver();
         }
     }
-    
+
     /**
      * 화면 업데이트
      */
     private void updateDisplay() {
-        if (playView != null && tetrisSystem != null) {
-            // Calculate ghost piece position
-            var ghostPiece = tetrisSystem.getCurrentPiece() != null ?
-                    SuperRotationSystem.hardDrop(tetrisSystem.getCurrentPiece(), tetrisSystem.getBoard()) : null;
+        var ghostPiece = tetrisSystem.getCurrentPiece() != null
+                ? SuperRotationSystem.hardDrop(tetrisSystem.getCurrentPiece(), tetrisSystem.getBoard())
+                : null;
 
-            playView.updateDisplay(
+        playView.updateDisplay(
                 tetrisSystem.getBoard(),
                 tetrisSystem.getCurrentPiece(),
                 ghostPiece,
@@ -77,11 +75,10 @@ public class PlayController {
                 tetrisSystem.getNextQueue(),
                 tetrisSystem.getScore(),
                 tetrisSystem.getLines(),
-                tetrisSystem.getLevel()
-            );
-        }
+                tetrisSystem.getLevel());
+
     }
-    
+
     /**
      * 키 입력 처리 - 키가 눌렸을 때
      */
@@ -93,19 +90,20 @@ public class PlayController {
         handleInputs();
         justPressedKeys.clear();
     }
-    
+
     /**
      * 키 입력 처리 - 키가 떼어졌을 때
      */
     public void handleKeyReleased(KeyCode key) {
         pressedKeys.remove(key);
     }
-    
+
     /**
      * 입력에 따른 게임 로직 실행
      */
     private void handleInputs() {
-        if (tetrisSystem == null || tetrisSystem.isGameOver()) return;
+        if (tetrisSystem == null || tetrisSystem.isGameOver())
+            return;
 
         // SettingManager를 통해 최신 키 설정 가져오기
         KeyData data = stateManager.settingManager.getCurrentSettings().controlData;
@@ -136,37 +134,35 @@ public class PlayController {
             }
         }
     }
-    
+
     /**
      * 일시정지 처리
      */
     public void handlePause() {
-        stateManager.stackState("pause");
+        stateManager.stackState(new PauseState(stateManager, () -> tetrisSystem.reset()));
     }
-    
+
     /**
      * 게임 오버 처리
      */
     public void handleGameOver() {
         // Controller가 점수 저장 자격 확인 후 ScoreboardState 생성
         boolean isEligible = ScoreManager.getInstance()
-            .isScoreEligibleForSaving(tetrisSystem.getScore());
+                .isScoreEligibleForSaving(tetrisSystem.getScore());
 
-        ScoreRecord record = new ScoreRecord(tetrisSystem.getScore(), tetrisSystem.getLines(), 
-            tetrisSystem.getLevel(), tetrisSystem.getDifficulty(), gameMode);
+        ScoreRecord record = new ScoreRecord(tetrisSystem.getScore(), tetrisSystem.getLines(),
+                tetrisSystem.getLevel(), tetrisSystem.getDifficulty(), gameMode, isEligible);
 
-        ScoreboardState scoreboardState = new ScoreboardState(stateManager, record, isEligible);
-        stateManager.addState("scoreboard", scoreboardState);
-        stateManager.setState("scoreboard");
+        stateManager.setState(new ScoreboardState(stateManager, record));
     }
-    
+
     /**
      * 게임 로직 반환
      */
     public TetrisSystem getGameLogic() {
         return tetrisSystem;
     }
-    
+
     /**
      * lastDropTime 리셋
      */

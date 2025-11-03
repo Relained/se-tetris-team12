@@ -2,7 +2,9 @@ package org.example.view.component;
 
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyEvent;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class NavigableButtonSystem {
     private ArrayList<Button> buttons;
@@ -12,13 +14,16 @@ public class NavigableButtonSystem {
         buttons = new ArrayList<>();
     }
 
-    public void resetSystem() {
-        buttons.clear();
-        selectedButtonIndex = 0;
-    }
-
-    public ArrayList<Button> getButtons() {
-        return buttons;
+    public ArrayList<Button> createNavigableButtonFromList(List<String> texts, List<Runnable> actions) {
+        if (texts.size() != actions.size()) {
+            throw new IllegalArgumentException("Texts and actions lists must have the same size.");
+        }
+        ArrayList<Button> createdButtons = new ArrayList<>();
+        for (int i = 0; i < texts.size(); i++) {
+            Button button = createNavigableButton(texts.get(i), actions.get(i));
+            createdButtons.add(button);
+        }
+        return createdButtons;
     }
 
     public Button createNavigableButton(String text, Runnable action) {

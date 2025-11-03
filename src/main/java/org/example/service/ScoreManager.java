@@ -42,7 +42,7 @@ public class ScoreManager {
         
         // Mark all existing scores as not newly added
         for (ScoreRecord existingRecord : scores) {
-            existingRecord.setNewlyAdded(false);
+            existingRecord.setNewAndEligible(false);
         }
         
         scores.add(record);
@@ -155,7 +155,7 @@ public class ScoreManager {
                 
                 // 로드된 점수들은 모두 newlyAdded를 false로 설정 (highlight 방지)
                 for (ScoreRecord record : scores) {
-                    record.setNewlyAdded(false);
+                    record.setNewAndEligible(false);
                 }
             } catch (IOException | ClassNotFoundException e) {
                 // 로드 실패 시 빈 리스트로 초기화 (파일 손상 등)
