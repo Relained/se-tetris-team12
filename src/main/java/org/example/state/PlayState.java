@@ -19,31 +19,21 @@ public class PlayState extends BaseState {
     
     private PlayView playView;
     private PlayController controller;
-    private TetrisSystem gameLogic;
+    private TetrisSystem tetrisSystem;
     private AnimationTimer gameTimer;
-    private GameMode gameMode;
 
-    public PlayState(StateManager stateManager) {
+    public PlayState(StateManager stateManager, GameMode gameMode, int difficulty) {
         super(stateManager);
-    }
-    
-    @Override
-    public void enter() {
-        BaseState previousState = stateManager.getCurrentState();
-        if (previousState instanceof DifficultyState playState) {
-            gameMode = playState.getGameMode();
-            if (gameMode == GameMode.ITEM) {
-                gameLogic = new ItemTetrisSystem();
-            } else {
-                gameLogic = new TetrisSystem();
-            }
-            gameLogic.setDifficulty(playState.getDifficulty());
-        }
-        
         playView = new PlayView();
-        controller = new PlayController(stateManager, playView, gameLogic, gameMode);
+        controller = new PlayController(stateManager, playView, tetrisSystem, gameMode);
 
-        // 게임 루프 시작
+        if (gameMode == GameMode.ITEM) {
+            tetrisSystem = new ItemTetrisSystem();
+        } else {
+            tetrisSystem = new TetrisSystem();
+        }
+        tetrisSystem.setDifficulty(difficulty);
+
         gameTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
@@ -69,7 +59,7 @@ public class PlayState extends BaseState {
 
     @Override
     public Scene createScene() {
-        gameLogic.reset();
+        tetrisSystem.reset();
         // View로부터 UI 구성 요소를 받아옴
         HBox root = playView.createView();
 
@@ -93,12 +83,5 @@ public class PlayState extends BaseState {
         scene.getRoot().requestFocus();
 
         return scene;
-    }
-
-    /**
-     * GameOverState에서 최종 점수를 가져오기 위한 메서드
-     */
-    public TetrisSystem getGameLogic() {
-        return gameLogic;
     }
 }

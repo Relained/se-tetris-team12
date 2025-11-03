@@ -18,11 +18,6 @@ public class PauseState extends BaseState {
     
     public PauseState(StateManager stateManager) {
         super(stateManager);
-    }
-
-    @Override
-    public void enter() {
-        // State 진입 시 View와 Controller 초기화
         pauseView = new PauseView();
         controller = new PauseController(stateManager, pauseView);
     }

@@ -18,11 +18,6 @@ public class SettingState extends BaseState {
     
     public SettingState(StateManager stateManager) {
         super(stateManager);
-    }
-
-    @Override
-    public void enter() {
-        // State 진입 시 View와 Controller 초기화
         settingView = new SettingView();
         controller = new SettingController(stateManager, settingView);
     }

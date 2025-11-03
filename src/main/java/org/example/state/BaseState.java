@@ -11,7 +11,6 @@ public abstract class BaseState {
         this.stateManager = stateManager;
     }
 
-    public abstract void enter();
     public abstract void exit();
     public abstract Scene createScene();
     public abstract void resume();

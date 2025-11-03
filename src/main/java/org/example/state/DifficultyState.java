@@ -16,22 +16,11 @@ public class DifficultyState extends BaseState {
 
     private DifficultyView difficultyView;
     private DifficultyController controller;
-    private GameMode gameMode;
 
-    public DifficultyState(StateManager stateManager) {
+    public DifficultyState(StateManager stateManager, GameMode gameMode) {
         super(stateManager);
-    }
-
-    @Override
-    public void enter() {
-        // State 진입 시 View와 Controller 초기화
         difficultyView = new DifficultyView();
-        controller = new DifficultyController(stateManager, difficultyView);
-
-        BaseState previousState = stateManager.getCurrentState();
-        if (previousState instanceof GameModeState gameModeState) {
-            gameMode = gameModeState.getGameMode();
-        }
+        controller = new DifficultyController(stateManager, difficultyView, gameMode);
     }
 
     @Override
@@ -67,13 +56,5 @@ public class DifficultyState extends BaseState {
         scene.getRoot().requestFocus();
 
         return scene;
-    }
-
-    public int getDifficulty() {
-        return controller.getDifficulty();
-    }
-
-    public GameMode getGameMode() {
-        return gameMode;
     }
 }

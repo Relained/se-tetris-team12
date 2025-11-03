@@ -32,7 +32,7 @@ public class PlayController {
         this.stateManager = stateManager;
         this.playView = playView;
         this.tetrisSystem = tetrisSystem;
-        this.gameMode = gameMode != null ? gameMode : GameMode.NORMAL;
+        this.gameMode = gameMode;
         this.lastDropTime = System.currentTimeMillis();
     }
     

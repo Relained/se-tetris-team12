@@ -20,11 +20,6 @@ public class DisplaySettingState extends BaseState {
 
     public DisplaySettingState(StateManager stateManager) {
         super(stateManager);
-    }
-
-    @Override
-    public void enter() {
-        // State 진입 시 View와 Controller 초기화
         displaySettingView = new DisplaySettingView();
         controller = new DisplaySettingController(stateManager, displaySettingView);
     }

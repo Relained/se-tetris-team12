@@ -4,7 +4,6 @@ import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 
 import org.example.controller.GameModeController;
-import org.example.model.GameMode;
 import org.example.service.StateManager;
 import org.example.view.GameModeView;
 
@@ -15,10 +14,6 @@ public class GameModeState extends BaseState {
 
 	public GameModeState(StateManager stateManager) {
 		super(stateManager);
-	}
-
-	@Override
-	public void enter() {
 		view = new GameModeView();
 		controller = new GameModeController(stateManager, view);
 	}
@@ -48,8 +43,4 @@ public class GameModeState extends BaseState {
 		scene.getRoot().requestFocus();
 		return scene;
 	}
-
-    public GameMode getGameMode() {
-        return controller.getSelectedGameMode();
-    }
 }

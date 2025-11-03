@@ -4,6 +4,8 @@ import javafx.scene.input.KeyEvent;
 
 import org.example.model.GameMode;
 import org.example.service.StateManager;
+import org.example.state.DifficultyState;
+import org.example.state.GameModeState;
 import org.example.view.GameModeView;
 
 /**
@@ -13,7 +15,6 @@ public class GameModeController {
 
     private final StateManager stateManager;
     private final GameModeView view;
-    private GameMode gameMode;
 
     public GameModeController(StateManager stateManager, GameModeView view) {
         this.stateManager = stateManager;
@@ -21,13 +22,11 @@ public class GameModeController {
     }
 
     public void handleNormal() {
-        gameMode = GameMode.NORMAL;
-        stateManager.stackState("difficulty");
+        stateManager.stackState(new DifficultyState(stateManager, GameMode.NORMAL));
     }
 
     public void handleItem() {
-        gameMode = GameMode.ITEM;
-        stateManager.stackState("difficulty");
+        stateManager.stackState(new DifficultyState(stateManager, GameMode.ITEM));
     }
 
     public void handleGoBack() {
@@ -36,9 +35,5 @@ public class GameModeController {
 
     public void handleKeyInput(KeyEvent event) {
         view.getButtonSystem().handleInput(event);
-    }
-
-    public GameMode getSelectedGameMode() {
-        return gameMode;
     }
 }

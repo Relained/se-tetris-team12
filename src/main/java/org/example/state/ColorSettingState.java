@@ -20,11 +20,6 @@ public class ColorSettingState extends BaseState {
     
     public ColorSettingState(StateManager stateManager) {
         super(stateManager);
-    }
-
-    @Override
-    public void enter() {
-        // State 진입 시 View와 Controller 초기화
         colorSettingView = new ColorSettingView();
         controller = new ColorSettingController(stateManager, colorSettingView);
     }

@@ -18,11 +18,6 @@ public class StartState extends BaseState {
     
     public StartState(StateManager stateManager) {
         super(stateManager);
-    }
-
-    @Override
-    public void enter() {
-        // State 진입 시 View와 Controller 초기화
         startView = new StartView();
         controller = new StartController(stateManager, startView);
     }

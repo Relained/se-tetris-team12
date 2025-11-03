@@ -81,11 +81,6 @@ public class ScoreboardState extends BaseState {
     }
 
     @Override
-    public void enter() {
-        // Mode별 초기화는 createScene에서 수행
-    }
-
-    @Override
     public void exit() {
         isAfterGamePlay = false;
     }

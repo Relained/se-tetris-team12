@@ -16,27 +16,17 @@ public class GameOverState extends BaseState {
     
     private GameOverView gameOverView;
     private GameOverController controller;
-    private int finalScore;
-    private int finalLines;
-    private int finalLevel;
+    private int score;
+    private int lines;
+    private int level;
 
-    public GameOverState(StateManager stateManager) {
+    public GameOverState(StateManager stateManager, int score, int lines, int level) {
         super(stateManager);
-    }
-
-    @Override
-    public void enter() {
-        // Get final game stats from the previous play state only if not already set
-        BaseState previousState = stateManager.getCurrentState();
-        if (previousState instanceof ScoreboardState scoreboardState) {
-            finalScore = scoreboardState.getFinalScore();
-            finalLines = scoreboardState.getFinalLines();
-            finalLevel = scoreboardState.getFinalLevel();
-        }
-        
-        // State 진입 시 View와 Controller 초기화
         gameOverView = new GameOverView();
         controller = new GameOverController(stateManager, gameOverView);
+        this.score = score;
+        this.lines = lines;
+        this.level = level;
     }
 
     @Override
@@ -54,9 +44,9 @@ public class GameOverState extends BaseState {
         // View로부터 UI 구성 요소를 받아옴
         // Controller의 핸들러를 콜백으로 전달
         VBox root = gameOverView.createView(
-            finalScore,
-            finalLines,
-            finalLevel,
+            score,
+            lines,
+            level,
             () -> controller.handlePlayAgain(),       // Play Again 버튼
             () -> controller.handleViewScoreboard(),  // View Scoreboard 버튼
             () -> controller.handleMainMenu(),        // Main Menu 버튼

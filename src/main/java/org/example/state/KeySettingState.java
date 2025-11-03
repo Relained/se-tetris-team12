@@ -19,11 +19,6 @@ public class KeySettingState extends BaseState {
     
     public KeySettingState(StateManager stateManager) {
         super(stateManager);
-    }
-
-    @Override
-    public void enter() {
-        // State 진입 시 View와 Controller 초기화
         keySettingView = new KeySettingView();
         controller = new KeySettingController(stateManager, keySettingView);
     }

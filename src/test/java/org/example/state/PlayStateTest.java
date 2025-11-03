@@ -124,13 +124,13 @@ class PlayStateTest extends ApplicationTest {
     @DisplayName("getGameLogic() - 게임 로직 반환")
     void testGetGameLogic() {
         state.enter();
-        assertNotNull(state.getGameLogic());
+        assertNotNull(state.getTetrisSystem());
     }
     
     @Test
     @DisplayName("getGameLogic() - enter 전 null 반환")
     void testGetGameLogicBeforeEnter() {
-        assertNull(state.getGameLogic());
+        assertNull(state.getTetrisSystem());
     }
     
     @Test

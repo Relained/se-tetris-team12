@@ -1,6 +1,9 @@
 package org.example.controller;
 
 import org.example.service.StateManager;
+import org.example.state.GameModeState;
+import org.example.state.ScoreboardState;
+import org.example.state.SettingState;
 import org.example.view.StartView;
 
 import javafx.scene.input.KeyEvent;
@@ -22,22 +25,21 @@ public class StartController {
      * Start Game 버튼 클릭 시 처리
      */
     public void handleStartGame() {
-        // 게임 시작 전에 게임 모드 선택 화면으로 이동
-        stateManager.stackState("gamemode");
+        stateManager.stackState(new GameModeState(stateManager));
     }
     
     /**
      * View Scoreboard 버튼 클릭 시 처리
      */
     public void handleViewScoreboard() {
-        stateManager.stackState("scoreboard");
+        stateManager.stackState(new ScoreboardState(stateManager));
     }
 
     /**
      * Setting 버튼 클릭 시 처리
      */
     public void handleSetting() {
-        stateManager.stackState("setting");
+        stateManager.stackState(new SettingState(stateManager));
     }
     
     /**
