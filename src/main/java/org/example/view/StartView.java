@@ -1,5 +1,7 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -36,10 +38,10 @@ public class StartView extends BaseView {
         subtitle.setFill(colorManager.getSecondaryTextColor());
         subtitle.setFont(Font.font("Arial", 16));
 
-    var startButton = buttonSystem.createNavigableButton("Start Game", onStartGame);
-        var scoreboardButton = buttonSystem.createNavigableButton("View Scoreboard", onViewScoreboard);
-        var settingButton = buttonSystem.createNavigableButton("Setting", onSetting);
-        var exitButton = buttonSystem.createNavigableButton("Exit", onExit);
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of("Start Game", "View Scoreboard", "Setting", "Exit"),
+            List.of(onStartGame, onViewScoreboard, onSetting, onExit)
+        );
 
         Text controls = new Text("Controls:\n" +
                 "← → Move\n" +
@@ -51,7 +53,9 @@ public class StartView extends BaseView {
         controls.setFill(colorManager.getSecondaryTextColor());
         controls.setFont(Font.font("Arial", 14));
 
-        root.getChildren().addAll(title, subtitle, startButton, scoreboardButton, settingButton, exitButton, controls);
+        root.getChildren().addAll(title, subtitle);
+        root.getChildren().addAll(created);
+        root.getChildren().add(controls);
 
         return root;
     }

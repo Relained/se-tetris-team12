@@ -1,5 +1,7 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -32,12 +34,13 @@ public class DifficultyView extends BaseView {
         title.setFill(colorManager.getPrimaryTextColor());
         title.setFont(Font.font("Arial", 36));
 
-        var easyButton = buttonSystem.createNavigableButton("Easy", onEasy);
-        var mediumButton = buttonSystem.createNavigableButton("Medium", onMedium);
-        var hardButton = buttonSystem.createNavigableButton("Hard", onHard);
-        var goBackButton = buttonSystem.createNavigableButton("Go Back", onGoBack);
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of("Easy", "Medium", "Hard", "Go Back"),
+            List.of(onEasy, onMedium, onHard, onGoBack)
+        );
 
-        root.getChildren().addAll(title, easyButton, mediumButton, hardButton, goBackButton);
+        root.getChildren().add(title);
+        root.getChildren().addAll(created);
 
         return root;
     }

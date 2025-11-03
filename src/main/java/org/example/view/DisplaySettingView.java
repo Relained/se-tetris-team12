@@ -1,5 +1,7 @@
 package org.example.view;
 
+import java.util.List;
+
 import org.example.model.SettingData.ScreenSize;
 import org.example.service.DisplayManager;
 
@@ -54,21 +56,18 @@ public class DisplaySettingView extends BaseView {
         int largeW = displayManager.getWidth(ScreenSize.LARGE);
         int largeH = displayManager.getHeight(ScreenSize.LARGE);
 
-        var smallButton = buttonSystem.createNavigableButton(
-            String.format("Small (%dx%d)", smallW, smallH), onSmall);
-        var mediumButton = buttonSystem.createNavigableButton(
-            String.format("Medium (%dx%d)", mediumW, mediumH), onMedium);
-        var largeButton = buttonSystem.createNavigableButton(
-            String.format("Large (%dx%d)", largeW, largeH), onLarge);
-        var goBackButton = buttonSystem.createNavigableButton("Go Back", onGoBack);
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of(
+                String.format("Small (%dx%d)", smallW, smallH),
+                String.format("Medium (%dx%d)", mediumW, mediumH),
+                String.format("Large (%dx%d)", largeW, largeH),
+                "Go Back"
+            ),
+            List.of(onSmall, onMedium, onLarge, onGoBack)
+        );
 
         root.getChildren().add(title);
-        root.getChildren().addAll(
-            smallButton,
-            mediumButton,
-            largeButton,
-            goBackButton
-        );
+        root.getChildren().addAll(created);
 
         return root;
     }

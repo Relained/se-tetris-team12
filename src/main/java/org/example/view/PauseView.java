@@ -1,6 +1,5 @@
 package org.example.view;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javafx.geometry.Pos;

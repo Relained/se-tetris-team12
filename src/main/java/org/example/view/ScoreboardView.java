@@ -1,5 +1,7 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,7 +18,6 @@ import javafx.scene.text.Text;
 import org.example.model.ScoreRecord;
 
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 /**
  * Scoreboard 화면의 UI를 담당하는 View 클래스
@@ -163,19 +164,18 @@ public class ScoreboardView extends BaseView {
         VBox buttonPanel = new VBox(15);
         buttonPanel.setAlignment(Pos.CENTER);
         buttonPanel.setPadding(new Insets(30, 0, 40, 0));
-
-        var backButton = buttonSystem.createNavigableButton(
-            afterGamePlay ? "Continue" : "Go Back", 
-            onBackToMenu
-        );
-        backButton.setPrefWidth(200);
         
         // 게임 플레이 후가 아닐 때만 Clear Scores 버튼 추가
         if (!afterGamePlay && onClearScores != null) {
-            var clearButton = buttonSystem.createNavigableButton("Clear Scores", onClearScores);
-            clearButton.setPrefWidth(200);
-            buttonPanel.getChildren().addAll(backButton, clearButton);
+            var created = buttonSystem.createNavigableButtonFromList(
+                List.of("Go Back", "Clear Scores"),
+                List.of(onBackToMenu, onClearScores)
+            );
+            created.forEach(button -> button.setPrefWidth(200));
+            buttonPanel.getChildren().addAll(created);
         } else {
+            var backButton = buttonSystem.createNavigableButton("Go Back", onBackToMenu);
+            backButton.setPrefWidth(200);
             buttonPanel.getChildren().add(backButton);
         }
 

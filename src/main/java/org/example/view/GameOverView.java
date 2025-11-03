@@ -1,5 +1,7 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -43,34 +45,25 @@ public class GameOverView extends BaseView {
         title.setFill(Color.WHITE);
         title.setFont(Font.font("Arial", 42));
 
-        Text scoreText = new Text("Final Score: " + finalScore);
-        scoreText.setFill(Color.LIGHTGRAY);
-        scoreText.setFont(Font.font("Arial", 20));
+        Text scoreText = createText("Final Score: " + finalScore);
+        Text linesText = createText("Lines Cleared: " + finalLines);
+        Text levelText = createText("Level Reached: " + finalLevel);
 
-        Text linesText = new Text("Lines Cleared: " + finalLines);
-        linesText.setFill(Color.LIGHTGRAY);
-        linesText.setFont(Font.font("Arial", 20));
-
-        Text levelText = new Text("Level Reached: " + finalLevel);
-        levelText.setFill(Color.LIGHTGRAY);
-        levelText.setFont(Font.font("Arial", 20));
-
-        var playAgainButton = buttonSystem.createNavigableButton("Play Again", onPlayAgain);
-        var viewScoreboardButton = buttonSystem.createNavigableButton("View Scoreboard", onViewScoreboard);
-        var mainMenuButton = buttonSystem.createNavigableButton("Main Menu", onMainMenu);
-        var exitButton = buttonSystem.createNavigableButton("Exit Game", onExit);
-
-        root.getChildren().addAll(
-                title,
-                scoreText,
-                linesText,
-                levelText,
-                playAgainButton,
-                viewScoreboardButton,
-                mainMenuButton,
-                exitButton
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of("Play Again", "View Scoreboard", "Main Menu", "Exit Game"),
+            List.of(onPlayAgain, onViewScoreboard, onMainMenu, onExit)
         );
 
+        root.getChildren().addAll(title, scoreText, linesText, levelText);
+        root.getChildren().addAll(created);
+
         return root;
+    }
+
+    Text createText(String str) {
+        Text text = new Text(str);
+        text.setFill(Color.LIGHTGRAY);
+        text.setFont(Font.font("Arial", 20));
+        return text;
     }
 }

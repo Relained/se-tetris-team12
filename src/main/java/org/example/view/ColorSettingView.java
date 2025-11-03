@@ -1,5 +1,7 @@
 package org.example.view;
 
+import java.util.List;
+
 import org.example.model.SettingData.ColorBlindMode;
 
 import javafx.geometry.Pos;
@@ -45,20 +47,13 @@ public class ColorSettingView extends BaseView {
         title.setFill(Color.WHITE);
         title.setFont(Font.font("Arial", 36));
 
-        var defaultButton = buttonSystem.createNavigableButton("Default", onDefault);
-        var protanopiaButton = buttonSystem.createNavigableButton("PROTANOPIA", onProtanopia);
-        var deuteranopiaButton = buttonSystem.createNavigableButton("DEUTERANOPIA", onDeuteranopia);
-        var tritanopiaButton = buttonSystem.createNavigableButton("TRITANOPIA", onTritanopia);
-        var goBackButton = buttonSystem.createNavigableButton("Go Back", onGoBack);
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of("Default", "PROTANOPIA", "DEUTERANOPIA", "TRITANOPIA", "Go Back"),
+            List.of(onDefault, onProtanopia, onDeuteranopia, onTritanopia, onGoBack)
+        );
 
         root.getChildren().add(title);
-        root.getChildren().addAll(
-            defaultButton,
-            protanopiaButton,
-            deuteranopiaButton,
-            tritanopiaButton,
-            goBackButton
-        );
+        root.getChildren().addAll(created);
 
         return root;
     }
