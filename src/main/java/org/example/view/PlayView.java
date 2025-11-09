@@ -35,36 +35,42 @@ public class PlayView extends BaseView {
      */
     public HBox createView(String mode, String difficulty) {
         // 메인 컨테이너 (좌우 분할)
-        HBox root = new HBox(5);
+        HBox root = new HBox(20);
         root.setBackground(new Background(
             new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)
         ));
         root.setPadding(new Insets(20));
-
-        // 좌측: 게임 캔버스 영역
-        VBox leftContainer = new VBox();
-        leftContainer.setAlignment(Pos.CENTER);
         
+        // 좌측: 게임 캔버스
         gameCanvas = new TetrisCanvas();
-        leftContainer.getChildren().add(gameCanvas);
+        // 게임 캔버스는 확장되지 않도록 설정
+        HBox.setHgrow(gameCanvas, Priority.NEVER);
         
-        // 우측: 모든 UI 패널들을 VBox로 세로 배치 (Hold, Next, Score 순서)
-        VBox rightContainer = new VBox(5);
+        // 우측: VBox로 상하 분할
+        VBox rightContainer = new VBox(10);
         rightContainer.setAlignment(Pos.TOP_CENTER);
-        rightContainer.setPadding(new Insets(0, 0, 0, 20));
         
-        // Hold, Next, Score 패널들 생성 및 추가
+        // 상단 영역: Hold와 Next
+        VBox topContainer = new VBox(10);
+        topContainer.setAlignment(Pos.TOP_CENTER);
+        
         holdPanel = new HoldPanel();
         nextPanel = new NextPiecePanel();
+        nextPanel.setHorizontalMode(false); // 수직 모드
+        
+        topContainer.getChildren().addAll(holdPanel, nextPanel);
+        VBox.setVgrow(topContainer, Priority.ALWAYS);
+        
+        // 하단 영역: Score
         scorePanel = new ScorePanel(mode, difficulty);
         
-        rightContainer.getChildren().addAll(holdPanel, nextPanel, scorePanel);
+        rightContainer.getChildren().addAll(topContainer, scorePanel);
         
-        // 좌측 영역이 더 많은 공간을 차지하도록 설정
-        HBox.setHgrow(leftContainer, Priority.ALWAYS);
+        // 우측 컨테이너가 나머지 공간을 꽉 채우도록 설정
+        HBox.setHgrow(rightContainer, Priority.ALWAYS);
         
-        root.getChildren().addAll(leftContainer, rightContainer);
-
+        root.getChildren().addAll(gameCanvas, rightContainer);
+        
         return root;
     }
     
@@ -74,16 +80,11 @@ public class PlayView extends BaseView {
     public void updateCanvasSize(Scene scene) {
         if (gameCanvas == null || scene == null) return;
         
-        // 사용 가능한 공간 계산 (여백 고려)
-        double availableWidth = scene.getWidth() * 0.65 - 40; // 좌측 65% 영역에서 여백 제외
-        double availableHeight = scene.getHeight() - 40; // 상하 여백 제외
+        // 사용 가능한 높이 전체를 캔버스에 할당
+        double availableHeight = scene.getHeight() - 40; // 상하 패딩
+        double canvasWidth = availableHeight * 0.5; // 1:2 비율 유지
         
-        // 최소 크기 보장
-        availableWidth = Math.max(300, availableWidth);
-        availableHeight = Math.max(400, availableHeight);
-        
-        // 캔버스 크기를 비율에 맞게 조정
-        gameCanvas.setCanvasSize(availableWidth, availableHeight);
+        gameCanvas.setCanvasSize(canvasWidth, availableHeight);
     }
     
     /**
