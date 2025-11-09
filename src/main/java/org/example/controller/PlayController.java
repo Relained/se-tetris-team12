@@ -10,7 +10,8 @@ import org.example.service.StateManager;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
 import org.example.state.PauseState;
-import org.example.state.ScoreboardState;
+import org.example.state.ScoreInputState;
+import org.example.state.ScoreNotEligibleState;
 import org.example.service.ScoreManager;
 import org.example.view.PlayView;
 import org.example.model.ScoreRecord;
@@ -146,14 +147,21 @@ public class PlayController {
      * 게임 오버 처리
      */
     public void handleGameOver() {
-        // Controller가 점수 저장 자격 확인 후 ScoreboardState 생성
-        boolean isEligible = ScoreManager.getInstance()
-                .isScoreEligibleForSaving(tetrisSystem.getScore());
+        ScoreRecord record = new ScoreRecord(
+            tetrisSystem.getScore(), 
+            tetrisSystem.getLines(),
+            tetrisSystem.getLevel(), 
+            tetrisSystem.getDifficulty(), 
+            gameMode, 
+            ScoreManager.getInstance().isScoreEligibleForSaving(tetrisSystem.getScore())
+        );
 
-        ScoreRecord record = new ScoreRecord(tetrisSystem.getScore(), tetrisSystem.getLines(),
-                tetrisSystem.getLevel(), tetrisSystem.getDifficulty(), gameMode, isEligible);
-
-        stateManager.setState(new ScoreboardState(stateManager, record));
+        // 점수가 상위 10개에 드는지에 따라 다른 State로 전환
+        if (record.isNewAndEligible()) {
+            stateManager.setState(new ScoreInputState(stateManager, record));
+        } else {
+            stateManager.setState(new ScoreNotEligibleState(stateManager, record));
+        }
     }
 
     /**

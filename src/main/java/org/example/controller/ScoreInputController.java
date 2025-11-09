@@ -43,9 +43,7 @@ public class ScoreInputController {
         if (!playerName.isEmpty()) {
             record.setPlayerName(playerName);
             ScoreManager.getInstance().addScore(record);
-            
-            ScoreboardState scoreboardState = (ScoreboardState)stateManager.getCurrentState();
-            scoreboardState.setScoreBoardScene(true);
+            stateManager.setState(new ScoreboardState(stateManager, record));
         }
     }
 
@@ -53,8 +51,8 @@ public class ScoreInputController {
      * Skip 버튼 클릭 시 처리
      */
     public void handleSkip() {
-        ScoreboardState scoreboardState = (ScoreboardState)stateManager.getCurrentState();
-        scoreboardState.setScoreBoardScene(false);
+        record.setNewAndEligible(false); //이 값을 scoreWasSubmitted 용도로 재활용
+        stateManager.setState(new ScoreboardState(stateManager, record));
     }
 
     /**

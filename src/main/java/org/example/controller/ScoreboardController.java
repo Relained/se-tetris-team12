@@ -19,10 +19,17 @@ public class ScoreboardController {
     private ScoreRecord record;
     
     // 일반 조회용 생성자
-    public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView, boolean isAfterGamePlay, ScoreRecord record) {
+    public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView) {
         this.stateManager = stateManager;
         this.scoreboardView = scoreboardView;
-        this.isAfterGamePlay = isAfterGamePlay;
+        isAfterGamePlay = false;
+    }
+
+    // 게임 플레이 후 조회용 생성자
+    public ScoreboardController(StateManager stateManager, ScoreboardView scoreboardView, ScoreRecord record) {
+        this.stateManager = stateManager;
+        this.scoreboardView = scoreboardView;
+        this.isAfterGamePlay = true;
         this.record = record;
     }
     

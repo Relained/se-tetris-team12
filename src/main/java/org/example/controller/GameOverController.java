@@ -33,10 +33,10 @@ public class GameOverController {
     
     /**
      * View Scoreboard 버튼 클릭 시 처리 - 스코어보드로 이동
-     * 점수가 제출되었다면 하이라이트 표시
+     * 점수가 제출되었다면 하이라이트 표시 (record.isNewAndEligible() 참조)
      */
     public void handleViewScoreboard() {
-        stateManager.stackState(new ScoreboardState(stateManager, record.isNewAndEligible()));
+        stateManager.stackState(new ScoreboardState(stateManager, record));
     }
     
     /**
