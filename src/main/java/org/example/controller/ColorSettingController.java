@@ -1,25 +1,43 @@
 package org.example.controller;
 
+import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 
 import org.example.model.SettingData.ColorBlindMode;
-import org.example.service.StateManager;
 import org.example.view.ColorSettingView;
 
 /**
- * ColorSettingState의 색상 설정 처리를 담당하는 Controller
+ * ColorSetting 화면의 색상 설정 처리를 담당하는 Controller
  */
-public class ColorSettingController {
+public class ColorSettingController extends BaseController {
     
-    private StateManager stateManager;
     private ColorSettingView colorSettingView;
     private ColorBlindMode selectedMode;
     
-    public ColorSettingController(StateManager stateManager, ColorSettingView colorSettingView) {
-        this.stateManager = stateManager;
-        this.colorSettingView = colorSettingView;
+    public ColorSettingController() {
+        this.colorSettingView = new ColorSettingView();
         // 현재 설정된 색맹 모드를 가져옴
-        this.selectedMode = stateManager.settingManager.getCurrentSettings().colorBlindMode;
+        this.selectedMode = settingManager.getCurrentSettings().colorBlindMode;
+    }
+
+    @Override
+    protected Scene createScene() {
+        VBox root = colorSettingView.createView(
+            selectedMode,
+            () -> handleDefault(),
+            () -> handleProtanopia(),
+            () -> handleDeuteranopia(),
+            () -> handleTritanopia(),
+            () -> handleGoBack()
+        );
+
+        scene = new Scene(root, 1000, 700);
+        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
+        scene.setOnKeyPressed(event -> handleKeyInput(event));
+        scene.getRoot().setFocusTraversable(true);
+        scene.getRoot().requestFocus();
+        return scene;
     }
     
     /**
@@ -54,7 +72,7 @@ public class ColorSettingController {
      * Go Back 버튼 클릭 시 처리 - 이전 화면으로 복귀
      */
     public void handleGoBack() {
-        stateManager.popState();
+        popState();
     }
     
     /**

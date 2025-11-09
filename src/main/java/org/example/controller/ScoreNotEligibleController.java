@@ -1,4 +1,4 @@
-package org.example.state;
+package org.example.controller;
 
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -12,29 +12,17 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import org.example.model.ScoreRecord;
-import org.example.service.StateManager;
 
 /**
  * 점수가 상위 10개에 들지 못한 경우를 표시하는 State
  * 게임 오버 화면으로 이동할 수 있습니다.
  */
-public class ScoreNotEligibleState extends BaseState {
+public class ScoreNotEligibleController extends BaseController {
     
     final private ScoreRecord record;
 
-    public ScoreNotEligibleState(StateManager stateManager, ScoreRecord record) {
-        super(stateManager);
+    public ScoreNotEligibleController(ScoreRecord record) {
         this.record = record;
-    }
-
-    @Override
-    public void exit() {
-        // Cleanup if needed
-    }
-
-    @Override
-    public void resume() {
-        // Not applicable for not eligible state
     }
 
     @Override
@@ -67,7 +55,7 @@ public class ScoreNotEligibleState extends BaseState {
             if (event.getCode() == javafx.scene.input.KeyCode.ENTER || 
                 event.getCode() == javafx.scene.input.KeyCode.SPACE ||
                 event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
-                stateManager.setState(new GameOverState(stateManager, record));
+                setState(new GameOverController(record));
             }
         });
         

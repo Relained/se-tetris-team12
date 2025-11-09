@@ -1,29 +1,46 @@
 package org.example.controller;
 
+import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
+
 import org.example.model.ScoreRecord;
 import org.example.service.ScoreManager;
-import org.example.service.StateManager;
-import org.example.state.ScoreboardState;
 import org.example.view.ScoreInputView;
 
 /**
  * ScoreInput 화면의 입력을 처리하는 Controller
  */
-public class ScoreInputController {
+public class ScoreInputController extends BaseController {
 
-    private StateManager stateManager;
     private ScoreInputView scoreInputView;
     private ScoreRecord record;
     private int rank;
 
-    public ScoreInputController(StateManager stateManager, ScoreInputView scoreInputView,
-            ScoreRecord record) {
-        this.stateManager = stateManager;
-        this.scoreInputView = scoreInputView;
+    public ScoreInputController(ScoreRecord record) {
+        this.scoreInputView = new ScoreInputView();
         this.record = record;
         this.rank = ScoreManager.getInstance().getScoreRank(record.getScore());
+    }
+
+    @Override
+    protected Scene createScene() {
+        VBox root = scoreInputView.createView(
+            rank,
+            record.getScore(),
+            record.getLines(),
+            record.getLevel(),
+            () -> handleSubmit(),
+            () -> handleSkip()
+        );
+
+        scene = new Scene(root, 1000, 700);
+        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
+        scene.setOnKeyPressed(event -> handleKeyInput(event));
+        scene.getRoot().setFocusTraversable(true);
+        scene.getRoot().requestFocus();
+        return scene;
     }
 
     /**
@@ -43,7 +60,7 @@ public class ScoreInputController {
         if (!playerName.isEmpty()) {
             record.setPlayerName(playerName);
             ScoreManager.getInstance().addScore(record);
-            stateManager.setState(new ScoreboardState(stateManager, record));
+            setState(new ScoreboardController(record));
         }
     }
 
@@ -52,7 +69,7 @@ public class ScoreInputController {
      */
     public void handleSkip() {
         record.setNewAndEligible(false); //이 값을 scoreWasSubmitted 용도로 재활용
-        stateManager.setState(new ScoreboardState(stateManager, record));
+        setState(new ScoreboardController(record));
     }
 
     /**

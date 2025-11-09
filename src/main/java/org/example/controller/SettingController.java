@@ -1,31 +1,54 @@
 package org.example.controller;
 
+import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 
-import org.example.service.StateManager;
-import org.example.state.ColorSettingState;
-import org.example.state.DisplaySettingState;
-import org.example.state.KeySettingState;
 import org.example.view.SettingView;
 
 /**
- * SettingState의 설정 처리를 담당하는 Controller
+ * Setting 화면의 설정 처리를 담당하는 Controller
  */
-public class SettingController {
+public class SettingController extends BaseController {
     
-    private StateManager stateManager;
     private SettingView settingView;
     
-    public SettingController(StateManager stateManager, SettingView settingView) {
-        this.stateManager = stateManager;
-        this.settingView = settingView;
+    public SettingController() {
+        this.settingView = new SettingView();
+    }
+
+    @Override
+    protected Scene createScene() {
+        VBox root = settingView.createView(
+            () -> handleScreenSize(),
+            () -> handleControls(),
+            () -> handleColorBlindSetting(),
+            () -> handleResetScoreBoard(),
+            () -> handleResetAllSetting(),
+            () -> handleGoBack()
+        );
+
+        scene = new Scene(root, 1000, 700);
+        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
+        scene.setOnKeyPressed(event -> handleKeyInput(event));
+        scene.getRoot().setFocusTraversable(true);
+        scene.getRoot().requestFocus();
+        return scene;
+    }
+
+    @Override
+    protected void resume() {
+        // 설정창에서 돌아올 때 색상이 변경되었을 수 있으므로 색상 갱신
+        if (settingView != null) {
+            settingView.refreshColors();
+        }
     }
     
     /**
      * Screen Size 버튼 클릭 시 처리 - 화면 크기 설정 화면으로 이동
      */
     public void handleScreenSize() {
-        stateManager.stackState(new DisplaySettingState(stateManager));
+        stackState(new DisplaySettingController());
     }
     
     /**
@@ -33,29 +56,29 @@ public class SettingController {
      * 키 설정 화면으로 이동
      */
     public void handleControls() {
-        stateManager.stackState(new KeySettingState(stateManager));
+        stackState(new KeySettingController());
     }
     
     /**
      * Color Blind Setting 버튼 클릭 시 처리 - 색상 블라인드 설정 화면으로 이동
      */
     public void handleColorBlindSetting() {
-        stateManager.stackState(new ColorSettingState(stateManager));
+        stackState(new ColorSettingController());
     }
     
     /**
      * Reset Score Board 버튼 클릭 시 처리 - 스코어보드 초기화
      */
     public void handleResetScoreBoard() {
-        stateManager.settingManager.resetScoreboard();
+        settingManager.resetScoreboard();
     }
     
     /**
      * Reset All Setting 버튼 클릭 시 처리 - 모든 설정을 기본값으로 초기화
      */
     public void handleResetAllSetting() {
-        stateManager.settingManager.resetToDefault();
-        stateManager.settingManager.applyColorSetting();
+        settingManager.resetToDefault();
+        settingManager.applyColorSetting();
     }
     
     /**
@@ -63,11 +86,11 @@ public class SettingController {
      */
     public void handleGoBack() {
         // 색상 설정 적용
-        stateManager.settingManager.applyColorSetting();
+        settingManager.applyColorSetting();
         // 설정 데이터 저장
-        stateManager.settingManager.saveSettingData();
+        settingManager.saveSettingData();
         // 이전 상태로 복귀
-        stateManager.popState();
+        popState();
     }
     
     /**

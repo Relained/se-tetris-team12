@@ -1,29 +1,44 @@
 package org.example.controller;
 
+import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 import org.example.service.KeySettingManager;
-import org.example.service.StateManager;
 import org.example.view.KeySettingView;
 
 /**
- * KeySettingState의 키 설정 처리를 담당하는 Controller
+ * KeySetting 화면의 키 설정 처리를 담당하는 Controller
  */
-public class KeySettingController {
+public class KeySettingController extends BaseController {
     
-    private StateManager stateManager;
     private KeySettingView keySettingView;
     private KeySettingManager keySettingManager;
     private String waitingForKeyAction; // 현재 키 입력을 기다리고 있는 액션
     private boolean isWaitingForKey; // 키 입력 대기 상태인지 여부
     
-    public KeySettingController(StateManager stateManager, KeySettingView keySettingView) {
-        this.stateManager = stateManager;
-        this.keySettingView = keySettingView;
+    public KeySettingController() {
+        this.keySettingView = new KeySettingView();
         this.keySettingManager = KeySettingManager.getInstance();
         this.waitingForKeyAction = null;
         this.isWaitingForKey = false;
+    }
+
+    @Override
+    protected Scene createScene() {
+        VBox root = keySettingView.createView(
+            () -> handleResetToDefault(),  // Reset to Default 버튼
+            () -> handleGoBack()           // Go Back 버튼
+        );
+
+        scene = new Scene(root, 1000, 700);
+        scene.setFill(Color.BLACK);
+        scene.setOnKeyPressed(event -> handleKeyInput(event));
+        scene.getRoot().setFocusTraversable(true);
+        scene.getRoot().requestFocus();
+        return scene;
     }
     
     /**
@@ -38,8 +53,7 @@ public class KeySettingController {
      * Go Back 버튼 클릭 시 처리 - 키 설정을 저장하고 이전 화면으로 복귀
      */
     public void handleGoBack() {
-        // 이전 상태로 복귀
-        stateManager.popState();
+        popState();
     }
     
     /**
