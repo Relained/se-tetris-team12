@@ -10,7 +10,7 @@ public class ScorePanel extends VBox {
     private final Text linesText;
     private final Text levelText;
 
-    public ScorePanel() {
+    public ScorePanel(String mode, String difficulty) {
         super(15);
 
         Text title = new Text("Statistics");
@@ -29,7 +29,15 @@ public class ScorePanel extends VBox {
         levelText.setFill(Color.WHITE);
         levelText.setFont(Font.font(14));
 
-        getChildren().addAll(title, scoreText, linesText, levelText);
+        var modeText = new Text("Mode: " + mode);
+        modeText.setFill(Color.WHITE);
+        modeText.setFont(Font.font(14));
+
+        var difficultyText = new Text("Difficulty: " + difficulty);
+        difficultyText.setFill(Color.WHITE);
+        difficultyText.setFont(Font.font(14));
+
+        getChildren().addAll(title, scoreText, linesText, levelText, modeText, difficultyText);
         setStyle("-fx-background-color: #333; -fx-padding: 10;");
     }
 

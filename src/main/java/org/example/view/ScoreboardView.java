@@ -215,7 +215,7 @@ public class ScoreboardView extends BaseView {
         Text scoreText = new Text(String.format("%,d", record.getScore()));
         Text levelText = new Text(String.valueOf(record.getLevel()));
         Text diffText = new Text(mapDifficulty(record.getDifficulty()));
-        Text modeText = new Text(mapGameMode(record.getGameMode()));
+        Text modeText = new Text(record.getGameMode().toString());
         Text dateText = new Text(record.getPlayDate().format(DateTimeFormatter.ofPattern("MM/dd/yy")));
 
         // Rank에 따른 색상 지정
@@ -286,16 +286,6 @@ public class ScoreboardView extends BaseView {
             case 2 -> "Normal";
             case 3 -> "Hard";
             default -> "-"; // legacy/unknown
-        };
-    }
-
-    private String mapGameMode(org.example.model.GameMode gameMode) {
-        if (gameMode == null) {
-            return "Normal"; // null인 경우 기본값
-        }
-        return switch (gameMode) {
-            case NORMAL -> "Normal";
-            case ITEM -> "Item";
         };
     }
 

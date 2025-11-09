@@ -14,7 +14,7 @@ public class ScoreRecord implements Serializable, Comparable<ScoreRecord> {
     private int lines;
     private int level;
     private int difficulty;
-    private GameMode gameMode; // 게임 모드 추가
+    private GameMode gameMode;
     private LocalDateTime playDate;
     private transient boolean isNewAndEligible = false; // transient로 직렬화에서 제외
 
@@ -25,7 +25,7 @@ public class ScoreRecord implements Serializable, Comparable<ScoreRecord> {
         this.level = level;
         this.difficulty = difficulty;
         this.isNewAndEligible = isNewAndEligible; //new 여도 not Eligible 이면 의미가 없음. 따라서 생성 때 Eligible 여부도 합쳐서 저장
-        this.gameMode = gameMode != null ? gameMode : GameMode.NORMAL; // null 방지
+        this.gameMode = gameMode;
         this.playDate = LocalDateTime.now();
     }
 

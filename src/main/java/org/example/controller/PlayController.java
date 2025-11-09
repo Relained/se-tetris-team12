@@ -171,6 +171,10 @@ public class PlayController {
         return tetrisSystem;
     }
 
+    public GameMode getGameMode() {
+        return gameMode;
+    }
+
     /**
      * lastDropTime 리셋
      */

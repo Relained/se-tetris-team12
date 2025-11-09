@@ -5,5 +5,13 @@ package org.example.model;
  */
 public enum GameMode {
     NORMAL,  // 기본 테트리스 모드
-    ITEM     // 아이템 모드 (10줄마다 아이템 블록 생성)
+    ITEM;     // 아이템 모드 (10줄마다 아이템 블록 생성)
+
+    @Override
+    public String toString() {
+        return switch (this) {
+            case NORMAL -> "Normal";
+            case ITEM -> "Item";
+        };
+    }
 }

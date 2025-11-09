@@ -41,7 +41,6 @@ public class PlayState extends BaseState {
                 controller.update(now / 1_000_000_000.0);
             }
         };
-        gameTimer.start();
     }
 
     @Override
@@ -57,7 +56,10 @@ public class PlayState extends BaseState {
     @Override
     public Scene createScene() {
         // View로부터 UI 구성 요소를 받아옴
-        HBox root = playView.createView();
+        HBox root = playView.createView(
+            controller.getGameMode().toString(),
+            getDifficultyString(controller.getGameLogic().getDifficulty())
+        );
 
         scene = new Scene(root, 1000, 700);
         // Scene 레벨에서 배경색 설정하여 플리커링 방지
@@ -78,6 +80,20 @@ public class PlayState extends BaseState {
         scene.getRoot().setFocusTraversable(true);
         scene.getRoot().requestFocus();
 
+        gameTimer.start();
         return scene;
+    }
+
+    private String getDifficultyString(int difficulty) {
+        switch (difficulty) {
+            case 1:
+                return "Easy";
+            case 2:
+                return "Normal";
+            case 3:
+                return "Hard";
+            default:
+                return "Unknown";
+        }
     }
 }
