@@ -61,7 +61,7 @@ public class PlayState extends BaseState {
             getDifficultyString(controller.getGameLogic().getDifficulty())
         );
 
-        scene = new Scene(root, 1000, 700);
+        scene = new Scene(root, 640, 960);
         // Scene 레벨에서 배경색 설정하여 플리커링 방지
         scene.setFill(org.example.service.ColorManager.getInstance().getGameBackgroundColor());
 
