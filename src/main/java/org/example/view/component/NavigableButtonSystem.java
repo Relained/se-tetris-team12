@@ -96,4 +96,31 @@ public class NavigableButtonSystem {
         Runnable action = (Runnable) selectedButton.getUserData();
         action.run();
     }
+
+    /**
+     * NavigableButtonSystem에 영향을 받지 않는 독립적인 버튼을 생성합니다.
+     * 선택된 스타일이 적용되며, 마우스 클릭이 비활성화됩니다.
+     * 
+     * @param text 버튼에 표시할 텍스트
+     * @return 스타일이 적용된 독립적인 버튼
+     */
+    public static Button createStandaloneButton(String text) {
+        Button button = new Button(text);
+        button.setPrefSize(200, 50);
+        button.setFocusTraversable(false);
+
+        // 마우스 클릭 비활성화
+        button.setOnMouseClicked(event -> event.consume());
+        button.setOnAction(event -> event.consume());
+
+        // 선택된 스타일 적용
+        button.setStyle("-fx-font-size: 18px; " +
+                "-fx-background-color: #6a6a6a; " +
+                "-fx-text-fill: yellow; " +
+                "-fx-border-color: white; " +
+                "-fx-border-width: 2px; " +
+                "-fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.7), 10, 0, 0, 0);");
+
+        return button;
+    }
 }
