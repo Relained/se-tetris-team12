@@ -48,19 +48,11 @@ public class DisplaySettingView extends BaseView {
         title.setFill(Color.WHITE);
         title.setFont(Font.font("Arial", 36));
 
-        // DisplayManager를 활용하여 각 크기의 실제 해상도 표시
-        int smallW = displayManager.getWidth(ScreenSize.SMALL);
-        int smallH = displayManager.getHeight(ScreenSize.SMALL);
-        int mediumW = displayManager.getWidth(ScreenSize.MEDIUM);
-        int mediumH = displayManager.getHeight(ScreenSize.MEDIUM);
-        int largeW = displayManager.getWidth(ScreenSize.LARGE);
-        int largeH = displayManager.getHeight(ScreenSize.LARGE);
-
         var created = buttonSystem.createNavigableButtonFromList(
             List.of(
-                String.format("Small (%dx%d)", smallW, smallH),
-                String.format("Medium (%dx%d)", mediumW, mediumH),
-                String.format("Large (%dx%d)", largeW, largeH),
+                String.format("Small"),
+                String.format("Medium"),
+                String.format("Large"),
                 "Go Back"
             ),
             List.of(onSmall, onMedium, onLarge, onGoBack)
