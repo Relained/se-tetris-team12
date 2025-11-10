@@ -13,6 +13,7 @@ import org.example.model.SettingData;
 public class SettingManager {
     final String SETTING_SAVE_PATH = System.getProperty("user.home") 
             + File.separator + "tetris_settings.ser";
+    // final String SETTING_SAVE_PATH = TetrisUtil.getAppDataPath() + "tetris_settings.ser";
     private SettingData currentSettings;
     private ColorManager colorManager;
     private KeySettingManager keySettingManager;
