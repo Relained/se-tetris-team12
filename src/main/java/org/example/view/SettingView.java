@@ -1,5 +1,7 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -42,22 +44,15 @@ public class SettingView extends BaseView {
         title.setFill(colorManager.getPrimaryTextColor());
         title.setFont(Font.font("Arial", 36));
 
-        var screenSizeButton = buttonSystem.createNavigableButton("Screen Size", onScreenSize);
-        var controlsButton = buttonSystem.createNavigableButton("Controls", onControls);
-        var colorBlindButton = buttonSystem.createNavigableButton("Color Blind Setting", onColorBlindSetting);
-        var resetScoreButton = buttonSystem.createNavigableButton("Reset Score Board", onResetScoreBoard);
-        var resetAllButton = buttonSystem.createNavigableButton("Reset All Setting", onResetAllSetting);
-        var goBackButton = buttonSystem.createNavigableButton("Go Back", onGoBack);
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of("Screen Size", "Controls", "Color Blind Setting", 
+                    "Reset Score Board", "Reset All Setting", "Go Back"),
+            List.of(onScreenSize, onControls, onColorBlindSetting, 
+                    onResetScoreBoard, onResetAllSetting, onGoBack)
+        );
 
         root.getChildren().add(title);
-        root.getChildren().addAll(
-            screenSizeButton,
-            controlsButton,
-            colorBlindButton,
-            resetScoreButton,
-            resetAllButton,
-            goBackButton
-        );
+        root.getChildren().addAll(created);
 
         return root;
     }

@@ -73,17 +73,6 @@ public class DisplayManager {
     }
 
     /**
-     * Stage에 화면 크기를 적용합니다. (외부에서 Stage를 전달받는 버전)
-     * @param stage 크기를 적용할 Stage
-     * @param size 적용할 화면 크기
-     */
-    public void applyDisplayMode(Stage stage, ScreenSize size) {
-        this.primaryStage = stage;
-        this.currentSize = size;
-        applyDisplayMode();
-    }
-
-    /**
      * 현재 화면 크기를 반환합니다.
      * @return 현재 설정된 화면 크기
      */

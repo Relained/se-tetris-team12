@@ -9,6 +9,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import org.example.model.TetrominoPosition;
 import org.example.view.component.play.HoldPanel;
 import org.example.view.component.play.NextPiecePanel;
 import org.example.view.component.play.ScorePanel;
@@ -32,7 +33,7 @@ public class PlayView extends BaseView {
      * Play 화면의 UI를 구성하고 반환합니다.
      * @return 구성된 HBox root
      */
-    public HBox createView() {
+    public HBox createView(String mode, String difficulty) {
         // 메인 컨테이너 (좌우 분할)
         HBox root = new HBox(5);
         root.setBackground(new Background(
@@ -55,7 +56,7 @@ public class PlayView extends BaseView {
         // Hold, Next, Score 패널들 생성 및 추가
         holdPanel = new HoldPanel();
         nextPanel = new NextPiecePanel();
-        scorePanel = new ScorePanel();
+        scorePanel = new ScorePanel(mode, difficulty);
         
         rightContainer.getChildren().addAll(holdPanel, nextPanel, scorePanel);
         
@@ -89,17 +90,15 @@ public class PlayView extends BaseView {
      * 게임 화면을 업데이트합니다.
      */
     public void updateDisplay(org.example.model.GameBoard board, 
-                             org.example.model.TetrominoPosition currentPiece,
-                             org.example.model.TetrominoPosition ghostPiece,
-                             org.example.model.TetrominoPosition holdPiece,
-                             java.util.List<org.example.model.TetrominoPosition> nextQueue,
+                             TetrominoPosition currentPiece,
+                             TetrominoPosition ghostPiece,
+                             TetrominoPosition holdPiece,
+                             java.util.List<TetrominoPosition> nextQueue,
                              int score, int lines, int level) {
-        if (gameCanvas != null) {
-            gameCanvas.updateBoard(board, currentPiece, ghostPiece);
-            holdPanel.updateHoldPiece(holdPiece);
-            nextPanel.updateNextPieces(nextQueue);
-            scorePanel.updateStats(score, lines, level);
-        }
+        gameCanvas.updateBoard(board, currentPiece, ghostPiece);
+        holdPanel.updateHoldPiece(holdPiece);
+        nextPanel.updateNextPieces(nextQueue);
+        scorePanel.updateStats(score, lines, level);
     }
     
     public TetrisCanvas getGameCanvas() {

@@ -1,5 +1,7 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,7 +18,6 @@ import javafx.scene.text.Text;
 import org.example.model.ScoreRecord;
 
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 /**
  * Scoreboard 화면의 UI를 담당하는 View 클래스
@@ -25,18 +26,17 @@ public class ScoreboardView extends BaseView {
     private static final int MAX_DISPLAY_SCORES = 10;
     private VBox scoresContainer;
     private Text titleLabel;
-    private boolean showNewlyAddedHighlight;
+    private boolean showNewlyAddedHighlight = false;
     private boolean isAfterGamePlay = false; // 게임 플레이 후인지 여부
 
+    public ScoreboardView() {
+        super(true);
+    }
+    
     public ScoreboardView(boolean showNewlyAddedHighlight) {
         super(true);
         this.showNewlyAddedHighlight = showNewlyAddedHighlight;
-    }
-    
-    public ScoreboardView(boolean showNewlyAddedHighlight, boolean isAfterGamePlay) {
-        super(true);
-        this.showNewlyAddedHighlight = showNewlyAddedHighlight;
-        this.isAfterGamePlay = isAfterGamePlay;
+        this.isAfterGamePlay = true;
     }
 
     /**
@@ -163,19 +163,18 @@ public class ScoreboardView extends BaseView {
         VBox buttonPanel = new VBox(15);
         buttonPanel.setAlignment(Pos.CENTER);
         buttonPanel.setPadding(new Insets(30, 0, 40, 0));
-
-        var backButton = buttonSystem.createNavigableButton(
-            afterGamePlay ? "Continue" : "Go Back", 
-            onBackToMenu
-        );
-        backButton.setPrefWidth(200);
         
         // 게임 플레이 후가 아닐 때만 Clear Scores 버튼 추가
-        if (!afterGamePlay && onClearScores != null) {
-            var clearButton = buttonSystem.createNavigableButton("Clear Scores", onClearScores);
-            clearButton.setPrefWidth(200);
-            buttonPanel.getChildren().addAll(backButton, clearButton);
+        if (!afterGamePlay) {
+            var created = buttonSystem.createNavigableButtonFromList(
+                List.of("Go Back", "Clear Scores"),
+                List.of(onBackToMenu, onClearScores)
+            );
+            created.forEach(button -> button.setPrefWidth(200));
+            buttonPanel.getChildren().addAll(created);
         } else {
+            var backButton = buttonSystem.createNavigableButton("Go Back", onBackToMenu);
+            backButton.setPrefWidth(200);
             buttonPanel.getChildren().add(backButton);
         }
 
@@ -215,7 +214,7 @@ public class ScoreboardView extends BaseView {
         Text scoreText = new Text(String.format("%,d", record.getScore()));
         Text levelText = new Text(String.valueOf(record.getLevel()));
         Text diffText = new Text(mapDifficulty(record.getDifficulty()));
-        Text modeText = new Text(mapGameMode(record.getGameMode()));
+        Text modeText = new Text(record.getGameMode().toString());
         Text dateText = new Text(record.getPlayDate().format(DateTimeFormatter.ofPattern("MM/dd/yy")));
 
         // Rank에 따른 색상 지정
@@ -231,7 +230,7 @@ public class ScoreboardView extends BaseView {
         Font font = Font.font("Courier New", 13);
         
         // Highlight가 활성화된 경우 새로 추가된 점수에 밑줄 적용
-        if (showNewlyAddedHighlight && record.isNewlyAdded()) {
+        if (showNewlyAddedHighlight && record.isNewAndEligible()) {
             font = Font.font("Courier New", FontWeight.BOLD, 13);
             rankText.setUnderline(true);
             nameText.setUnderline(true);
@@ -289,16 +288,6 @@ public class ScoreboardView extends BaseView {
         };
     }
 
-    private String mapGameMode(org.example.model.GameMode gameMode) {
-        if (gameMode == null) {
-            return "Normal"; // null인 경우 기본값
-        }
-        return switch (gameMode) {
-            case NORMAL -> "Normal";
-            case ITEM -> "Item";
-        };
-    }
-
     private Color getColorForRank(int rank) {
         return switch (rank) {
             case 1 -> Color.GOLD;
@@ -306,13 +295,5 @@ public class ScoreboardView extends BaseView {
             case 3 -> Color.web("#CD7F32"); // Bronze
             default -> Color.WHITE;
         };
-    }
-
-    /**
-     * 스코어보드를 새로고침합니다.
-     * Controller에서 데이터를 가져와서 호출해야 합니다.
-     */
-    public void refresh(List<ScoreRecord> topScores) {
-        updateScoreboard(topScores);
     }
 }

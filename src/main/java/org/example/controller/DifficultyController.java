@@ -1,68 +1,70 @@
 package org.example.controller;
 
+import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 
-import org.example.service.StateManager;
 import org.example.view.DifficultyView;
+import org.example.model.GameMode;
 
 /**
  * Difficulty 화면의 입력을 처리하는 Controller
  */
-public class DifficultyController {
+public class DifficultyController extends BaseController {
 
-    private int difficulty;
-    private StateManager stateManager;
     private DifficultyView difficultyView;
+    private GameMode gameMode;
 
-    public DifficultyController(StateManager stateManager, DifficultyView difficultyView) {
-        this.stateManager = stateManager;
-        this.difficultyView = difficultyView;
-        this.difficulty = 2;
+    public DifficultyController(GameMode gameMode) {
+        this.difficultyView = new DifficultyView();
+        this.gameMode = gameMode;
+    }
+
+    @Override
+    protected Scene createScene() {
+        var root = difficultyView.createView(
+            this::handleEasy,
+            this::handleMedium,
+            this::handleHard,
+            this::handleGoBack
+        );
+        createDefaultScene(root);
+        return scene;
     }
 
     /**
      * Easy 난이도 선택 처리
-     * 실제 난이도 로직은 아직 구현되지 않았으므로 TODO로 표시하고 이전 화면으로 복귀합니다.
      */
     public void handleEasy() {
-        difficulty = 1;
-        stateManager.setState("play");
+        setState(new PlayController(gameMode, 1));
     }
 
     /**
      * Medium 난이도 선택 처리
      */
     public void handleMedium() {
-        difficulty = 2;
-        stateManager.setState("play");
+        setState(new PlayController(gameMode, 2));
     }
 
     /**
      * Hard 난이도 선택 처리
      */
     public void handleHard() {
-        difficulty = 3;
-        stateManager.setState("play");
+        setState(new PlayController(gameMode, 3));
     }
 
     /**
-     * Go Back 버튼 클릭 시 처리 - 설정을 저장하거나 반영할 필요가 있으면 추가
+     * Go Back 버튼 클릭 시 처리
      */
     public void handleGoBack() {
-        // 필요시 설정 적용 또는 저장
-        stateManager.popState();
+        popState();
     }
 
     /**
      * 키보드 입력 처리
      * NavigableButtonSystem을 통해 버튼 내비게이션 처리
      */
+    @Override
     public void handleKeyInput(KeyEvent event) {
         difficultyView.getButtonSystem().handleInput(event);
     }
-
-    public int getDifficulty() {
-        return difficulty;
-    }
 }
-

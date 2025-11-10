@@ -8,7 +8,6 @@ import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.io.ObjectInputStream;
 import java.io.FileNotFoundException;
-import javafx.stage.Stage;
 import org.example.model.SettingData;
 
 public class SettingManager {
@@ -60,10 +59,9 @@ public class SettingManager {
 
     /**
      * DisplayManager를 활용하여 화면 크기를 적용합니다.
-     * @param stage 크기를 적용할 Stage
      */
-    public void applyScreenSize(Stage stage) {
-        displayManager.applyDisplayMode(stage, currentSettings.screenSize);
+    public void applyScreenSize() {
+        displayManager.setDisplayMode(currentSettings.screenSize);
     }
 
     /**

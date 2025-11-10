@@ -1,5 +1,7 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -24,11 +26,13 @@ public class GameModeView extends BaseView {
         title.setFill(colorManager.getPrimaryTextColor());
         title.setFont(Font.font("Arial", 36));
 
-        var normalButton = buttonSystem.createNavigableButton("Normal", onNormal);
-        var itemButton = buttonSystem.createNavigableButton("Item", onItem);
-        var goBackButton = buttonSystem.createNavigableButton("Go Back", onGoBack);
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of("Normal", "Item", "Go Back"),
+            List.of(onNormal, onItem, onGoBack)
+        );
 
-        root.getChildren().addAll(title, normalButton, itemButton, goBackButton);
+        root.getChildren().add(title);
+        root.getChildren().addAll(created);
 
         return root;
     }

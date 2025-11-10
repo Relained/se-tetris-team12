@@ -1,5 +1,7 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -37,14 +39,13 @@ public class PauseView extends BaseView {
         title.setFill(colorManager.getPrimaryTextColor());
         title.setFont(Font.font("Arial", 36));
 
-        var resumeButton = buttonSystem.createNavigableButton("Resume", onResume);
-        var restartButton = buttonSystem.createNavigableButton("Restart", onRestart);
-        var settingsButton = buttonSystem.createNavigableButton("Settings", onSettings);
-        var mainMenuButton = buttonSystem.createNavigableButton("Main Menu", onMainMenu);
-        var exitButton = buttonSystem.createNavigableButton("Exit", onExit);
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of("Resume", "Restart", "Settings", "Main Menu", "Exit"),
+            List.of(onResume, onRestart, onSettings, onMainMenu, onExit)
+        );
 
         root.getChildren().add(title);
-        root.getChildren().addAll(resumeButton, restartButton, settingsButton, mainMenuButton, exitButton);
+        root.getChildren().addAll(created);
 
         return root;
     }
