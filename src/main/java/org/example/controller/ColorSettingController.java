@@ -35,7 +35,7 @@ public class ColorSettingController extends BaseController {
     }
 
     @Override
-    public void exit() {
+    protected void exit() {
         // 설정 화면 종료 시 선택된 색맹 모드를 저장
         settingManager.setColorSetting(selectedMode);
     }
@@ -96,6 +96,7 @@ public class ColorSettingController extends BaseController {
      * 키보드 입력 처리
      * NavigableButtonSystem을 통해 버튼 내비게이션 처리
      */
+    @Override
     public void handleKeyInput(KeyEvent event) {
         colorSettingView.getButtonSystem().handleInput(event);
     }

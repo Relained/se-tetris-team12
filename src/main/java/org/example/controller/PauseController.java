@@ -68,6 +68,7 @@ public class PauseController extends BaseController {
      * 키보드 입력 처리
      * NavigableButtonSystem을 통해 버튼 내비게이션 처리
      */
+    @Override
     public void handleKeyInput(KeyEvent event) {
         pauseView.getButtonSystem().handleInput(event);
     }

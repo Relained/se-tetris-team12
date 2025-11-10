@@ -70,6 +70,7 @@ public class ScoreInputController extends BaseController {
     /**
      * 키보드 입력 처리
      */
+    @Override
     public void handleKeyInput(KeyEvent event) {
         KeyCode code = event.getCode();
 

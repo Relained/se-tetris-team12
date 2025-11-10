@@ -54,6 +54,7 @@ public class KeySettingController extends BaseController {
      * 키 입력 대기 상태일 때는 새 키를 바인딩하고,
      * 그렇지 않으면 네비게이션 처리
      */
+    @Override
     public void handleKeyInput(KeyEvent event) {
         if (isWaitingForKey) {
             handleNewKeyBinding(event);

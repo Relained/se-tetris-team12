@@ -39,6 +39,7 @@ public class GameModeController extends BaseController {
         popState();
     }
 
+    @Override
     public void handleKeyInput(KeyEvent event) {
         view.getButtonSystem().handleInput(event);
     }
