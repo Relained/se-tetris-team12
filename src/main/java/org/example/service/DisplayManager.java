@@ -13,12 +13,12 @@ public class DisplayManager {
     private Stage primaryStage;
 
     // 각 크기별 화면 설정
-    private static final int SMALL_WIDTH = 650;
-    private static final int SMALL_HEIGHT = 800;
-    private static final int MEDIUM_WIDTH = 700;
-    private static final int MEDIUM_HEIGHT = 900;
-    private static final int LARGE_WIDTH = 900;
-    private static final int LARGE_HEIGHT = 1000;
+    private static final int SMALL_WIDTH = 512;
+    private static final int SMALL_HEIGHT = 768;
+    private static final int MEDIUM_WIDTH = 576;
+    private static final int MEDIUM_HEIGHT = 864;
+    private static final int LARGE_WIDTH = 640;
+    private static final int LARGE_HEIGHT = 960;
 
     private DisplayManager() {
         this.currentSize = ScreenSize.MEDIUM; // 기본값

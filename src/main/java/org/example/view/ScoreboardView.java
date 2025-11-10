@@ -2,6 +2,7 @@ package org.example.view;
 
 import java.util.List;
 
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -24,10 +25,37 @@ import java.time.format.DateTimeFormatter;
  */
 public class ScoreboardView extends BaseView {
     private static final int MAX_DISPLAY_SCORES = 10;
+    
+    // 화면 너비 대비 비율
+    private static final double CONTAINER_WIDTH_RATIO = 0.92; // 컨테이너는 화면 너비의 92%
+    private static final double GRID_WIDTH_RATIO = 0.88; // GridPane은 화면 너비의 88%
+    
+    // 기준 화면 크기 (MEDIUM)
+    private static final double BASE_WIDTH = 576.0;
+    
+    // 기준 폰트 크기 (MEDIUM)
+    private static final double BASE_TITLE_FONT_SIZE = 24.0;
+    private static final double BASE_HEADER_FONT_SIZE = 14.0;
+    private static final double BASE_CONTENT_FONT_SIZE = 13.0;
+    private static final double BASE_NO_SCORES_FONT_SIZE = 16.0;
+    
+    // 컬럼 너비 비율 (전체 대비)
+    private static final double COL_RANK_RATIO = 0.08;
+    private static final double COL_NAME_RATIO = 0.12;
+    private static final double COL_SCORE_RATIO = 0.15;
+    private static final double COL_LEVEL_RATIO = 0.09;
+    private static final double COL_DIFF_RATIO = 0.10;
+    private static final double COL_MODE_RATIO = 0.10;
+    private static final double COL_DATE_RATIO = 0.16;
+    
     private VBox scoresContainer;
+    private VBox container;
+    private GridPane headerGrid;
     private Text titleLabel;
     private boolean showNewlyAddedHighlight;
     private boolean isAfterGamePlay = false; // 게임 플레이 후인지 여부
+    
+    private double currentWidth = 576; // 기본값 (MEDIUM)
 
     public ScoreboardView(boolean showNewlyAddedHighlight) {
         super(true);
@@ -48,7 +76,7 @@ public class ScoreboardView extends BaseView {
      */
     public BorderPane createView(Runnable onBackToMenu, Runnable onClearScores) {
         BorderPane root = new BorderPane();
-        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+        root.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
 
         // Scoreboard content를 포함하는 컨테이너
         VBox topContainer = new VBox();
@@ -63,24 +91,38 @@ public class ScoreboardView extends BaseView {
         VBox buttonPanel = createButtonPanel(onBackToMenu, onClearScores, isAfterGamePlay);
         root.setBottom(buttonPanel);
 
+        // Stage 크기 변경 리스너 추가
+        root.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                newScene.windowProperty().addListener((obsWin, oldWin, newWin) -> {
+                    if (newWin != null) {
+                        ChangeListener<Number> sizeListener = (observable, oldValue, newValue) -> {
+                            updateLayout(newWin.getWidth());
+                        };
+                        newWin.widthProperty().addListener(sizeListener);
+                        // 초기 크기 적용
+                        updateLayout(newWin.getWidth());
+                    }
+                });
+            }
+        });
+
         return root;
     }
 
     private VBox createScoreboardContent() {
-        VBox container = new VBox(15);
+        container = new VBox(15);
         container.setAlignment(Pos.CENTER);
         container.setSpacing(15);
         container.setPadding(new Insets(20));
         container.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
-        container.setMaxWidth(650);
-        container.setPrefWidth(650);
         container.setMinHeight(550);
 
         titleLabel = new Text("HIGH SCORES");
         titleLabel.setFill(Color.GOLD);
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, BASE_TITLE_FONT_SIZE));
 
-        GridPane headerGrid = createHeaderRow();
+        headerGrid = createHeaderRow();
 
         scoresContainer = new VBox(8);
         scoresContainer.setAlignment(Pos.TOP_CENTER);
@@ -88,28 +130,101 @@ public class ScoreboardView extends BaseView {
 
         Text noScoresLabel = new Text("Loading...");
         noScoresLabel.setFill(Color.LIGHTGRAY);
-        noScoresLabel.setFont(Font.font("Arial", 16));
+        noScoresLabel.setFont(Font.font("Arial", BASE_NO_SCORES_FONT_SIZE));
         scoresContainer.getChildren().add(noScoresLabel);
 
         container.getChildren().addAll(titleLabel, headerGrid, scoresContainer);
         return container;
     }
-
-    private GridPane createHeaderRow() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setAlignment(Pos.CENTER);
-        grid.setMaxWidth(600);
-        grid.setPadding(new Insets(0, 0, 10, 0));
-
-        // 컬럼 제약 설정
-        ColumnConstraints col1 = new ColumnConstraints(60); // RANK
-        ColumnConstraints col2 = new ColumnConstraints(80); // NAME
-        ColumnConstraints col3 = new ColumnConstraints(120); // SCORE
-        ColumnConstraints col4 = new ColumnConstraints(60); // LEVEL
-        ColumnConstraints col5 = new ColumnConstraints(70); // DIFF
-        ColumnConstraints col6 = new ColumnConstraints(70); // MODE
-        ColumnConstraints col7 = new ColumnConstraints(120); // DATE
+    
+    /**
+     * 화면 크기에 따라 레이아웃을 업데이트합니다.
+     * @param width 현재 Stage 너비
+     */
+    private void updateLayout(double width) {
+        this.currentWidth = width;
+        
+        // 폰트 크기 스케일 계산 (화면 너비에 비례)
+        double fontScale = width / BASE_WIDTH;
+        
+        // 컨테이너 크기 업데이트
+        double containerWidth = width * CONTAINER_WIDTH_RATIO;
+        container.setMaxWidth(containerWidth);
+        container.setPrefWidth(containerWidth);
+        
+        // 타이틀 폰트 크기 업데이트
+        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, BASE_TITLE_FONT_SIZE * fontScale));
+        
+        // 헤더 그리드 업데이트
+        double gridWidth = width * GRID_WIDTH_RATIO;
+        headerGrid.setMaxWidth(gridWidth);
+        updateGridColumns(headerGrid, width);
+        updateHeaderFontSizes(headerGrid, fontScale);
+        
+        // 기존 점수 행들도 업데이트
+        scoresContainer.getChildren().forEach(node -> {
+            if (node instanceof GridPane) {
+                GridPane grid = (GridPane) node;
+                grid.setMaxWidth(gridWidth);
+                updateGridColumns(grid, width);
+                updateContentFontSizes(grid, fontScale);
+            } else if (node instanceof Text) {
+                // "No scores recorded yet!" 또는 "Loading..." 텍스트
+                Text text = (Text) node;
+                text.setFont(Font.font("Arial", BASE_NO_SCORES_FONT_SIZE * fontScale));
+            }
+        });
+    }
+    
+    /**
+     * 헤더 GridPane의 폰트 크기를 업데이트합니다.
+     * @param grid 헤더 GridPane
+     * @param fontScale 폰트 크기 스케일
+     */
+    private void updateHeaderFontSizes(GridPane grid, double fontScale) {
+        grid.getChildren().forEach(node -> {
+            if (node instanceof Text) {
+                Text text = (Text) node;
+                text.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE * fontScale));
+            }
+        });
+    }
+    
+    /**
+     * 콘텐츠 GridPane의 폰트 크기를 업데이트합니다.
+     * @param grid 콘텐츠 GridPane
+     * @param fontScale 폰트 크기 스케일
+     */
+    private void updateContentFontSizes(GridPane grid, double fontScale) {
+        grid.getChildren().forEach(node -> {
+            if (node instanceof Text) {
+                Text text = (Text) node;
+                // 밑줄이 있는지 확인 (새로 추가된 점수)
+                boolean isUnderlined = text.isUnderline();
+                if (isUnderlined) {
+                    text.setFont(Font.font("Courier New", FontWeight.BOLD, BASE_CONTENT_FONT_SIZE * fontScale));
+                } else {
+                    text.setFont(Font.font("Courier New", BASE_CONTENT_FONT_SIZE * fontScale));
+                }
+            }
+        });
+    }
+    
+    /**
+     * GridPane의 컬럼 크기를 화면 너비에 맞게 업데이트합니다.
+     * @param grid 업데이트할 GridPane
+     * @param screenWidth 현재 화면 너비
+     */
+    private void updateGridColumns(GridPane grid, double screenWidth) {
+        grid.getColumnConstraints().clear();
+        
+        ColumnConstraints col1 = new ColumnConstraints(screenWidth * COL_RANK_RATIO);
+        ColumnConstraints col2 = new ColumnConstraints(screenWidth * COL_NAME_RATIO);
+        ColumnConstraints col3 = new ColumnConstraints(screenWidth * COL_SCORE_RATIO);
+        ColumnConstraints col4 = new ColumnConstraints(screenWidth * COL_LEVEL_RATIO);
+        ColumnConstraints col5 = new ColumnConstraints(screenWidth * COL_DIFF_RATIO);
+        ColumnConstraints col6 = new ColumnConstraints(screenWidth * COL_MODE_RATIO);
+        ColumnConstraints col7 = new ColumnConstraints(screenWidth * COL_DATE_RATIO);
         
         col1.setHalignment(HPos.CENTER);
         col2.setHalignment(HPos.CENTER);
@@ -120,34 +235,44 @@ public class ScoreboardView extends BaseView {
         col7.setHalignment(HPos.CENTER);
         
         grid.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6, col7);
+    }
+
+    private GridPane createHeaderRow() {
+        GridPane grid = new GridPane();
+        grid.setHgap(5);
+        grid.setAlignment(Pos.CENTER);
+        grid.setPadding(new Insets(0, 0, 10, 0));
+
+        // 초기 컬럼 제약 설정 (updateGridColumns에서 동적으로 업데이트됨)
+        updateGridColumns(grid, currentWidth);
 
         Text rankHeader = new Text("RANK");
         rankHeader.setFill(Color.WHITE);
-        rankHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        rankHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
 
         Text nameHeader = new Text("NAME");
         nameHeader.setFill(Color.WHITE);
-        nameHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        nameHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
 
         Text scoreHeader = new Text("SCORE");
         scoreHeader.setFill(Color.WHITE);
-        scoreHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        scoreHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
 
         Text levelHeader = new Text("LEVEL");
         levelHeader.setFill(Color.WHITE);
-        levelHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        levelHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
 
         Text diffHeader = new Text("DIFF");
         diffHeader.setFill(Color.WHITE);
-        diffHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        diffHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
 
         Text modeHeader = new Text("MODE");
         modeHeader.setFill(Color.WHITE);
-        modeHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        modeHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
 
         Text dateHeader = new Text("DATE");
         dateHeader.setFill(Color.WHITE);
-        dateHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        dateHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
 
         grid.add(rankHeader, 0, 0);
         grid.add(nameHeader, 1, 0);
@@ -192,7 +317,8 @@ public class ScoreboardView extends BaseView {
         if (topScores.isEmpty()) {
             Text noScoresLabel = new Text("No scores recorded yet!");
             noScoresLabel.setFill(Color.LIGHTGRAY);
-            noScoresLabel.setFont(Font.font("Arial", 16));
+            double fontScale = currentWidth / BASE_WIDTH;
+            noScoresLabel.setFont(Font.font("Arial", BASE_NO_SCORES_FONT_SIZE * fontScale));
             scoresContainer.getChildren().add(noScoresLabel);
             return;
         }
@@ -206,9 +332,9 @@ public class ScoreboardView extends BaseView {
 
     private GridPane createScoreRow(int rank, ScoreRecord record) {
         GridPane grid = new GridPane();
-        grid.setHgap(10);
+        grid.setHgap(5);
         grid.setAlignment(Pos.CENTER);
-        grid.setMaxWidth(600);
+        grid.setMaxWidth(currentWidth * GRID_WIDTH_RATIO);
 
         Text rankText = new Text(String.valueOf(rank));
         Text nameText = new Text(record.getPlayerName());
@@ -228,11 +354,13 @@ public class ScoreboardView extends BaseView {
         modeText.setFill(textColor);
         dateText.setFill(textColor);
 
-        Font font = Font.font("Courier New", 13);
+        // 현재 화면 크기에 맞는 폰트 크기 계산
+        double fontScale = currentWidth / BASE_WIDTH;
+        Font font = Font.font("Courier New", BASE_CONTENT_FONT_SIZE * fontScale);
         
         // Highlight가 활성화된 경우 새로 추가된 점수에 밑줄 적용
         if (showNewlyAddedHighlight && record.isNewAndEligible()) {
-            font = Font.font("Courier New", FontWeight.BOLD, 13);
+            font = Font.font("Courier New", FontWeight.BOLD, BASE_CONTENT_FONT_SIZE * fontScale);
             rankText.setUnderline(true);
             nameText.setUnderline(true);
             scoreText.setUnderline(true);
@@ -250,24 +378,8 @@ public class ScoreboardView extends BaseView {
         modeText.setFont(font);
         dateText.setFont(font);
 
-        // 컬럼 제약 설정 (헤더와 동일)
-        ColumnConstraints col1 = new ColumnConstraints(60);
-        ColumnConstraints col2 = new ColumnConstraints(80);
-        ColumnConstraints col3 = new ColumnConstraints(120);
-        ColumnConstraints col4 = new ColumnConstraints(60);
-        ColumnConstraints col5 = new ColumnConstraints(70);
-        ColumnConstraints col6 = new ColumnConstraints(70);
-        ColumnConstraints col7 = new ColumnConstraints(120);
-        
-        col1.setHalignment(HPos.CENTER);
-        col2.setHalignment(HPos.CENTER);
-        col3.setHalignment(HPos.RIGHT);
-        col4.setHalignment(HPos.CENTER);
-        col5.setHalignment(HPos.CENTER);
-        col6.setHalignment(HPos.CENTER);
-        col7.setHalignment(HPos.CENTER);
-        
-        grid.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6, col7);
+        // 컬럼 제약 설정 (화면 크기에 비례)
+        updateGridColumns(grid, currentWidth);
 
         grid.add(rankText, 0, 0);
         grid.add(nameText, 1, 0);
