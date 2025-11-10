@@ -1,17 +1,18 @@
 package org.example.controller;
 
+import javafx.animation.AnimationTimer;
+import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+
 import java.util.HashSet;
 import java.util.Set;
 
 import org.example.model.GameMode;
 import org.example.model.KeyData;
-import org.example.service.StateManager;
+import org.example.service.ItemTetrisSystem;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
-import org.example.state.PauseState;
-import org.example.state.ScoreInputState;
-import org.example.state.ScoreNotEligibleState;
 import org.example.service.ScoreManager;
 import org.example.view.PlayView;
 import org.example.model.ScoreRecord;
@@ -19,23 +20,80 @@ import org.example.model.ScoreRecord;
 /**
  * PlayState의 게임 로직과 입력을 처리하는 Controller
  */
-public class PlayController {
+public class PlayController extends BaseController {
 
-    private StateManager stateManager;
     private PlayView playView;
     private TetrisSystem tetrisSystem;
     private GameMode gameMode;
+    private AnimationTimer gameTimer;
 
     private long lastDropTime;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
 
-    public PlayController(StateManager stateManager, PlayView playView, TetrisSystem tetrisSystem, GameMode gameMode) {
-        this.stateManager = stateManager;
-        this.playView = playView;
-        this.tetrisSystem = tetrisSystem;
+    public PlayController(GameMode gameMode, int difficulty) {
+        if (gameMode == GameMode.ITEM) {
+            tetrisSystem = new ItemTetrisSystem();
+        } else {
+            tetrisSystem = new TetrisSystem();
+        }
+        tetrisSystem.setDifficulty(difficulty);
+
+        this.playView = new PlayView();
         this.gameMode = gameMode;
         this.lastDropTime = System.currentTimeMillis();
+
+        gameTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                update(now / 1_000_000_000.0);
+            }
+        };
+    }
+
+    @Override
+    protected Scene createScene() {
+        var root = playView.createView(
+            gameMode.toString(),
+            getDifficultyString(tetrisSystem.getDifficulty())
+        );
+        createDefaultScene(root);
+
+        // 높이와 너비 변경 시 캔버스 크기 비율에 맞게 자동 조정
+        scene.heightProperty().addListener((_, _, _) -> playView.updateCanvasSize(scene));
+        scene.widthProperty().addListener((_, _, _) -> playView.updateCanvasSize(scene));
+        
+        // 초기 캔버스 크기 설정
+        playView.updateCanvasSize(scene);
+
+        //키 릴리즈 핸들 따로 추가
+        scene.setOnKeyReleased(event -> handleKeyReleased(event.getCode()));
+
+        gameTimer.start();
+        return scene;
+    }
+
+    @Override
+    protected void exit() {
+        gameTimer.stop();
+    }
+
+    @Override
+    protected void resume() {
+        gameTimer.start();
+    }
+
+    private String getDifficultyString(int difficulty) {
+        switch (difficulty) {
+            case 1:
+                return "Easy";
+            case 2:
+                return "Normal";
+            case 3:
+                return "Hard";
+            default:
+                return "Unknown";
+        }
     }
 
     /**
@@ -80,6 +138,11 @@ public class PlayController {
 
     }
 
+    @Override
+    protected void handleKeyInput(KeyEvent event) {
+        handleKeyPressed(event.getCode());
+    }
+
     /**
      * 키 입력 처리 - 키가 눌렸을 때
      */
@@ -107,7 +170,7 @@ public class PlayController {
             return;
 
         // SettingManager를 통해 최신 키 설정 가져오기
-        KeyData data = stateManager.settingManager.getCurrentSettings().controlData;
+        KeyData data = settingManager.getCurrentSettings().controlData;
 
         // 한 번만 실행되는 입력 처리
         for (KeyCode key : justPressedKeys) {
@@ -140,7 +203,7 @@ public class PlayController {
      * 일시정지 처리
      */
     public void handlePause() {
-        stateManager.stackState(new PauseState(stateManager, () -> tetrisSystem.reset()));
+        stackState(new PauseController(() -> tetrisSystem.reset()));
     }
 
     /**
@@ -156,11 +219,11 @@ public class PlayController {
             ScoreManager.getInstance().isScoreEligibleForSaving(tetrisSystem.getScore())
         );
 
-        // 점수가 상위 10개에 드는지에 따라 다른 State로 전환
+        // 점수가 상위 10개에 드는지에 따라 다른 Controller로 전환
         if (record.isNewAndEligible()) {
-            stateManager.setState(new ScoreInputState(stateManager, record));
+            setState(new ScoreInputController(record));
         } else {
-            stateManager.setState(new ScoreNotEligibleState(stateManager, record));
+            setState(new ScoreNotEligibleController(record));
         }
     }
 

@@ -1,34 +1,44 @@
 package org.example.controller;
 
+import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 
 import org.example.model.ScoreRecord;
-import org.example.service.StateManager;
-import org.example.state.PlayState;
-import org.example.state.ScoreboardState;
-import org.example.state.StartState;
 import org.example.view.GameOverView;
 
 /**
- * GameOverState의 게임 오버 화면 처리를 담당하는 Controller
+ * GameOver 화면의 게임 오버 화면 처리를 담당하는 Controller
  */
-public class GameOverController {
+public class GameOverController extends BaseController {
     
-    private StateManager stateManager;
     private GameOverView gameOverView;
     private ScoreRecord record;
     
-    public GameOverController(StateManager stateManager, GameOverView gameOverView, ScoreRecord record) {
-        this.stateManager = stateManager;
-        this.gameOverView = gameOverView;
+    public GameOverController(ScoreRecord record) {
+        this.gameOverView = new GameOverView();
         this.record = record;
+    }
+
+    @Override
+    protected Scene createScene() {
+        var root = gameOverView.createView(
+            record.getScore(),
+            record.getLines(),
+            record.getLevel(),
+            this::handlePlayAgain,
+            this::handleViewScoreboard,
+            this::handleMainMenu,
+            this::handleExit
+        );
+        createDefaultScene(root);
+        return scene;
     }
 
     /**
      * Play Again 버튼 클릭 시 처리 - 게임을 다시 시작
      */
     public void handlePlayAgain() {
-        stateManager.setState(new PlayState(stateManager, record.getGameMode(), record.getDifficulty()));
+        setState(new PlayController(record.getGameMode(), record.getDifficulty()));
     }
     
     /**
@@ -36,14 +46,14 @@ public class GameOverController {
      * 점수가 제출되었다면 하이라이트 표시 (record.isNewAndEligible() 참조)
      */
     public void handleViewScoreboard() {
-        stateManager.stackState(new ScoreboardState(stateManager, record));
+        stackState(new ScoreboardController(record));
     }
     
     /**
      * Main Menu 버튼 클릭 시 처리 - 시작 화면으로 이동
      */
     public void handleMainMenu() {
-        stateManager.setState(new StartState(stateManager));
+        setState(new StartController());
     }
     
     /**
@@ -57,6 +67,7 @@ public class GameOverController {
      * 키보드 입력 처리
      * NavigableButtonSystem을 통해 버튼 내비게이션 처리
      */
+    @Override
     public void handleKeyInput(KeyEvent event) {
         gameOverView.getButtonSystem().handleInput(event);
     }

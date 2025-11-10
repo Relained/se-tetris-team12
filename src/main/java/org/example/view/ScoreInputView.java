@@ -17,6 +17,10 @@ public class ScoreInputView extends BaseView {
     
     private TextField nameInput;
     private Text rankText;
+
+    public ScoreInputView() {
+        super(false);
+    }
     
     /**
      * Score Input 화면의 UI를 구성하고 반환합니다.
