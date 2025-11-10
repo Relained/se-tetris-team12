@@ -3,8 +3,6 @@ package org.example.controller;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 
 import org.example.service.KeySettingManager;
 import org.example.view.KeySettingView;
@@ -28,16 +26,11 @@ public class KeySettingController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        VBox root = keySettingView.createView(
-            () -> handleResetToDefault(),  // Reset to Default 버튼
-            () -> handleGoBack()           // Go Back 버튼
+        var root = keySettingView.createView(
+            this::handleResetToDefault,  // Reset to Default 버튼
+            this::handleGoBack           // Go Back 버튼
         );
-
-        scene = new Scene(root, 1000, 700);
-        scene.setFill(Color.BLACK);
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-        scene.getRoot().setFocusTraversable(true);
-        scene.getRoot().requestFocus();
+        createDefaultScene(root);
         return scene;
     }
     

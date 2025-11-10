@@ -2,7 +2,6 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
 
 import org.example.model.ScoreRecord;
 import org.example.view.GameOverView;
@@ -22,21 +21,16 @@ public class GameOverController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        VBox root = gameOverView.createView(
+        var root = gameOverView.createView(
             record.getScore(),
             record.getLines(),
             record.getLevel(),
-            () -> handlePlayAgain(),
-            () -> handleViewScoreboard(),
-            () -> handleMainMenu(),
-            () -> handleExit()
+            this::handlePlayAgain,
+            this::handleViewScoreboard,
+            this::handleMainMenu,
+            this::handleExit
         );
-
-        scene = new Scene(root, 1000, 700);
-        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-        scene.getRoot().setFocusTraversable(true);
-        scene.getRoot().requestFocus();
+        createDefaultScene(root);
         return scene;
     }
 

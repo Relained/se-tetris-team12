@@ -2,7 +2,6 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
 
 import org.example.view.DifficultyView;
 import org.example.model.GameMode;
@@ -22,18 +21,13 @@ public class DifficultyController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        VBox root = difficultyView.createView(
-            () -> handleEasy(),
-            () -> handleMedium(),
-            () -> handleHard(),
-            () -> handleGoBack()
+        var root = difficultyView.createView(
+            this::handleEasy,
+            this::handleMedium,
+            this::handleHard,
+            this::handleGoBack
         );
-
-        scene = new Scene(root, 1000, 700);
-        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-        scene.getRoot().setFocusTraversable(true);
-        scene.getRoot().requestFocus();
+        createDefaultScene(root);
         return scene;
     }
 

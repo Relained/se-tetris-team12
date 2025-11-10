@@ -3,7 +3,7 @@ package org.example.controller;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.HBox;
+import javafx.scene.input.KeyEvent;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -53,15 +53,11 @@ public class PlayController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        // View로부터 UI 구성 요소를 받아옴
-        HBox root = playView.createView(
+        var root = playView.createView(
             gameMode.toString(),
             getDifficultyString(tetrisSystem.getDifficulty())
         );
-
-        scene = new Scene(root, 1000, 700);
-        // Scene 레벨에서 배경색 설정하여 플리커링 방지
-        scene.setFill(org.example.service.ColorManager.getInstance().getGameBackgroundColor());
+        createDefaultScene(root);
 
         // 높이와 너비 변경 시 캔버스 크기 비율에 맞게 자동 조정
         scene.heightProperty().addListener((_, _, _) -> playView.updateCanvasSize(scene));
@@ -70,13 +66,8 @@ public class PlayController extends BaseController {
         // 초기 캔버스 크기 설정
         playView.updateCanvasSize(scene);
 
-        // 키보드 입력은 Controller를 통해 처리
-        scene.setOnKeyPressed(event -> handleKeyPressed(event.getCode()));
+        //키 릴리즈 핸들 따로 추가
         scene.setOnKeyReleased(event -> handleKeyReleased(event.getCode()));
-
-        // Focus for keyboard input
-        scene.getRoot().setFocusTraversable(true);
-        scene.getRoot().requestFocus();
 
         gameTimer.start();
         return scene;
@@ -145,6 +136,11 @@ public class PlayController extends BaseController {
                 tetrisSystem.getLines(),
                 tetrisSystem.getLevel());
 
+    }
+
+    @Override
+    protected void handleKeyInput(KeyEvent event) {
+        handleKeyPressed(event.getCode());
     }
 
     /**

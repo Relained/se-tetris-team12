@@ -2,7 +2,6 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
 
 import org.example.model.SettingData.ColorBlindMode;
 import org.example.view.ColorSettingView;
@@ -23,21 +22,22 @@ public class ColorSettingController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        VBox root = colorSettingView.createView(
+        var root = colorSettingView.createView(
             selectedMode,
-            () -> handleDefault(),
-            () -> handleProtanopia(),
-            () -> handleDeuteranopia(),
-            () -> handleTritanopia(),
-            () -> handleGoBack()
+            this::handleDefault,
+            this::handleProtanopia,
+            this::handleDeuteranopia,
+            this::handleTritanopia,
+            this::handleGoBack
         );
-
-        scene = new Scene(root, 1000, 700);
-        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-        scene.getRoot().setFocusTraversable(true);
-        scene.getRoot().requestFocus();
+        createDefaultScene(root);
         return scene;
+    }
+
+    @Override
+    public void exit() {
+        // 설정 화면 종료 시 선택된 색맹 모드를 저장
+        settingManager.setColorSetting(selectedMode);
     }
     
     /**

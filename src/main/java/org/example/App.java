@@ -6,6 +6,8 @@ import javafx.stage.Stage;
 import org.example.controller.BaseController;
 import org.example.controller.StartController;
 import org.example.service.SettingManager;
+import org.example.view.BaseView;
+import org.example.service.ColorManager;
 import org.example.service.DisplayManager;
 
 public class App extends Application {
@@ -31,15 +33,15 @@ public class App extends Application {
         // DisplayManager에 Stage 참조 설정
         displayManager.setPrimaryStage(primaryStage);
         
-        // BaseController 초기화 (static 의존성 주입)
+        // Base 초기화 (static 의존성 주입)
         BaseController.Initialize(primaryStage, settingManager);
+        BaseView.Initialize(ColorManager.getInstance());
 
         // SettingManager를 통해 DisplayManager를 활용하여 초기 창 크기 설정
-        settingManager.applyScreenSize(primaryStage);
+        settingManager.applyScreenSize();
 
         // Start with the start screen
-        StartController startController = new StartController();
-        startController.setState(startController);
+        BaseController.setState(new StartController());
 
         primaryStage.show();
     }

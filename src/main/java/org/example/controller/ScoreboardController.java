@@ -2,7 +2,6 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.BorderPane;
 
 import org.example.model.ScoreRecord;
 import org.example.service.ScoreManager;
@@ -32,18 +31,12 @@ public class ScoreboardController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        BorderPane root = scoreboardView.createView(
-            () -> handleGoBack(),
-            () -> handleClearScores()
+        var root = scoreboardView.createView(
+            this::handleGoBack,
+            this::handleClearScores
         );
-
         refreshScoreboard();
-
-        scene = new Scene(root, 1000, 700);
-        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-        scene.getRoot().setFocusTraversable(true);
-        scene.getRoot().requestFocus();
+        createDefaultScene(root);
         return scene;
     }
     

@@ -2,7 +2,6 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
 
 import org.example.model.SettingData.ScreenSize;
 import org.example.view.DisplaySettingView;
@@ -22,20 +21,21 @@ public class DisplaySettingController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        VBox root = displaySettingView.createView(
+        var root = displaySettingView.createView(
             selectedSize,
-            () -> handleSmall(),
-            () -> handleMedium(),
-            () -> handleLarge(),
-            () -> handleGoBack()
+            this::handleSmall,
+            this::handleMedium,
+            this::handleLarge,
+            this::handleGoBack
         );
-
-        scene = new Scene(root, 1000, 700);
-        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-        scene.getRoot().setFocusTraversable(true);
-        scene.getRoot().requestFocus();
+        createDefaultScene(root);
         return scene;
+    }
+
+    @Override
+    public void exit() {
+        // 설정 화면 종료 시 선택된 화면 크기를 저장
+        settingManager.setScreenSize(selectedSize);
     }
     
     /**
@@ -76,7 +76,7 @@ public class DisplaySettingController extends BaseController {
         
         // 설정을 SettingManager에 즉시 저장하고 DisplayManager를 통해 적용
         settingManager.setScreenSize(size);
-        settingManager.applyScreenSize(primaryStage);
+        settingManager.applyScreenSize();
     }
     
     /**

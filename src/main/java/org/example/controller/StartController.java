@@ -23,19 +23,12 @@ public class StartController extends BaseController {
         // View로부터 UI 구성 요소를 받아옴
         // Controller의 핸들러를 콜백으로 전달
         VBox root = startView.createView(
-            () -> handleStartGame(),       // Start Game 버튼 콜백
-            () -> handleViewScoreboard(),  // View Scoreboard 버튼 콜백
-            () -> handleSetting(),         // Setting 버튼 콜백
-            () -> handleExit()             // Exit 버튼 콜백
+            this::handleStartGame,       // Start Game 버튼 콜백
+            this::handleViewScoreboard,  // View Scoreboard 버튼 콜백
+            this::handleSetting,         // Setting 버튼 콜백
+            this::handleExit             // Exit 버튼 콜백
         );
-
-        scene = new Scene(root, 1000, 700);
-        // Scene 레벨에서 배경색 설정하여 플리커링 방지
-        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
-
-        // 키보드 입력은 Controller를 통해 처리
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-
+        createDefaultScene(root);
         return scene;
     }
 

@@ -2,8 +2,6 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
-
 import org.example.model.GameMode;
 import org.example.view.GameModeView;
 
@@ -20,17 +18,12 @@ public class GameModeController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        VBox root = view.createView(
-            () -> handleNormal(),
-            () -> handleItem(),
-            () -> handleGoBack()
+        var root = view.createView(
+            this::handleNormal,
+            this::handleItem,
+            this::handleGoBack
         );
-
-        scene = new Scene(root, 1000, 700);
-        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-        scene.getRoot().setFocusTraversable(true);
-        scene.getRoot().requestFocus();
+        createDefaultScene(root);
         return scene;
     }
 

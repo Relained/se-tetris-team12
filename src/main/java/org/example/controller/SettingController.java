@@ -20,30 +20,17 @@ public class SettingController extends BaseController {
     @Override
     protected Scene createScene() {
         VBox root = settingView.createView(
-            () -> handleScreenSize(),
-            () -> handleControls(),
-            () -> handleColorBlindSetting(),
-            () -> handleResetScoreBoard(),
-            () -> handleResetAllSetting(),
-            () -> handleGoBack()
+            this::handleScreenSize,
+            this::handleControls,
+            this::handleColorBlindSetting,
+            this::handleResetScoreBoard,
+            this::handleResetAllSetting,
+            this::handleGoBack
         );
-
-        scene = new Scene(root, 1000, 700);
-        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-        scene.getRoot().setFocusTraversable(true);
-        scene.getRoot().requestFocus();
+        createDefaultScene(root);
         return scene;
     }
 
-    @Override
-    protected void resume() {
-        // 설정창에서 돌아올 때 색상이 변경되었을 수 있으므로 색상 갱신
-        if (settingView != null) {
-            settingView.refreshColors();
-        }
-    }
-    
     /**
      * Screen Size 버튼 클릭 시 처리 - 화면 크기 설정 화면으로 이동
      */

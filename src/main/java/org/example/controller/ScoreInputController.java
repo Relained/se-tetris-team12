@@ -3,7 +3,6 @@ package org.example.controller;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
 
 import org.example.model.ScoreRecord;
 import org.example.service.ScoreManager;
@@ -26,20 +25,16 @@ public class ScoreInputController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        VBox root = scoreInputView.createView(
+        var root = scoreInputView.createView(
             rank,
             record.getScore(),
             record.getLines(),
             record.getLevel(),
-            () -> handleSubmit(),
-            () -> handleSkip()
+            this::handleSubmit,
+            this::handleSkip
         );
-
-        scene = new Scene(root, 1000, 700);
-        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-        scene.getRoot().setFocusTraversable(true);
-        scene.getRoot().requestFocus();
+        createDefaultScene(root);
+        scoreInputView.focusNameInput();
         return scene;
     }
 
