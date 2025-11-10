@@ -3,7 +3,6 @@ package org.example.view;
 import java.util.List;
 
 import org.example.model.SettingData.ScreenSize;
-import org.example.service.DisplayManager;
 
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
@@ -19,11 +18,9 @@ import javafx.scene.text.Text;
 public class DisplaySettingView extends BaseView {
     
     private Text title;
-    private DisplayManager displayManager;
     
     public DisplaySettingView() {
         super(true); // NavigableButtonSystem 사용
-        this.displayManager = DisplayManager.getInstance();
     }
     
     /**
