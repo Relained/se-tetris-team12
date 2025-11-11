@@ -1,45 +1,56 @@
 package org.example.controller;
 
-import org.example.service.StateManager;
-import org.example.state.GameModeState;
-import org.example.state.ScoreboardState;
-import org.example.state.SettingState;
 import org.example.view.StartView;
 
+import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 
 /**
- * StartState의 입력을 처리하는 Controller
+ * Start 화면의 입력을 처리하는 Controller
+ * State 기능을 통합하여 Scene 생성 및 생명주기 관리
  */
-public class StartController {
+public class StartController extends BaseController {
     
-    private StateManager stateManager;
     private StartView startView;
-    
-    public StartController(StateManager stateManager, StartView startView) {
-        this.stateManager = stateManager;
-        this.startView = startView;
+
+    public StartController() {
+        this.startView = new StartView();
     }
     
+    @Override
+    protected Scene createScene() {
+        // View로부터 UI 구성 요소를 받아옴
+        // Controller의 핸들러를 콜백으로 전달
+        VBox root = startView.createView(
+            this::handleStartGame,       // Start Game 버튼 콜백
+            this::handleViewScoreboard,  // View Scoreboard 버튼 콜백
+            this::handleSetting,         // Setting 버튼 콜백
+            this::handleExit             // Exit 버튼 콜백
+        );
+        createDefaultScene(root);
+        return scene;
+    }
+
     /**
      * Start Game 버튼 클릭 시 처리
      */
     public void handleStartGame() {
-        stateManager.stackState(new GameModeState(stateManager));
+        stackState(new GameModeController());
     }
     
     /**
      * View Scoreboard 버튼 클릭 시 처리
      */
     public void handleViewScoreboard() {
-        stateManager.stackState(new ScoreboardState(stateManager));
+        stackState(new ScoreboardController());
     }
 
     /**
      * Setting 버튼 클릭 시 처리
      */
     public void handleSetting() {
-        stateManager.stackState(new SettingState(stateManager));
+        stackState(new SettingController());
     }
     
     /**
@@ -53,6 +64,7 @@ public class StartController {
      * 키보드 입력 처리
      * NavigableButtonSystem을 통해 버튼 내비게이션 처리
      */
+    @Override
     public void handleKeyInput(KeyEvent event) {
         startView.getButtonSystem().handleInput(event);
     }

@@ -9,14 +9,10 @@ import org.example.view.component.NavigableButtonSystem;
 public abstract class BaseView {
     
     protected NavigableButtonSystem buttonSystem;
-    protected ColorManager colorManager;
+    protected static ColorManager colorManager;
     
-    /**
-     * BaseView 생성자
-     * ColorManager 인스턴스를 초기화합니다.
-     */
-    public BaseView() {
-        this.colorManager = ColorManager.getInstance();
+    public static void Initialize(ColorManager colorManager) {
+        BaseView.colorManager = colorManager;
     }
     
     /**
@@ -25,7 +21,6 @@ public abstract class BaseView {
      * @param useButtonSystem true인 경우 NavigableButtonSystem을 초기화
      */
     public BaseView(boolean useButtonSystem) {
-        this.colorManager = ColorManager.getInstance();
         if (useButtonSystem) {
             this.buttonSystem = new NavigableButtonSystem();
         }
@@ -38,22 +33,5 @@ public abstract class BaseView {
      */
     public NavigableButtonSystem getButtonSystem() {
         return buttonSystem;
-    }
-    
-    /**
-     * ColorManager를 반환합니다.
-     * @return ColorManager 인스턴스
-     */
-    protected ColorManager getColorManager() {
-        return colorManager;
-    }
-    
-    /**
-     * 색상 설정이 변경되었을 때 호출하여 UI를 갱신합니다.
-     * 필요한 경우 서브클래스에서 오버라이드하여 구현합니다.
-     */
-    public void refreshColors() {
-        // 기본 구현: 비어있음
-        // 서브클래스에서 필요시 오버라이드
     }
 }

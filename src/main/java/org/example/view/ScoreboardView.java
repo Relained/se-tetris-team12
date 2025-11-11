@@ -52,20 +52,19 @@ public class ScoreboardView extends BaseView {
     private VBox container;
     private GridPane headerGrid;
     private Text titleLabel;
-    private boolean showNewlyAddedHighlight;
+    private boolean showNewlyAddedHighlight = false;
     private boolean isAfterGamePlay = false; // 게임 플레이 후인지 여부
     
     private double currentWidth = 576; // 기본값 (MEDIUM)
 
+    public ScoreboardView() {
+        super(true);
+    }
+    
     public ScoreboardView(boolean showNewlyAddedHighlight) {
         super(true);
         this.showNewlyAddedHighlight = showNewlyAddedHighlight;
-    }
-    
-    public ScoreboardView(boolean showNewlyAddedHighlight, boolean isAfterGamePlay) {
-        super(true);
-        this.showNewlyAddedHighlight = showNewlyAddedHighlight;
-        this.isAfterGamePlay = isAfterGamePlay;
+        this.isAfterGamePlay = true;
     }
 
     /**
@@ -408,13 +407,5 @@ public class ScoreboardView extends BaseView {
             case 3 -> Color.web("#CD7F32"); // Bronze
             default -> Color.WHITE;
         };
-    }
-
-    /**
-     * 스코어보드를 새로고침합니다.
-     * Controller에서 데이터를 가져와서 호출해야 합니다.
-     */
-    public void refresh(List<ScoreRecord> topScores) {
-        updateScoreboard(topScores);
     }
 }
