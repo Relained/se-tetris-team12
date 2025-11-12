@@ -77,6 +77,9 @@ public class DisplaySettingController extends BaseController {
         // 설정을 SettingManager에 즉시 저장하고 DisplayManager를 통해 적용
         settingManager.setScreenSize(size);
         settingManager.applyScreenSize();
+        
+        // 모든 등록된 View들에 즉시 스케일 변경 적용
+        org.example.service.ViewScaleManager.getInstance().updateAllViews();
     }
     
     /**

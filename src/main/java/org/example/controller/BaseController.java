@@ -4,6 +4,7 @@ import java.util.Stack;
 
 import org.example.service.ColorManager;
 import org.example.service.SettingManager;
+import org.example.service.ViewScaleManager;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -22,9 +23,15 @@ public abstract class BaseController {
         BaseController.primaryStage = primaryStage;
         BaseController.settingManager = settingManager;
         BaseController.stateStack = new Stack<>();
+        
+        ViewScaleManager.getInstance().initialize(primaryStage);
     }
 
-    protected void exit() {}
+    protected void exit() {
+        // Scene이 완전히 종료될 때만 View를 제거 (setState에서만 호출)
+        // stackState에서는 View를 유지해야 stack에서 돌아왔을 때 스케일이 적용됨
+    }
+    
     protected void resume() {}
     protected abstract Scene createScene();
     protected abstract void handleKeyInput(KeyEvent event);
@@ -37,6 +44,9 @@ public abstract class BaseController {
         scene = new Scene(root, 1000, 700);
         scene.setFill(ColorManager.getInstance().getBackgroundColor());
         scene.setOnKeyPressed(event -> handleKeyInput(event));
+        
+        // Scene이 생성되면 ViewScaleManager에 알림
+        ViewScaleManager.getInstance().onSceneChanged(scene);
     }
 
     public static void popState() {
@@ -64,6 +74,9 @@ public abstract class BaseController {
 
     //이전 스테이트로 돌아갈 필요가 없을 때 사용
     public static void setState(BaseController newState) {
+        // 모든 stack을 비우므로 등록된 View들도 모두 제거
+        ViewScaleManager.getInstance().clearAllViews();
+        
         while (!stateStack.empty()) {
             stateStack.pop().exit();
         }

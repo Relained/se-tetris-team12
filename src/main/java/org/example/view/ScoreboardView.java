@@ -2,7 +2,6 @@ package org.example.view;
 
 import java.util.List;
 
-import javafx.beans.value.ChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -55,16 +54,35 @@ public class ScoreboardView extends BaseView {
     private boolean showNewlyAddedHighlight = false;
     private boolean isAfterGamePlay = false; // 게임 플레이 후인지 여부
     
-    private double currentWidth = 576; // 기본값 (MEDIUM)
+    private double currentWidth;
 
     public ScoreboardView() {
         super(true);
+        // 현재 화면 크기로 초기화
+        var displayManager = org.example.service.DisplayManager.getInstance();
+        this.currentWidth = displayManager.getWidth(displayManager.getCurrentSize());
     }
     
     public ScoreboardView(boolean showNewlyAddedHighlight) {
         super(true);
         this.showNewlyAddedHighlight = showNewlyAddedHighlight;
         this.isAfterGamePlay = true;
+        // 현재 화면 크기로 초기화
+        var displayManager = org.example.service.DisplayManager.getInstance();
+        this.currentWidth = displayManager.getWidth(displayManager.getCurrentSize());
+    }
+    
+    @Override
+    protected void onScaleChanged(double scale) {
+        // container가 아직 생성되지 않았으면 스킵
+        if (container == null) {
+            return;
+        }
+        
+        // DisplayManager에서 현재 화면 크기에 맞는 너비 가져오기
+        var displayManager = org.example.service.DisplayManager.getInstance();
+        double width = displayManager.getWidth(displayManager.getCurrentSize());
+        updateLayout(width);
     }
 
     /**
@@ -89,22 +107,6 @@ public class ScoreboardView extends BaseView {
 
         VBox buttonPanel = createButtonPanel(onBackToMenu, onClearScores, isAfterGamePlay);
         root.setBottom(buttonPanel);
-
-        // Stage 크기 변경 리스너 추가
-        root.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene != null) {
-                newScene.windowProperty().addListener((obsWin, oldWin, newWin) -> {
-                    if (newWin != null) {
-                        ChangeListener<Number> sizeListener = (observable, oldValue, newValue) -> {
-                            updateLayout(newWin.getWidth());
-                        };
-                        newWin.widthProperty().addListener(sizeListener);
-                        // 초기 크기 적용
-                        updateLayout(newWin.getWidth());
-                    }
-                });
-            }
-        });
 
         return root;
     }
@@ -295,11 +297,9 @@ public class ScoreboardView extends BaseView {
                 List.of("Go Back", "Clear Scores"),
                 List.of(onBackToMenu, onClearScores)
             );
-            created.forEach(button -> button.setPrefWidth(200));
             buttonPanel.getChildren().addAll(created);
         } else {
             var backButton = buttonSystem.createNavigableButton("Go Back", onBackToMenu);
-            backButton.setPrefWidth(200);
             buttonPanel.getChildren().add(backButton);
         }
 

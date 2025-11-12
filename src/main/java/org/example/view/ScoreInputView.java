@@ -15,11 +15,48 @@ import javafx.scene.text.Text;
  */
 public class ScoreInputView extends BaseView {
     
+    // 기준 폰트 크기 (MEDIUM 기준)
+    private static final double BASE_TITLE_FONT_SIZE = 28.0;
+    private static final double BASE_RANK_FONT_SIZE = 20.0;
+    private static final double BASE_SCORE_FONT_SIZE = 16.0;
+    private static final double BASE_INSTRUCTION_FONT_SIZE = 14.0;
+    private static final double BASE_INPUT_FONT_SIZE = 14.0;
+    private static final double BASE_HINT_FONT_SIZE = 12.0;
+    private static final double BASE_MAX_WIDTH = 500.0;
+    private static final double BASE_MAX_HEIGHT = 450.0;
+    private static final double BASE_INPUT_WIDTH = 300.0;
+    
     private TextField nameInput;
+    private Text title;
     private Text rankText;
+    private Text scoreText;
+    private Text instructionText;
+    private Text keyHintText;
+    private VBox root;
 
     public ScoreInputView() {
         super(false);
+    }
+    
+    @Override
+    protected void onScaleChanged(double scale) {
+        // UI 요소가 아직 생성되지 않았으면 스킵
+        if (title == null) {
+            return;
+        }
+        
+        // 스케일에 맞춰 폰트 크기 조정
+        title.setFont(Font.font("Arial", BASE_TITLE_FONT_SIZE * scale));
+        rankText.setFont(Font.font("Arial", BASE_RANK_FONT_SIZE * scale));
+        scoreText.setFont(Font.font("Arial", BASE_SCORE_FONT_SIZE * scale));
+        instructionText.setFont(Font.font("Arial", BASE_INSTRUCTION_FONT_SIZE * scale));
+        nameInput.setFont(Font.font("Arial", BASE_INPUT_FONT_SIZE * scale));
+        keyHintText.setFont(Font.font("Arial", BASE_HINT_FONT_SIZE * scale));
+        
+        // 컨테이너 크기 조정
+        root.setMaxWidth(BASE_MAX_WIDTH * scale);
+        root.setMaxHeight(BASE_MAX_HEIGHT * scale);
+        nameInput.setMaxWidth(BASE_INPUT_WIDTH * scale);
     }
     
     /**
@@ -33,35 +70,35 @@ public class ScoreInputView extends BaseView {
      * @return 구성된 VBox root
      */
     public VBox createView(int rank, int score, int lines, int level, Runnable onSubmit, Runnable onSkip) {
-        VBox root = new VBox(20);
+        root = new VBox(20);
         root.setAlignment(Pos.CENTER);
         root.setSpacing(20);
         root.setPadding(new Insets(40));
         root.setBackground(new Background(new BackgroundFill(Color.DARKBLUE, null, null)));
-        root.setMaxWidth(500);
-        root.setMaxHeight(450);
+        root.setMaxWidth(BASE_MAX_WIDTH * currentScale);
+        root.setMaxHeight(BASE_MAX_HEIGHT * currentScale);
         
-        Text title = new Text("NEW HIGH SCORE!");
+        title = new Text("NEW HIGH SCORE!");
         title.setFill(Color.GOLD);
-        title.setFont(Font.font("Arial", 28));
+        title.setFont(Font.font("Arial", BASE_TITLE_FONT_SIZE * currentScale));
         
         rankText = new Text(String.format("Rank: #%d", rank));
         rankText.setFill(Color.YELLOW);
-        rankText.setFont(Font.font("Arial", 20));
+        rankText.setFont(Font.font("Arial", BASE_RANK_FONT_SIZE * currentScale));
         
-        Text scoreText = new Text(String.format("Score: %,d  |  Lines: %d  |  Level: %d", 
+        scoreText = new Text(String.format("Score: %,d  |  Lines: %d  |  Level: %d", 
                                           score, lines, level));
         scoreText.setFill(Color.WHITE);
-        scoreText.setFont(Font.font("Arial", 16));
+        scoreText.setFont(Font.font("Arial", BASE_SCORE_FONT_SIZE * currentScale));
         
-        Text instructionText = new Text("Enter your name (max 3 characters):");
+        instructionText = new Text("Enter your name (max 3 characters):");
         instructionText.setFill(Color.LIGHTGRAY);
-        instructionText.setFont(Font.font("Arial", 14));
+        instructionText.setFont(Font.font("Arial", BASE_INSTRUCTION_FONT_SIZE * currentScale));
         
         nameInput = new TextField();
         nameInput.setPromptText("ABC");
-        nameInput.setMaxWidth(300);
-        nameInput.setFont(Font.font("Arial", 14));
+        nameInput.setMaxWidth(BASE_INPUT_WIDTH * currentScale);
+        nameInput.setFont(Font.font("Arial", BASE_INPUT_FONT_SIZE * currentScale));
         nameInput.setStyle("-fx-background-color: white; -fx-text-fill: black;");
         
         nameInput.textProperty().addListener((_, _, newText) -> {
@@ -85,9 +122,9 @@ public class ScoreInputView extends BaseView {
         });
         
         // Key instructions
-        Text keyHintText = new Text("Press ENTER to submit  |  Press ESC to cancel");
+        keyHintText = new Text("Press ENTER to submit  |  Press ESC to cancel");
         keyHintText.setFill(Color.LIGHTGREEN);
-        keyHintText.setFont(Font.font("Arial", 12));
+        keyHintText.setFont(Font.font("Arial", BASE_HINT_FONT_SIZE * currentScale));
         
         root.getChildren().addAll(title, rankText, scoreText, instructionText, nameInput, keyHintText);
         

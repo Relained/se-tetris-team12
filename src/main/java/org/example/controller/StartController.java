@@ -19,6 +19,16 @@ public class StartController extends BaseController {
     }
     
     @Override
+    protected void resume() {
+        // 화면으로 돌아올 때 현재 스케일 재적용
+        if (startView.getButtonSystem() != null) {
+            var displayManager = org.example.service.DisplayManager.getInstance();
+            var currentSize = displayManager.getCurrentSize();
+            startView.updateScale(currentSize);
+        }
+    }
+    
+    @Override
     protected Scene createScene() {
         // View로부터 UI 구성 요소를 받아옴
         // Controller의 핸들러를 콜백으로 전달
