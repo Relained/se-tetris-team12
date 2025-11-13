@@ -13,9 +13,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import org.example.model.ScoreRecord;
+import org.example.service.FontManager;
 
 import java.time.format.DateTimeFormatter;
 
@@ -31,12 +31,6 @@ public class ScoreboardView extends BaseView {
     
     // 기준 화면 크기 (MEDIUM)
     private static final double BASE_WIDTH = 576.0;
-    
-    // 기준 폰트 크기 (MEDIUM)
-    private static final double BASE_TITLE_FONT_SIZE = 24.0;
-    private static final double BASE_HEADER_FONT_SIZE = 14.0;
-    private static final double BASE_CONTENT_FONT_SIZE = 13.0;
-    private static final double BASE_NO_SCORES_FONT_SIZE = 16.0;
     
     // 컬럼 너비 비율 (전체 대비)
     private static final double COL_RANK_RATIO = 0.08;
@@ -121,7 +115,7 @@ public class ScoreboardView extends BaseView {
 
         titleLabel = new Text("HIGH SCORES");
         titleLabel.setFill(Color.GOLD);
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, BASE_TITLE_FONT_SIZE));
+        titleLabel.setFont(fontManager.getBoldFont(FontManager.SIZE_TITLE_SMALL));
 
         headerGrid = createHeaderRow();
 
@@ -131,7 +125,7 @@ public class ScoreboardView extends BaseView {
 
         Text noScoresLabel = new Text("Loading...");
         noScoresLabel.setFill(Color.LIGHTGRAY);
-        noScoresLabel.setFont(Font.font("Arial", BASE_NO_SCORES_FONT_SIZE));
+        noScoresLabel.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM));
         scoresContainer.getChildren().add(noScoresLabel);
 
         container.getChildren().addAll(titleLabel, headerGrid, scoresContainer);
@@ -154,7 +148,7 @@ public class ScoreboardView extends BaseView {
         container.setPrefWidth(containerWidth);
         
         // 타이틀 폰트 크기 업데이트
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, BASE_TITLE_FONT_SIZE * fontScale));
+        titleLabel.setFont(fontManager.getBoldFont(FontManager.SIZE_TITLE_SMALL * fontScale));
         
         // 헤더 그리드 업데이트
         double gridWidth = width * GRID_WIDTH_RATIO;
@@ -172,7 +166,7 @@ public class ScoreboardView extends BaseView {
             } else if (node instanceof Text) {
                 // "No scores recorded yet!" 또는 "Loading..." 텍스트
                 Text text = (Text) node;
-                text.setFont(Font.font("Arial", BASE_NO_SCORES_FONT_SIZE * fontScale));
+                text.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM * fontScale));
             }
         });
     }
@@ -186,7 +180,7 @@ public class ScoreboardView extends BaseView {
         grid.getChildren().forEach(node -> {
             if (node instanceof Text) {
                 Text text = (Text) node;
-                text.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE * fontScale));
+                text.setFont(fontManager.getBoldFont(FontManager.SIZE_BODY_SMALL * fontScale));
             }
         });
     }
@@ -203,9 +197,9 @@ public class ScoreboardView extends BaseView {
                 // 밑줄이 있는지 확인 (새로 추가된 점수)
                 boolean isUnderlined = text.isUnderline();
                 if (isUnderlined) {
-                    text.setFont(Font.font("Courier New", FontWeight.BOLD, BASE_CONTENT_FONT_SIZE * fontScale));
+                    text.setFont(fontManager.getMonospaceBoldFont(FontManager.SIZE_BODY_DETAIL * fontScale));
                 } else {
-                    text.setFont(Font.font("Courier New", BASE_CONTENT_FONT_SIZE * fontScale));
+                    text.setFont(fontManager.getMonospaceFont(FontManager.SIZE_BODY_DETAIL * fontScale));
                 }
             }
         });
@@ -249,31 +243,31 @@ public class ScoreboardView extends BaseView {
 
         Text rankHeader = new Text("RANK");
         rankHeader.setFill(Color.WHITE);
-        rankHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
+        rankHeader.setFont(fontManager.getBoldFont(FontManager.SIZE_BODY_SMALL));
 
         Text nameHeader = new Text("NAME");
         nameHeader.setFill(Color.WHITE);
-        nameHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
+        nameHeader.setFont(fontManager.getBoldFont(FontManager.SIZE_BODY_SMALL));
 
         Text scoreHeader = new Text("SCORE");
         scoreHeader.setFill(Color.WHITE);
-        scoreHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
+        scoreHeader.setFont(fontManager.getBoldFont(FontManager.SIZE_BODY_SMALL));
 
         Text levelHeader = new Text("LEVEL");
         levelHeader.setFill(Color.WHITE);
-        levelHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
+        levelHeader.setFont(fontManager.getBoldFont(FontManager.SIZE_BODY_SMALL));
 
         Text diffHeader = new Text("DIFF");
         diffHeader.setFill(Color.WHITE);
-        diffHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
+        diffHeader.setFont(fontManager.getBoldFont(FontManager.SIZE_BODY_SMALL));
 
         Text modeHeader = new Text("MODE");
         modeHeader.setFill(Color.WHITE);
-        modeHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
+        modeHeader.setFont(fontManager.getBoldFont(FontManager.SIZE_BODY_SMALL));
 
         Text dateHeader = new Text("DATE");
         dateHeader.setFill(Color.WHITE);
-        dateHeader.setFont(Font.font("Arial", FontWeight.BOLD, BASE_HEADER_FONT_SIZE));
+        dateHeader.setFont(fontManager.getBoldFont(FontManager.SIZE_BODY_SMALL));
 
         grid.add(rankHeader, 0, 0);
         grid.add(nameHeader, 1, 0);
@@ -317,7 +311,7 @@ public class ScoreboardView extends BaseView {
             Text noScoresLabel = new Text("No scores recorded yet!");
             noScoresLabel.setFill(Color.LIGHTGRAY);
             double fontScale = currentWidth / BASE_WIDTH;
-            noScoresLabel.setFont(Font.font("Arial", BASE_NO_SCORES_FONT_SIZE * fontScale));
+            noScoresLabel.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM * fontScale));
             scoresContainer.getChildren().add(noScoresLabel);
             return;
         }
@@ -355,11 +349,11 @@ public class ScoreboardView extends BaseView {
 
         // 현재 화면 크기에 맞는 폰트 크기 계산
         double fontScale = currentWidth / BASE_WIDTH;
-        Font font = Font.font("Courier New", BASE_CONTENT_FONT_SIZE * fontScale);
+        Font font = fontManager.getMonospaceFont(FontManager.SIZE_BODY_DETAIL * fontScale);
         
         // Highlight가 활성화된 경우 새로 추가된 점수에 밑줄 적용
         if (showNewlyAddedHighlight && record.isNewAndEligible()) {
-            font = Font.font("Courier New", FontWeight.BOLD, BASE_CONTENT_FONT_SIZE * fontScale);
+            font = fontManager.getMonospaceBoldFont(FontManager.SIZE_BODY_DETAIL * fontScale);
             rankText.setUnderline(true);
             nameText.setUnderline(true);
             scoreText.setUnderline(true);

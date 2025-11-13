@@ -6,18 +6,14 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import org.example.service.FontManager;
 
 /**
  * ScoreNotEligible 화면의 UI를 담당하는 View 클래스
  */
 public class ScoreNotEligibleView extends BaseView {
-    
-    // 기준 폰트 크기 (MEDIUM 기준)
-    private static final double BASE_MESSAGE_FONT_SIZE = 18.0;
-    private static final double BASE_SCORE_FONT_SIZE = 20.0;
     
     private Text messageText;
     private Text scoreText;
@@ -34,8 +30,8 @@ public class ScoreNotEligibleView extends BaseView {
         }
         
         // 스케일에 맞춰 폰트 크기 조정
-        messageText.setFont(Font.font("Arial", BASE_MESSAGE_FONT_SIZE * scale));
-        scoreText.setFont(Font.font("Arial", BASE_SCORE_FONT_SIZE * scale));
+        messageText.setFont(fontManager.getFont(FontManager.SIZE_BODY_MESSAGE * scale));
+        scoreText.setFont(fontManager.getFont(FontManager.SIZE_BODY_LARGE * scale));
     }
     
     /**
@@ -54,12 +50,12 @@ public class ScoreNotEligibleView extends BaseView {
 
         messageText = new Text("Your score didn't make it to the top 10.\nCheck out the current scoreboard!");
         messageText.setFill(Color.LIGHTGRAY);
-        messageText.setFont(Font.font("Arial", BASE_MESSAGE_FONT_SIZE * currentScale));
+        messageText.setFont(fontManager.getFont(FontManager.SIZE_BODY_MESSAGE * currentScale));
         messageText.setTextAlignment(TextAlignment.CENTER);
 
         scoreText = new Text("Final Score: " + score);
         scoreText.setFill(Color.YELLOW);
-        scoreText.setFont(Font.font("Arial", BASE_SCORE_FONT_SIZE * currentScale));
+        scoreText.setFont(fontManager.getFont(FontManager.SIZE_BODY_LARGE * currentScale));
         scoreText.setTextAlignment(TextAlignment.CENTER);
 
         // NavigableButtonSystem을 사용하여 버튼 생성

@@ -6,15 +6,10 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import org.example.service.FontManager;
 
 public class StartView extends BaseView {
-    
-    // 기준 폰트 크기 (MEDIUM 기준)
-    private static final double BASE_TITLE_FONT_SIZE = 48.0;
-    private static final double BASE_SUBTITLE_FONT_SIZE = 16.0;
-    private static final double BASE_CONTROLS_FONT_SIZE = 14.0;
     
     private Text title;
     private Text subtitle;
@@ -32,9 +27,9 @@ public class StartView extends BaseView {
         }
         
         // 스케일에 맞춰 폰트 크기 조정
-        title.setFont(Font.font("Arial", BASE_TITLE_FONT_SIZE * scale));
-        subtitle.setFont(Font.font("Arial", BASE_SUBTITLE_FONT_SIZE * scale));
-        controls.setFont(Font.font("Arial", BASE_CONTROLS_FONT_SIZE * scale));
+        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * scale));
+        subtitle.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM * scale));
+        controls.setFont(fontManager.getFont(FontManager.SIZE_BODY_SMALL * scale));
     }
     
     /**
@@ -54,11 +49,11 @@ public class StartView extends BaseView {
 
         title = new Text("TETRIS");
         title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(Font.font("Arial", BASE_TITLE_FONT_SIZE * currentScale));
+        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * currentScale));
 
         subtitle = new Text("Team 12 Edition");
         subtitle.setFill(colorManager.getSecondaryTextColor());
-        subtitle.setFont(Font.font("Arial", BASE_SUBTITLE_FONT_SIZE * currentScale));
+        subtitle.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM * currentScale));
 
         var created = buttonSystem.createNavigableButtonFromList(
             List.of("Start Game", "View Scoreboard", "Setting", "Exit"),
@@ -73,7 +68,7 @@ public class StartView extends BaseView {
                 "C Hold\n" +
                 "ESC Pause");
         controls.setFill(colorManager.getSecondaryTextColor());
-        controls.setFont(Font.font("Arial", BASE_CONTROLS_FONT_SIZE * currentScale));
+        controls.setFont(fontManager.getFont(FontManager.SIZE_BODY_SMALL * currentScale));
 
         root.getChildren().addAll(title, subtitle);
         root.getChildren().addAll(created);
