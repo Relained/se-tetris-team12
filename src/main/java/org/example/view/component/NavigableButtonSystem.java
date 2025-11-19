@@ -55,11 +55,17 @@ public class NavigableButtonSystem {
         if (texts.size() != actions.size()) {
             throw new IllegalArgumentException("Texts and actions lists must have the same size.");
         }
+        
+        // 기존 버튼 리스트 초기화
+        buttons.clear();
+        selectedButtonIndex = 0;
+        
         ArrayList<Button> createdButtons = new ArrayList<>();
         for (int i = 0; i < texts.size(); i++) {
             Button button = createNavigableButton(texts.get(i), actions.get(i));
             createdButtons.add(button);
         }
+        
         return createdButtons;
     }
 
@@ -133,6 +139,9 @@ public class NavigableButtonSystem {
     private void executeSelectedButton() {
         Button selectedButton = buttons.get(selectedButtonIndex);
         Runnable action = (Runnable) selectedButton.getUserData();
-        action.run();
+        
+        if (action != null) {
+            action.run();
+        }
     }
 }

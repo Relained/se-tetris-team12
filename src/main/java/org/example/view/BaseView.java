@@ -2,8 +2,8 @@ package org.example.view;
 
 import org.example.model.SettingData.ScreenSize;
 import org.example.service.ColorManager;
+import org.example.service.DisplayManager;
 import org.example.service.FontManager;
-import org.example.service.ViewScaleManager;
 import org.example.view.component.NavigableButtonSystem;
 
 /**
@@ -31,8 +31,8 @@ public abstract class BaseView {
             this.buttonSystem = new NavigableButtonSystem();
         }
         
-        // ViewScaleManager에 자동 등록
-        ViewScaleManager.getInstance().registerView(this);
+        // DisplayManager에 자동 등록
+        DisplayManager.getInstance().registerView(this);
     }
     
     /**

@@ -3,8 +3,8 @@ package org.example.controller;
 import java.util.Stack;
 
 import org.example.service.ColorManager;
+import org.example.service.DisplayManager;
 import org.example.service.SettingManager;
-import org.example.service.ViewScaleManager;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -23,8 +23,6 @@ public abstract class BaseController {
         BaseController.primaryStage = primaryStage;
         BaseController.settingManager = settingManager;
         BaseController.stateStack = new Stack<>();
-        
-        ViewScaleManager.getInstance().initialize(primaryStage);
     }
 
     protected void exit() {
@@ -44,9 +42,14 @@ public abstract class BaseController {
         scene = new Scene(root, 1000, 700);
         scene.setFill(ColorManager.getInstance().getBackgroundColor());
         scene.setOnKeyPressed(event -> handleKeyInput(event));
-        
-        // Scene이 생성되면 ViewScaleManager에 알림
-        ViewScaleManager.getInstance().onSceneChanged(scene);
+    }
+
+    /**
+     * 현재 Scene을 Stage에 적용합니다.
+     * 주로 설정 변경 후 즉시 반영을 위해 사용됩니다.
+     */
+    protected void refreshCurrentScene() {
+        primaryStage.setScene(scene);
     }
 
     public static void popState() {
@@ -57,8 +60,12 @@ public abstract class BaseController {
         if (stateStack.isEmpty()) {
             return;
         }
-        stateStack.peek().resume();
-        primaryStage.setScene(stateStack.peek().getScene());
+        BaseController resumingController = stateStack.peek();
+        resumingController.resume();
+        
+        // Scene을 다시 생성하여 최신 상태 반영
+        Scene newScene = resumingController.createScene();
+        primaryStage.setScene(newScene);
     }
 
     //이전 스테이트로 돌아갈 수 있어야 할 때 사용
@@ -75,7 +82,7 @@ public abstract class BaseController {
     //이전 스테이트로 돌아갈 필요가 없을 때 사용
     public static void setState(BaseController newState) {
         // 모든 stack을 비우므로 등록된 View들도 모두 제거
-        ViewScaleManager.getInstance().clearAllViews();
+        DisplayManager.getInstance().clearAllViews();
         
         while (!stateStack.empty()) {
             stateStack.pop().exit();

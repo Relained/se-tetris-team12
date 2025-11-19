@@ -78,8 +78,7 @@ public class DisplaySettingController extends BaseController {
         settingManager.setScreenSize(size);
         settingManager.applyScreenSize();
         
-        // 모든 등록된 View들에 즉시 스케일 변경 적용
-        org.example.service.ViewScaleManager.getInstance().updateAllViews();
+        // DisplayManager의 setDisplayMode()가 자동으로 updateAllViews() 호출
     }
     
     /**
