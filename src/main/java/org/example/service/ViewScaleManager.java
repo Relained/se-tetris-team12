@@ -28,14 +28,6 @@ public class ViewScaleManager {
     }
 
     /**
-     * Stage를 설정합니다.
-     * @param stage 메인 JavaFX Stage
-     */
-    public void initialize(Stage stage) {
-        // Stage 참조는 필요 없음 (DisplayManager가 관리)
-    }
-
-    /**
      * Scene이 변경될 때 호출되어 현재 Scene의 모든 View를 업데이트합니다.
      * @param scene 새로운 Scene
      */
@@ -71,7 +63,7 @@ public class ViewScaleManager {
      */
     public void updateAllViews() {
         ScreenSize currentSize = DisplayManager.getInstance().getCurrentSize();
-        for (BaseView view : new ArrayList<>(registeredViews)) {
+        for (BaseView view : registeredViews) {
             view.updateScale(currentSize);
         }
     }

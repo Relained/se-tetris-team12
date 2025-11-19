@@ -23,15 +23,9 @@ public abstract class BaseController {
         BaseController.primaryStage = primaryStage;
         BaseController.settingManager = settingManager;
         BaseController.stateStack = new Stack<>();
-        
-        ViewScaleManager.getInstance().initialize(primaryStage);
     }
 
-    protected void exit() {
-        // Scene이 완전히 종료될 때만 View를 제거 (setState에서만 호출)
-        // stackState에서는 View를 유지해야 stack에서 돌아왔을 때 스케일이 적용됨
-    }
-    
+    protected void exit() {}
     protected void resume() {}
     protected abstract Scene createScene();
     protected abstract void handleKeyInput(KeyEvent event);
