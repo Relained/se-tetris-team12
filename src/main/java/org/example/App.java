@@ -19,12 +19,7 @@ public class App extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Tetris");
         
-        // 창 크기 조정 가능하도록 설정
-        primaryStage.setResizable(true);
-        
-        // 최소 크기 설정 (게임이 정상적으로 표시될 수 있는 최소 크기)
-        primaryStage.setMinWidth(600);
-        primaryStage.setMinHeight(800);
+        primaryStage.setResizable(false);
         
         // Initialize managers
         settingManager = new SettingManager();

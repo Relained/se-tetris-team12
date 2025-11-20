@@ -6,13 +6,30 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import org.example.service.FontManager;
 
 public class StartView extends BaseView {
     
+    private Text title;
+    private Text subtitle;
+    private Text controls;
+    
     public StartView() {
         super(true); // NavigableButtonSystem 사용
+    }
+    
+    @Override
+    protected void onScaleChanged(double scale) {
+        // UI 요소가 아직 생성되지 않았으면 스킵
+        if (title == null || subtitle == null || controls == null) {
+            return;
+        }
+        
+        // 스케일에 맞춰 폰트 크기 조정
+        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * scale));
+        subtitle.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM * scale));
+        controls.setFont(fontManager.getFont(FontManager.SIZE_BODY_SMALL * scale));
     }
     
     /**
@@ -30,20 +47,20 @@ public class StartView extends BaseView {
             new BackgroundFill(colorManager.getBackgroundColor(), null, null)
         ));
 
-        Text title = new Text("TETRIS");
+        title = new Text("TETRIS");
         title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(Font.font("Arial", 48));
+        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * currentScale));
 
-        Text subtitle = new Text("Team 12 Edition");
+        subtitle = new Text("Team 12 Edition");
         subtitle.setFill(colorManager.getSecondaryTextColor());
-        subtitle.setFont(Font.font("Arial", 16));
+        subtitle.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM * currentScale));
 
         var created = buttonSystem.createNavigableButtonFromList(
             List.of("Start Game", "View Scoreboard", "Setting", "Exit"),
             List.of(onStartGame, onViewScoreboard, onSetting, onExit)
         );
 
-        Text controls = new Text("Controls:\n" +
+        controls = new Text("Controls:\n" +
                 "← → Move\n" +
                 "↓ Soft Drop\n" +
                 "Space Hard Drop\n" +
@@ -51,7 +68,7 @@ public class StartView extends BaseView {
                 "C Hold\n" +
                 "ESC Pause");
         controls.setFill(colorManager.getSecondaryTextColor());
-        controls.setFont(Font.font("Arial", 14));
+        controls.setFont(fontManager.getFont(FontManager.SIZE_BODY_SMALL * currentScale));
 
         root.getChildren().addAll(title, subtitle);
         root.getChildren().addAll(created);

@@ -203,7 +203,7 @@ public class PlayController extends BaseController {
      * 일시정지 처리
      */
     public void handlePause() {
-        stackState(new PauseController(() -> tetrisSystem.reset()));
+        stackState(new PauseController(tetrisSystem::reset));
     }
 
     /**

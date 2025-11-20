@@ -2,26 +2,33 @@ package org.example.service;
 
 import javafx.stage.Stage;
 import org.example.model.SettingData.ScreenSize;
+import org.example.view.BaseView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 화면 크기 및 디스플레이 설정을 관리하는 매니저 클래스
+ * View의 스케일링도 함께 관리합니다.
  * Singleton 패턴으로 구현되어 애플리케이션 전역에서 하나의 인스턴스만 사용
  */
 public class DisplayManager {
     private static DisplayManager instance;
     private ScreenSize currentSize;
     private Stage primaryStage;
+    private List<BaseView> registeredViews;
 
     // 각 크기별 화면 설정
-    private static final int SMALL_WIDTH = 650;
-    private static final int SMALL_HEIGHT = 800;
-    private static final int MEDIUM_WIDTH = 700;
-    private static final int MEDIUM_HEIGHT = 900;
-    private static final int LARGE_WIDTH = 900;
-    private static final int LARGE_HEIGHT = 1000;
+    private static final int SMALL_WIDTH = 512;
+    private static final int SMALL_HEIGHT = 768;
+    private static final int MEDIUM_WIDTH = 576;
+    private static final int MEDIUM_HEIGHT = 864;
+    private static final int LARGE_WIDTH = 640;
+    private static final int LARGE_HEIGHT = 960;
 
     private DisplayManager() {
         this.currentSize = ScreenSize.MEDIUM; // 기본값
+        this.registeredViews = new ArrayList<>();
     }
 
     public static DisplayManager getInstance() {
@@ -41,11 +48,13 @@ public class DisplayManager {
 
     /**
      * 화면 크기 모드를 설정하고 즉시 적용합니다.
+     * 등록된 모든 View의 스케일도 함께 업데이트됩니다.
      * @param size 설정할 화면 크기
      */
     public void setDisplayMode(ScreenSize size) {
         this.currentSize = size;
         applyDisplayMode();
+        updateAllViews();
     }
 
     /**
@@ -106,5 +115,42 @@ public class DisplayManager {
             case LARGE: return LARGE_HEIGHT;
             default: return MEDIUM_HEIGHT;
         }
+    }
+
+    /**
+     * View를 등록하여 화면 크기 변경 시 자동으로 업데이트되도록 합니다.
+     * @param view 등록할 View
+     */
+    public void registerView(BaseView view) {
+        if (view != null) {
+            registeredViews.add(view);
+            view.updateScale(currentSize);
+        }
+    }
+
+    /**
+     * View 등록을 해제합니다.
+     * @param view 해제할 View
+     */
+    public void unregisterView(BaseView view) {
+        registeredViews.remove(view);
+    }
+
+    /**
+     * 등록된 모든 View의 스케일을 즉시 업데이트합니다.
+     * 화면 크기 변경 시 자동으로 호출됩니다.
+     */
+    public void updateAllViews() {
+        for (BaseView view : registeredViews) {
+            view.updateScale(currentSize);
+        }
+    }
+
+    /**
+     * 모든 등록된 View를 제거합니다.
+     * 주로 Scene 전환 시 사용됩니다.
+     */
+    public void clearAllViews() {
+        registeredViews.clear();
     }
 }

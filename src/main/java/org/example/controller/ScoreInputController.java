@@ -55,7 +55,7 @@ public class ScoreInputController extends BaseController {
         if (!playerName.isEmpty()) {
             record.setPlayerName(playerName);
             ScoreManager.getInstance().addScore(record);
-            setState(new ScoreboardController(record));
+            setState(new ScoreboardController(true, record));
         }
     }
 
@@ -64,7 +64,7 @@ public class ScoreInputController extends BaseController {
      */
     public void handleSkip() {
         record.setNewAndEligible(false); //이 값을 scoreWasSubmitted 용도로 재활용
-        setState(new ScoreboardController(record));
+        setState(new ScoreboardController(true, record));
     }
 
     /**

@@ -30,6 +30,12 @@ public class SettingController extends BaseController {
         createDefaultScene(root);
         return scene;
     }
+    
+    @Override
+    protected void exit() {
+        settingManager.applyColorSetting();
+        settingManager.saveSettingData();
+    }
 
     /**
      * Screen Size 버튼 클릭 시 처리 - 화면 크기 설정 화면으로 이동
@@ -66,17 +72,13 @@ public class SettingController extends BaseController {
     public void handleResetAllSetting() {
         settingManager.resetToDefault();
         settingManager.applyColorSetting();
+        settingManager.applyScreenSize();
     }
     
     /**
      * Go Back 버튼 클릭 시 처리 - 설정을 저장하고 이전 화면으로 복귀
      */
     public void handleGoBack() {
-        // 색상 설정 적용
-        settingManager.applyColorSetting();
-        // 설정 데이터 저장
-        settingManager.saveSettingData();
-        // 이전 상태로 복귀
         popState();
     }
     
