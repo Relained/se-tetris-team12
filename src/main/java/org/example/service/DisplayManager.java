@@ -122,10 +122,9 @@ public class DisplayManager {
      * @param view 등록할 View
      */
     public void registerView(BaseView view) {
-        if (view != null && !registeredViews.contains(view)) {
+        if (view != null) {
             registeredViews.add(view);
-            // 등록 즉시 현재 스케일 적용
-            updateView(view);
+            view.updateScale(currentSize);
         }
     }
 
@@ -142,17 +141,7 @@ public class DisplayManager {
      * 화면 크기 변경 시 자동으로 호출됩니다.
      */
     public void updateAllViews() {
-        for (BaseView view : new ArrayList<>(registeredViews)) {
-            view.updateScale(currentSize);
-        }
-    }
-
-    /**
-     * 특정 View의 스케일을 업데이트합니다.
-     * @param view 업데이트할 View
-     */
-    private void updateView(BaseView view) {
-        if (view != null) {
+        for (BaseView view : registeredViews) {
             view.updateScale(currentSize);
         }
     }

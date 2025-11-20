@@ -40,14 +40,6 @@ public abstract class BaseController {
         scene.setOnKeyPressed(event -> handleKeyInput(event));
     }
 
-    /**
-     * 현재 Scene을 Stage에 적용합니다.
-     * 주로 설정 변경 후 즉시 반영을 위해 사용됩니다.
-     */
-    protected void refreshCurrentScene() {
-        primaryStage.setScene(scene);
-    }
-
     public static void popState() {
         if (stateStack.isEmpty()) {
             return;
@@ -56,12 +48,9 @@ public abstract class BaseController {
         if (stateStack.isEmpty()) {
             return;
         }
-        BaseController resumingController = stateStack.peek();
-        resumingController.resume();
-        
-        // Scene을 다시 생성하여 최신 상태 반영
-        Scene newScene = resumingController.createScene();
-        primaryStage.setScene(newScene);
+        stateStack.peek().resume();
+
+        primaryStage.setScene(stateStack.peek().getScene());
     }
 
     //이전 스테이트로 돌아갈 수 있어야 할 때 사용

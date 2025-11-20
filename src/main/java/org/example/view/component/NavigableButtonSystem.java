@@ -56,10 +56,6 @@ public class NavigableButtonSystem {
             throw new IllegalArgumentException("Texts and actions lists must have the same size.");
         }
         
-        // 기존 버튼 리스트 초기화
-        buttons.clear();
-        selectedButtonIndex = 0;
-        
         ArrayList<Button> createdButtons = new ArrayList<>();
         for (int i = 0; i < texts.size(); i++) {
             Button button = createNavigableButton(texts.get(i), actions.get(i));
@@ -140,8 +136,6 @@ public class NavigableButtonSystem {
         Button selectedButton = buttons.get(selectedButtonIndex);
         Runnable action = (Runnable) selectedButton.getUserData();
         
-        if (action != null) {
-            action.run();
-        }
+        action.run();
     }
 }

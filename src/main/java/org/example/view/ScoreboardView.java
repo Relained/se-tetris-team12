@@ -52,18 +52,14 @@ public class ScoreboardView extends BaseView {
 
     public ScoreboardView() {
         super(true);
-        // 현재 화면 크기로 초기화
         var displayManager = org.example.service.DisplayManager.getInstance();
         this.currentWidth = displayManager.getWidth(displayManager.getCurrentSize());
     }
     
-    public ScoreboardView(boolean showNewlyAddedHighlight) {
-        super(true);
+    public ScoreboardView(boolean isAfterGamePlay, boolean showNewlyAddedHighlight) {
+        this();
+        this.isAfterGamePlay = isAfterGamePlay;
         this.showNewlyAddedHighlight = showNewlyAddedHighlight;
-        this.isAfterGamePlay = true;
-        // 현재 화면 크기로 초기화
-        var displayManager = org.example.service.DisplayManager.getInstance();
-        this.currentWidth = displayManager.getWidth(displayManager.getCurrentSize());
     }
     
     @Override
@@ -293,7 +289,7 @@ public class ScoreboardView extends BaseView {
             );
             buttonPanel.getChildren().addAll(created);
         } else {
-            var backButton = buttonSystem.createNavigableButton("Go Back", onBackToMenu);
+            var backButton = buttonSystem.createNavigableButton("Continue", onBackToMenu);
             buttonPanel.getChildren().add(backButton);
         }
 
