@@ -45,6 +45,7 @@ public abstract class BaseController {
             return;
         }
         stateStack.pop().exit();
+        DisplayManager.getInstance().popView();
         if (stateStack.isEmpty()) {
             return;
         }
@@ -66,8 +67,10 @@ public abstract class BaseController {
 
     //이전 스테이트로 돌아갈 필요가 없을 때 사용
     public static void setState(BaseController newState) {
-        // 모든 stack을 비우므로 등록된 View들도 모두 제거
-        DisplayManager.getInstance().clearAllViews();
+        // setState가 호출되기 전에 이미 controller와 view가 생성되고 DisplayManager에 등록되는데,
+        // 이를 여기서 전부 지워버려서 계속 버그가 발생했던 것임.
+        // 가장 최근 뷰를 제외하고 전부 정리하도록 변경했음.
+        DisplayManager.getInstance().clearAllViewsExceptLatest();
         
         while (!stateStack.empty()) {
             stateStack.pop().exit();
@@ -80,6 +83,7 @@ public abstract class BaseController {
         if (!stateStack.empty()) {
             stateStack.pop().exit();
         }
+        DisplayManager.getInstance().popView();
         stackState(newState);
     }
 }

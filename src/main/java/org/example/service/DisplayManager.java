@@ -136,12 +136,12 @@ public class DisplayManager {
         registeredViews.remove(view);
     }
 
-    // public void popView() {
-    //     if (registeredViews.isEmpty()) {
-    //         return;
-    //     }
-    //     registeredViews.remove(registeredViews.size() - 1);
-    // }
+    public void popView() {
+        if (registeredViews.isEmpty()) {
+            return;
+        }
+        registeredViews.remove(registeredViews.size() - 1);
+    }
 
     /**
      * 등록된 모든 View의 스케일을 즉시 업데이트합니다.
@@ -157,7 +157,12 @@ public class DisplayManager {
      * 모든 등록된 View를 제거합니다.
      * 주로 Scene 전환 시 사용됩니다.
      */
-    public void clearAllViews() {
+    public void clearAllViewsExceptLatest() {
+        if (registeredViews.isEmpty()) {
+            return;
+        }
+        BaseView latestView = registeredViews.get(registeredViews.size() - 1);
         registeredViews.clear();
+        registeredViews.add(latestView);
     }
 }
