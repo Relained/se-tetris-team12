@@ -49,11 +49,10 @@ public class WaitingRoomView extends BaseView {
     private void initNavigableButtons() {
         if (isServer) {
             navigableButtons = new Button[]{readyButton, gameModeButtons[0], gameModeButtons[1], gameModeButtons[2]};
-            selectGameMode(0);
         } else {
             navigableButtons = new Button[]{readyButton};
-            updateFocusVisual();
         }
+        updateFocusVisual();
     }
 
     private Text createConnectionText(String ipAddress) {
@@ -137,7 +136,7 @@ public class WaitingRoomView extends BaseView {
     private void selectGameMode(int index) {
         selectedModeIndex = index;
         for (int i = 0; i < gameModeButtons.length; i++) {
-            updateButtonStyle(gameModeButtons[i], i == index, i == currentFocusIndex);
+            updateButtonStyle(gameModeButtons[i], i == index, i + 1 == currentFocusIndex);
         }
     }
 

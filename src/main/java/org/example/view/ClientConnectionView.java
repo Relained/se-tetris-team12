@@ -2,6 +2,7 @@ package org.example.view;
 
 import java.util.function.Consumer;
 
+import org.example.service.DisplayManager;
 import org.example.service.FontManager;
 
 import javafx.geometry.Pos;
@@ -29,6 +30,9 @@ public class ClientConnectionView extends BaseView {
         title = new Text("Please enter server's IP address:");
         title.setFill(colorManager.getPrimaryTextColor());
         title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * currentScale));
+        var dm = DisplayManager.getInstance();
+        title.setWrappingWidth(dm.getWidth(dm.getCurrentSize()) * 0.8);
+        title.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
 
         ipAddressField = new TextField();
         ipAddressField.setPromptText("Enter IP address");
@@ -37,7 +41,7 @@ public class ClientConnectionView extends BaseView {
         ipAddressField.setFont(fontManager.getMonospaceBoldFont(FontManager.SIZE_BODY_LARGE * currentScale));
         ipAddressField.setStyle("-fx-padding: 10px;");
         ipAddressField.setOnAction(event -> {
-            onIpSubmit.accept(ipAddressField.getText());
+            onIpSubmit.accept(ipAddressField.getText().trim());
         });
 
         Text hint = new Text("Press ESC to Go Back");
@@ -79,6 +83,8 @@ public class ClientConnectionView extends BaseView {
     protected void onScaleChanged(double scale) {
         if (title != null) {
             title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * scale));
+            var dm = DisplayManager.getInstance();
+            title.setWrappingWidth(dm.getWidth(dm.getCurrentSize()) * 0.8);
         }
         if (ipAddressField != null) {
             ipAddressField.setFont(fontManager.getMonospaceBoldFont(FontManager.SIZE_BODY_LARGE * scale));

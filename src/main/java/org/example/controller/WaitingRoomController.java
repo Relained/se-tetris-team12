@@ -1,8 +1,14 @@
 package org.example.controller;
 
+import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.input.KeyEvent;
+
+import java.net.Socket;
+
 import org.example.model.GameMode;
+import org.example.service.WaitingRoomNetworkManager;
 import org.example.view.WaitingRoomView;
 
 /**
@@ -12,25 +18,28 @@ public class WaitingRoomController extends BaseController {
 
     private final WaitingRoomView view;
     private final boolean isServer;
-    private GameMode selectedGameMode;
-    private String ipAddress;
     private boolean isReady;
     private long lastToggleTime;
+    private GameMode selectedGameMode;
+    private WaitingRoomNetworkManager netManager;
     private static final long TOGGLE_COOLDOWN_MS = 1000; // 1초 쿨다운
 
-    public WaitingRoomController(String ipAddress, boolean isServer) {
+    public WaitingRoomController(Socket socket, boolean isServer) {
         this.view = new WaitingRoomView(isServer);
         this.isServer = isServer;
-        this.selectedGameMode = GameMode.NORMAL;
         this.isReady = false;
         this.lastToggleTime = 0;
-        this.ipAddress = ipAddress;
+        this.selectedGameMode = GameMode.NORMAL;
+        this.netManager = new WaitingRoomNetworkManager(socket, isServer, 
+            this::handleDisconnect, this::handleGameStart);
+        netManager.startReceiving(this::setGameModeText, this::handleRemoteReadyChange);
+        netManager.startSending();
     }
 
     @Override
     protected Scene createScene() {
         var root = view.createView(
-            ipAddress,
+            netManager.getRemoteIPAddress(),
             this::handleGameModeChange,
             this::handleReadyToggle
         );
@@ -39,20 +48,22 @@ public class WaitingRoomController extends BaseController {
         return scene;
     }
 
-    public void handleGameModeChange(String newMode) {
-        selectedGameMode = switch (newMode) {
+    private void handleGameModeChange(String newMode) {
+        GameMode newGameMode = switch (newMode) {
             case "Item" -> GameMode.ITEM;
             case "Time-Limited" -> GameMode.TIME_LIMITED;
             default -> GameMode.NORMAL;
         };
+        if (selectedGameMode == newGameMode) {
+            return;
+        }
+        selectedGameMode = newGameMode;
+        if (isServer) {
+            netManager.sendGameModeChange(selectedGameMode);
+        }
     }
 
-    public void setGameMode(GameMode mode) {
-        this.selectedGameMode = mode;
-        view.setGameModeText(mode.toString());
-    }
-
-    public void handleReadyToggle() {
+    private void handleReadyToggle() {
         long currentTime = System.currentTimeMillis();
         
         // 쿨다운 체크
@@ -64,19 +75,41 @@ public class WaitingRoomController extends BaseController {
         lastToggleTime = currentTime;
         isReady = !isReady;
         view.updateToggleButtonStyle(isReady);
+        
+        if (isServer) {
+            netManager.setServerReady(isReady);
+        }
+        netManager.sendReadyState(isReady);
     }
 
-    public GameMode getSelectedGameMode() {
-        return selectedGameMode;
+    private void handleGoBack() {
+        netManager.disconnect();
+        popState();
     }
 
-    public boolean isReady() {
-        return isReady;
+    private void handleDisconnect() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText("Connection Lost");
+        alert.setContentText("The other person's connection has been lost");
+        alert.showAndWait();
+        Platform.runLater(BaseController::popState);
     }
 
-    @Override
-    protected void exit() {
+    private void setGameModeText(GameMode mode) {
+        this.selectedGameMode = mode;
+        view.setGameModeText(mode.toString());
+    }
 
+    private void handleRemoteReadyChange(boolean ready) {
+        // 서버가 받은 클라이언트의 Ready 상태를 UI에 반영할 수 있음
+        System.out.println("[Remote ready state: " + ready + "]");
+    }
+
+    private void handleGameStart() {
+        System.out.println("[Game starting...]");
+        // TODO: 게임 화면으로 전환
+        // swapState(new PlayController(netManager.getSocket(), selectedGameMode));
     }
 
     @Override
@@ -84,7 +117,7 @@ public class WaitingRoomController extends BaseController {
         event.consume();
         switch (event.getCode()) {
             case ESCAPE:
-                popState();
+                handleGoBack();
                 break;
             case DOWN:
                 view.navigateDown();
