@@ -153,8 +153,7 @@ public class KeySettingView2 extends BaseView {
             "hardDrop",
             "rotateCounterClockwise",
             "rotateClockwise",
-            "hold",
-            "pause"
+            "hold"
         };
     }
     
@@ -170,7 +169,6 @@ public class KeySettingView2 extends BaseView {
             case "rotateCounterClockwise": return "Rotate CCW";
             case "rotateClockwise": return "Rotate CW";
             case "hold": return "Hold";
-            case "pause": return "Pause";
             default: return action;
         }
     }
