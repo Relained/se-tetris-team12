@@ -54,8 +54,8 @@ public class KeySettingSelectView extends BaseView {
         
         // 버튼 생성
         java.util.List<String> buttonTexts = java.util.Arrays.asList(
-            "Player 1 Settings",
-            "Player 2 Settings",
+            "Single Settings",
+            "2P Settings",
             "Go Back"
         );
         java.util.List<Runnable> buttonActions = java.util.Arrays.asList(
