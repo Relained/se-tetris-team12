@@ -29,7 +29,7 @@ public class KeyData implements Serializable {
     public KeyCode multi2SoftDrop = KeyCode.S;
     public KeyCode multi2HardDrop = KeyCode.SPACE;
     public KeyCode multi2RotateCounterClockwise = KeyCode.Z;
-    public KeyCode multi2RotateClockwise = KeyCode.UP;
+    public KeyCode multi2RotateClockwise = KeyCode.W;
     public KeyCode multi2Hold = KeyCode.C;
 
     public KeyCode pause = KeyCode.ESCAPE;
