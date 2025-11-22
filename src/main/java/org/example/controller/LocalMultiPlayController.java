@@ -35,8 +35,14 @@ public class LocalMultiPlayController extends BaseController {
     // Player 2 키 입력 (WASD + 별도 키)
     private final Set<KeyCode> player2PressedKeys = new HashSet<>();
     private final Set<KeyCode> player2JustPressedKeys = new HashSet<>();
+    
+    // 게임 모드 정보
+    private final boolean isItemMode;
+    private final int difficulty;
 
     public LocalMultiPlayController(boolean isItemMode, int difficulty) {
+        this.isItemMode = isItemMode;
+        this.difficulty = difficulty;
         // Player 1 시스템 초기화
         if (isItemMode) {
             player1System = new ItemTetrisSystem();
@@ -67,6 +73,8 @@ public class LocalMultiPlayController extends BaseController {
 
     @Override
     protected Scene createScene() {
+        // 멀티플레이 모드 활성화
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
         
         var root = localMultiPlayView.createView();
         createDefaultScene(root);
@@ -88,12 +96,16 @@ public class LocalMultiPlayController extends BaseController {
     @Override
     protected void exit() {
         gameTimer.stop();
-        // 멀티플레이 모드 비활성화
-        org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
     }
 
     @Override
     protected void resume() {
+        // 키 입력 상태 초기화
+        player1PressedKeys.clear();
+        player1JustPressedKeys.clear();
+        player2PressedKeys.clear();
+        player2JustPressedKeys.clear();
+        
         gameTimer.start();
     }
 
@@ -229,6 +241,12 @@ public class LocalMultiPlayController extends BaseController {
 
         KeyData data = settingManager.getCurrentSettings().controlData;
 
+        // Pause 키는 한 번만 처리 (공유 키)
+        if (player1JustPressedKeys.contains(data.pause) || player2JustPressedKeys.contains(data.pause)) {
+            handlePause();
+            return; // Pause 처리 후 다른 입력은 처리하지 않음
+        }
+
         // Player 1 입력 처리
         if (!player1System.isGameOver()) {
             handlePlayer1Inputs(data);
@@ -254,9 +272,8 @@ public class LocalMultiPlayController extends BaseController {
                 player1System.rotateClockwise();
             } else if (key == data.multi1Hold) {
                 player1System.hold();
-            } else if (key == data.pause) {
-                handlePause();
             }
+            // pause 키 제거 - handleInputs()에서 공통 처리
         }
 
         // 연속 실행되는 입력
@@ -287,9 +304,8 @@ public class LocalMultiPlayController extends BaseController {
                 player2System.rotateClockwise();
             } else if (key == data.multi2Hold) {
                 player2System.hold();
-            } else if (key == data.pause) {
-                handlePause();
             }
+            // pause 키 제거 - handleInputs()에서 공통 처리
         }
 
         // 연속 실행되는 입력
@@ -308,10 +324,7 @@ public class LocalMultiPlayController extends BaseController {
      * 일시정지 처리
      */
     public void handlePause() {
-        stackState(new PauseController(() -> {
-            player1System.reset();
-            player2System.reset();
-        }));
+        stackState(new LocalMultiPauseController(isItemMode, difficulty));
     }
 
     /**
