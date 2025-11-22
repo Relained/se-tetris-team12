@@ -7,6 +7,7 @@ import org.example.view.MultiPlayModeView;
 /**
  * MultiPlay Mode 선택 화면의 입력을 처리하는 Controller
  * 로컬 또는 온라인 멀티플레이 방식을 선택합니다.
+ * 멀티플레이 모드 활성화 및 비활성화를 관리합니다.
  */
 public class MultiPlayModeController extends BaseController {
 
@@ -14,6 +15,7 @@ public class MultiPlayModeController extends BaseController {
 
     public MultiPlayModeController() {
         this.view = new MultiPlayModeView();
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
     }
 
     @Override

@@ -17,6 +17,7 @@ public class DisplayManager {
     private ScreenSize currentSize;
     private Stage primaryStage;
     private List<BaseView> registeredViews;
+    private boolean isMultiplayerMode; // 멀티플레이 모드 여부
 
     // 각 크기별 화면 설정
     private static final int SMALL_WIDTH = 512;
@@ -29,6 +30,7 @@ public class DisplayManager {
     private DisplayManager() {
         this.currentSize = ScreenSize.MEDIUM; // 기본값
         this.registeredViews = new ArrayList<>();
+        this.isMultiplayerMode = false;
     }
 
     public static DisplayManager getInstance() {
@@ -59,23 +61,26 @@ public class DisplayManager {
 
     /**
      * 현재 설정된 화면 크기를 Stage에 적용합니다.
+     * 멀티플레이 모드인 경우 너비가 2배가 됩니다.
      */
     private void applyDisplayMode() {
         if (primaryStage == null) {
             return;
         }
 
+        int widthMultiplier = isMultiplayerMode ? 2 : 1;
+
         switch (currentSize) {
             case SMALL:
-                primaryStage.setWidth(SMALL_WIDTH);
+                primaryStage.setWidth(SMALL_WIDTH * widthMultiplier);
                 primaryStage.setHeight(SMALL_HEIGHT);
                 break;
             case MEDIUM:
-                primaryStage.setWidth(MEDIUM_WIDTH);
+                primaryStage.setWidth(MEDIUM_WIDTH * widthMultiplier);
                 primaryStage.setHeight(MEDIUM_HEIGHT);
                 break;
             case LARGE:
-                primaryStage.setWidth(LARGE_WIDTH);
+                primaryStage.setWidth(LARGE_WIDTH * widthMultiplier);
                 primaryStage.setHeight(LARGE_HEIGHT);
                 break;
         }
@@ -90,17 +95,38 @@ public class DisplayManager {
     }
 
     /**
+     * 멀티플레이 모드를 설정합니다.
+     * 멀티플레이 모드에서는 화면 너비가 2배가 됩니다.
+     * @param enabled 멀티플레이 모드 활성화 여부
+     */
+    public void setMultiplayerMode(boolean enabled) {
+        this.isMultiplayerMode = enabled;
+        applyDisplayMode();
+    }
+
+    /**
+     * 현재 멀티플레이 모드인지 반환합니다.
+     * @return 멀티플레이 모드 여부
+     */
+    public boolean isMultiplayerMode() {
+        return isMultiplayerMode;
+    }
+
+    /**
      * 특정 크기의 너비를 반환합니다.
+     * 멀티플레이 모드인 경우 2배의 너비를 반환합니다.
      * @param size 조회할 화면 크기
      * @return 해당 크기의 너비
      */
     public int getWidth(ScreenSize size) {
+        int baseWidth;
         switch (size) {
-            case SMALL: return SMALL_WIDTH;
-            case MEDIUM: return MEDIUM_WIDTH;
-            case LARGE: return LARGE_WIDTH;
-            default: return MEDIUM_WIDTH;
+            case SMALL: baseWidth = SMALL_WIDTH;
+            case MEDIUM: baseWidth = MEDIUM_WIDTH;
+            case LARGE: baseWidth = LARGE_WIDTH;
+            default: baseWidth = MEDIUM_WIDTH;
         }
+        return isMultiplayerMode ? baseWidth * 2 : baseWidth;
     }
 
     /**

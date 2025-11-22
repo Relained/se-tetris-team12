@@ -38,6 +38,7 @@ public class LocalMultiPlayController extends BaseController {
     private final Set<KeyCode> player2JustPressedKeys = new HashSet<>();
 
     public LocalMultiPlayController(boolean isItemMode, int difficulty) {
+        
         // Player 1 시스템 초기화
         if (isItemMode) {
             player1System = new ItemTetrisSystem();
@@ -90,6 +91,8 @@ public class LocalMultiPlayController extends BaseController {
     @Override
     protected void exit() {
         gameTimer.stop();
+        // 멀티플레이 모드 비활성화
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
     }
 
     @Override
