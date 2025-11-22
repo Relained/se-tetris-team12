@@ -35,7 +35,7 @@ public class ClientConnectionController extends BaseController {
         
         // view.setTitleToConnecting();
 
-        swapState(new WaitingRoomController(ipAddress));
+        swapState(new WaitingRoomController(ipAddress, false));
     }
 
     @Override

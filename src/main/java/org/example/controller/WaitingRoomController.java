@@ -11,14 +11,16 @@ import org.example.view.WaitingRoomView;
 public class WaitingRoomController extends BaseController {
 
     private final WaitingRoomView view;
+    private final boolean isServer;
     private GameMode selectedGameMode;
     private String ipAddress;
     private boolean isReady;
     private long lastToggleTime;
     private static final long TOGGLE_COOLDOWN_MS = 1000; // 1초 쿨다운
 
-    public WaitingRoomController(String ipAddress) {
-        this.view = new WaitingRoomView();
+    public WaitingRoomController(String ipAddress, boolean isServer) {
+        this.view = new WaitingRoomView(isServer);
+        this.isServer = isServer;
         this.selectedGameMode = GameMode.NORMAL;
         this.isReady = false;
         this.lastToggleTime = 0;
@@ -30,8 +32,7 @@ public class WaitingRoomController extends BaseController {
         var root = view.createView(
             ipAddress,
             this::handleGameModeChange,
-            this::handleReadyToggle,
-            this::handleGoBack
+            this::handleReadyToggle
         );
         createDefaultScene(root);
 
@@ -46,6 +47,11 @@ public class WaitingRoomController extends BaseController {
         };
     }
 
+    public void setGameMode(GameMode mode) {
+        this.selectedGameMode = mode;
+        view.setGameModeText(mode.toString());
+    }
+
     public void handleReadyToggle() {
         long currentTime = System.currentTimeMillis();
         
@@ -58,10 +64,6 @@ public class WaitingRoomController extends BaseController {
         lastToggleTime = currentTime;
         isReady = !isReady;
         view.updateToggleButtonStyle(isReady);
-    }
-
-    public void handleGoBack() {
-        popState();
     }
 
     public GameMode getSelectedGameMode() {
@@ -79,6 +81,23 @@ public class WaitingRoomController extends BaseController {
 
     @Override
     public void handleKeyInput(KeyEvent event) {
-        view.getButtonSystem().handleInput(event);
+        event.consume();
+        switch (event.getCode()) {
+            case ESCAPE:
+                popState();
+                break;
+            case DOWN:
+                view.navigateDown();
+                break;
+            case UP:
+                view.navigateUp();
+                break;
+            case ENTER:
+            case SPACE:
+                view.activateCurrentButton();
+                break;
+            default:
+                break;
+        }
     }
 }

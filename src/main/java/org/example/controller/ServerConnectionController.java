@@ -50,7 +50,7 @@ public class ServerConnectionController extends BaseController {
                 Socket client = serverSocket.accept(); // 클라이언트 접속 대기
 
                 System.out.println("Client connected from " + client.getInetAddress().getHostAddress());
-                swapState(new WaitingRoomController(client.getInetAddress().getHostAddress()));
+                swapState(new WaitingRoomController(client.getInetAddress().getHostAddress(), true));
 
             } catch (IOException ie) {
                 if (Thread.currentThread().isInterrupted()) {
