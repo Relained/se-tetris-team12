@@ -14,7 +14,7 @@ public class GameBoard {
 
     public GameBoard() {
         this.board = new int[HEIGHT + BUFFER_ZONE][WIDTH];
-        this.adderBoard = new int[HEIGHT][WIDTH];
+        this.adderBoard = new int[HEIGHT + BUFFER_ZONE][WIDTH];
     }
 
     public boolean isValidPosition(TetrominoPosition position) {
