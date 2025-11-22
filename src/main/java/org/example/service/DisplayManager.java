@@ -136,6 +136,13 @@ public class DisplayManager {
         registeredViews.remove(view);
     }
 
+    // public void popView() {
+    //     if (registeredViews.isEmpty()) {
+    //         return;
+    //     }
+    //     registeredViews.remove(registeredViews.size() - 1);
+    // }
+
     /**
      * 등록된 모든 View의 스케일을 즉시 업데이트합니다.
      * 화면 크기 변경 시 자동으로 호출됩니다.

@@ -27,11 +27,11 @@ public class P2PModeController extends BaseController {
     }
 
     public void handleServer() {
-        stackState(new ServerWaitingRoomController());
+        stackState(new ServerConnectionController());
     }
 
     public void handleClient() {
-        stackState(new ClientWaitingRoomController());
+        stackState(new ClientConnectionController());
     }
 
     public void handleGoBack() {

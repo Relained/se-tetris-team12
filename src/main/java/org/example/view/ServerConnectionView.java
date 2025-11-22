@@ -1,9 +1,5 @@
 package org.example.view;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
 import java.util.List;
 
 import org.example.service.FontManager;
@@ -15,9 +11,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class ServerWaitingRoomView extends BaseView {
+public class ServerConnectionView extends BaseView {
 
-    public ServerWaitingRoomView() {
+    public ServerConnectionView() {
         super(true);
     }
 
