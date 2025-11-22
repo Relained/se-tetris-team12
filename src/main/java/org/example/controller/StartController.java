@@ -34,6 +34,7 @@ public class StartController extends BaseController {
         // Controller의 핸들러를 콜백으로 전달
         VBox root = startView.createView(
             this::handleStartGame,       // Start Game 버튼 콜백
+            this::handleMultiPlay,       // MultiPlay 버튼 콜백
             this::handleViewScoreboard,  // View Scoreboard 버튼 콜백
             this::handleSetting,         // Setting 버튼 콜백
             this::handleExit             // Exit 버튼 콜백
@@ -48,7 +49,14 @@ public class StartController extends BaseController {
     public void handleStartGame() {
         stackState(new GameModeController());
     }
-    
+
+    /**
+     * MultiPlay 버튼 클릭 시 처리
+     */
+    public void handleMultiPlay() {
+        stackState(new MultiPlayModeController());
+    }
+
     /**
      * View Scoreboard 버튼 클릭 시 처리
      */

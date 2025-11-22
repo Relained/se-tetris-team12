@@ -35,12 +35,13 @@ public class StartView extends BaseView {
     /**
      * Start 화면의 UI를 구성하고 반환합니다.
      * @param onStartGame Start Game 버튼 클릭 시 실행될 콜백
+     * @param onMultiPlay MultiPlay 버튼 클릭 시 실행될 콜백
      * @param onViewScoreboard View Scoreboard 버튼 클릭 시 실행될 콜백
      * @param onSetting Setting 버튼 클릭 시 실행될 콜백
      * @param onExit Exit 버튼 클릭 시 실행될 콜백
      * @return 구성된 VBox root
      */
-    public VBox createView(Runnable onStartGame, Runnable onViewScoreboard, Runnable onSetting, Runnable onExit) {
+    public VBox createView(Runnable onStartGame, Runnable onMultiPlay, Runnable onViewScoreboard, Runnable onSetting, Runnable onExit) {
         VBox root = new VBox(40);
         root.setAlignment(Pos.CENTER);
         root.setBackground(new Background(
@@ -56,8 +57,8 @@ public class StartView extends BaseView {
         subtitle.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM * currentScale));
 
         var created = buttonSystem.createNavigableButtonFromList(
-            List.of("Start Game", "View Scoreboard", "Setting", "Exit"),
-            List.of(onStartGame, onViewScoreboard, onSetting, onExit)
+            List.of("Start Game", "MultiPlay", "View Scoreboard", "Setting", "Exit"),
+            List.of(onStartGame, onMultiPlay, onViewScoreboard, onSetting, onExit)
         );
 
         controls = new Text("Controls:\n" +
