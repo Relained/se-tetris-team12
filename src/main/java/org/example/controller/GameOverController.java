@@ -46,7 +46,7 @@ public class GameOverController extends BaseController {
      * 점수가 제출되었다면 하이라이트 표시 (record.isNewAndEligible() 참조)
      */
     public void handleViewScoreboard() {
-        stackState(new ScoreboardController(record));
+        stackState(new ScoreboardController(false, record));
     }
     
     /**

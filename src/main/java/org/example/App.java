@@ -19,6 +19,8 @@ public class App extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Tetris");
         
+        primaryStage.setResizable(false);
+        
         // Initialize managers
         settingManager = new SettingManager();
         displayManager = settingManager.getDisplayManager();

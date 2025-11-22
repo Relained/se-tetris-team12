@@ -3,6 +3,7 @@ package org.example.controller;
 import java.util.Stack;
 
 import org.example.service.ColorManager;
+import org.example.service.DisplayManager;
 import org.example.service.SettingManager;
 
 import javafx.scene.Parent;
@@ -48,6 +49,7 @@ public abstract class BaseController {
             return;
         }
         stateStack.peek().resume();
+
         primaryStage.setScene(stateStack.peek().getScene());
     }
 
@@ -64,6 +66,9 @@ public abstract class BaseController {
 
     //이전 스테이트로 돌아갈 필요가 없을 때 사용
     public static void setState(BaseController newState) {
+        // 모든 stack을 비우므로 등록된 View들도 모두 제거
+        DisplayManager.getInstance().clearAllViews();
+        
         while (!stateStack.empty()) {
             stateStack.pop().exit();
         }

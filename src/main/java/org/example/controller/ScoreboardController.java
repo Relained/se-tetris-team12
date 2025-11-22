@@ -22,10 +22,9 @@ public class ScoreboardController extends BaseController {
         this.isAfterGamePlay = false;
     }
 
-    // 게임 플레이 후 조회용 생성자
-    public ScoreboardController(ScoreRecord record) {
-        this.scoreboardView = new ScoreboardView(record.isNewAndEligible());
-        this.isAfterGamePlay = true;
+    public ScoreboardController(boolean isAfterGamePlay, ScoreRecord record) {
+        this.scoreboardView = new ScoreboardView(isAfterGamePlay, record.isNewAndEligible());
+        this.isAfterGamePlay = isAfterGamePlay;
         this.record = record;
     }
 
