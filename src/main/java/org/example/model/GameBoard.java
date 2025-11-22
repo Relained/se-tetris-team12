@@ -8,13 +8,9 @@ public class GameBoard {
 
     protected final int[][] board;
     protected long pendingClearDueMs = 0L;
-    
-    // AdderCanvas용 추가될 줄 정보 (동일한 이중배열 구조 사용)
-    protected final int[][] adderBoard;
 
     public GameBoard() {
         this.board = new int[HEIGHT + BUFFER_ZONE][WIDTH];
-        this.adderBoard = new int[HEIGHT + BUFFER_ZONE][WIDTH];
     }
 
     public boolean isValidPosition(TetrominoPosition position) {
@@ -186,124 +182,5 @@ public class GameBoard {
      */
     public ItemBlock getItemAt(int row, int col) {
         return ItemBlock.NONE;
-    }
-    
-    /**
-     * AdderCanvas에 표시될 추가될 줄들을 설정합니다.
-     * 상대방이 2줄 이상 지웠을 때 내 보드에 추가될 줄들을 미리 표시하기 위해 사용됩니다.
-     * 
-     * @param lines 추가될 줄들의 배열 (각 행은 WIDTH 길이여야 함)
-     */
-    public void setPendingAdderLines(int[][] lines) {
-        // adderBoard 초기화
-        for (int row = 0; row < HEIGHT + BUFFER_ZONE; row++) {
-            for (int col = 0; col < WIDTH; col++) {
-                adderBoard[row][col] = 0;
-            }
-        }
-        
-        // 전달받은 줄들을 adderBoard 하단에 설정
-        if (lines != null && lines.length > 0) {
-            int startRow = HEIGHT + BUFFER_ZONE - lines.length;
-            for (int i = 0; i < lines.length && startRow + i >= 0; i++) {
-                System.arraycopy(lines[i], 0, adderBoard[startRow + i], 0, WIDTH);
-            }
-        }
-    }
-    
-    /**
-     * AdderCanvas에 표시될 추가될 줄들의 정보를 반환합니다.
-     * 
-     * @return 추가될 줄들의 배열 (복사본)
-     */
-    public int[][] getPendingAdderLines() {
-        // 버퍼 영역을 제외하고 실제 게임 영역(HEIGHT)에서 데이터가 있는 줄의 개수 계산
-        int count = 0;
-        for (int row = HEIGHT + BUFFER_ZONE - 1; row >= BUFFER_ZONE; row--) {
-            boolean hasData = false;
-            for (int col = 0; col < WIDTH; col++) {
-                if (adderBoard[row][col] != 0) {
-                    hasData = true;
-                    break;
-                }
-            }
-            if (hasData) {
-                count = HEIGHT + BUFFER_ZONE - row;
-                break;
-            }
-        }
-        
-        if (count == 0) {
-            return new int[0][WIDTH];
-        }
-        
-        // 버퍼 영역을 제외하고 하단의 데이터가 있는 줄들만 복사
-        int[][] result = new int[count][WIDTH];
-        int startRow = HEIGHT + BUFFER_ZONE - count;
-        
-        // 버퍼 영역이 포함된 경우 실제 게임 영역만 복사
-        if (startRow < BUFFER_ZONE) {
-            // 버퍼 영역의 줄 수만큼 건너뛰기
-            int skipRows = BUFFER_ZONE - startRow;
-            count = count - skipRows;
-            if (count <= 0) {
-                return new int[0][WIDTH];
-            }
-            result = new int[count][WIDTH];
-            startRow = BUFFER_ZONE;
-        }
-        
-        for (int i = 0; i < count; i++) {
-            System.arraycopy(adderBoard[startRow + i], 0, result[i], 0, WIDTH);
-        }
-        return result;
-    }
-    
-    /**
-     * 추가될 줄의 개수를 반환합니다.
-     * 
-     * @return 추가 예정인 줄의 개수
-     */
-    public int getPendingAdderLineCount() {
-        int count = 0;
-        for (int row = HEIGHT + BUFFER_ZONE - 1; row >= 0; row--) {
-            boolean hasData = false;
-            for (int col = 0; col < WIDTH; col++) {
-                if (adderBoard[row][col] != 0) {
-                    hasData = true;
-                    break;
-                }
-            }
-            if (hasData) {
-                count = HEIGHT + BUFFER_ZONE - row;
-                break;
-            }
-        }
-        return count;
-    }
-    
-    /**
-     * AdderCanvas 정보를 초기화합니다.
-     */
-    public void clearPendingAdderLines() {
-        for (int row = 0; row < HEIGHT + BUFFER_ZONE; row++) {
-            for (int col = 0; col < WIDTH; col++) {
-                adderBoard[row][col] = 0;
-            }
-        }
-    }
-    
-    /**
-     * adderBoard의 특정 셀 값을 반환합니다.
-     * 
-     * @param row 행 (절대 좌표)
-     * @param col 열 (절대 좌표)
-     * @return 해당 위치의 색상 인덱스 (0이면 비어있음)
-     */
-    public int getAdderCellColor(int row, int col) {
-        if (row >= 0 && row < HEIGHT + BUFFER_ZONE && col >= 0 && col < WIDTH) {
-            return adderBoard[row][col];
-        }
-        return 0;
     }
 }
