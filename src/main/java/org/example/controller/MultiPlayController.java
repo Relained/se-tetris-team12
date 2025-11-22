@@ -55,15 +55,12 @@ public class MultiPlayController extends BaseController {
 
     @Override
     protected Scene createScene() {
+        
         var root = multiPlayView.createView(
             gameMode.toString(),
             getDifficultyString(myTetrisSystem.getDifficulty())
         );
-        
-        // 멀티플레이는 화면이 2배 넓으므로 씬 크기도 2배로 설정
-        scene = new Scene(root, 2000, 700);
-        scene.setFill(org.example.service.ColorManager.getInstance().getBackgroundColor());
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
+        createDefaultScene(root);
 
         // 높이와 너비 변경 시 캔버스 크기 비율에 맞게 자동 조정
         scene.heightProperty().addListener((_, _, _) -> multiPlayView.updateCanvasSize(scene));
@@ -82,6 +79,8 @@ public class MultiPlayController extends BaseController {
     @Override
     protected void exit() {
         gameTimer.stop();
+        // 멀티플레이 모드 비활성화
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
     }
 
     @Override

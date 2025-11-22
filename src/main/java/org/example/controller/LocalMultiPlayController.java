@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.example.model.KeyData;
-import org.example.service.ColorManager;
 import org.example.service.ItemTetrisSystem;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
@@ -38,7 +37,6 @@ public class LocalMultiPlayController extends BaseController {
     private final Set<KeyCode> player2JustPressedKeys = new HashSet<>();
 
     public LocalMultiPlayController(boolean isItemMode, int difficulty) {
-        
         // Player 1 시스템 초기화
         if (isItemMode) {
             player1System = new ItemTetrisSystem();
@@ -69,13 +67,9 @@ public class LocalMultiPlayController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        var root = localMultiPlayView.createView();
         
-        // 로컬 멀티플레이는 화면이 2배 넓으므로 기본 크기도 2배로 설정
-        scene = new Scene(root, 2000, 700);
-        scene.setFill(ColorManager.getInstance().getBackgroundColor());
-        scene.setOnKeyPressed(event -> handleKeyInput(event));
-        scene.setOnKeyReleased(event -> handleKeyReleased(event.getCode()));
+        var root = localMultiPlayView.createView();
+        createDefaultScene(root);
 
         // 높이와 너비 변경 시 캔버스 크기 비율에 맞게 자동 조정
         scene.heightProperty().addListener((_, _, _) -> localMultiPlayView.updateCanvasSize(scene));
@@ -83,6 +77,9 @@ public class LocalMultiPlayController extends BaseController {
         
         // 초기 캔버스 크기 설정
         localMultiPlayView.updateCanvasSize(scene);
+
+        // 키 릴리즈 핸들 따로 추가
+        scene.setOnKeyReleased(event -> handleKeyReleased(event.getCode()));
 
         gameTimer.start();
         return scene;
