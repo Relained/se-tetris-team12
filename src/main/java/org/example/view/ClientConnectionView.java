@@ -63,10 +63,10 @@ public class ClientConnectionView extends BaseView {
         title.setText("Invalid IP address.\nPlease try again.");
     }
 
-    public void resetTitle() {
+    public void setTitleText(String text) {
         if (title == null)
             return;
-        title.setText("Please enter server's IP address:");
+        title.setText(text);
     }
 
     public void clearIpField() {

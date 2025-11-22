@@ -9,75 +9,134 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Enumeration;
 
+import javafx.util.Pair;
+
 public class NetworkManager {
 
     Socket socket;
+    Runnable onDisconnect;
 
-    // public NetworkManager(Socket socket) {
-    //     this.socket = socket;
-    //     socket.setSoTimeout(1);
-    // }
+    public NetworkManager(Socket socket, Runnable onDisconnect) {
+        this.socket = socket;
+        this.onDisconnect = onDisconnect;
+    }
 
-    // private Packet tryRead(DataInputStream in) {
-    //     try {
-    //         int length = in.readInt();  // 패킷 전체 길이 (tick 포함)
-    //         int tick   = in.readInt();  // tick = 4 bytes
+    public void startReceiving() {
+        Thread receiveThread = new Thread(this::receiveLoop);
+        receiveThread.setDaemon(true);
+        receiveThread.start();
+    }
 
-    //         int bodyLength = length - 4;
-    //         if (bodyLength < 0) {
-    //             throw new IOException("Invalid packet length: " + length);
-    //         }
+    private void receiveLoop() {
+        int expectedTick = 0;
+        long lastPacketTime = System.currentTimeMillis();
+        DataInputStream inputStream;
 
-    //         byte[] data = in.readNBytes(bodyLength);
+        try {
+            socket.setSoTimeout(20);
+            inputStream = new DataInputStream(socket.getInputStream());
+        } catch (IOException e) {
+            System.err.println("[Connection lost]");
+            closeConnection(true);
+            return;
+        }
 
-    //         // readNBytes는 EOF 시 짧은 배열을 반환하므로 반드시 길이 검사
-    //         if (data.length != bodyLength) {
-    //             throw new IOException("EOF: packet body incomplete");
-    //         }
+        while (true) {
+            long loopStart = System.currentTimeMillis();
+            Pair<Integer, byte[]> payload;
+            try {
+                payload = tryRead(inputStream);
+            } catch (IOException e) {
+                System.err.println("[Connection lost]");
+                closeConnection(true);
+                break;
+            }
 
-    //         return new Packet(tick, data);
+            // 지연이 100ms를 넘으면 끊김으로 간주
+            if (System.currentTimeMillis() - lastPacketTime > 100) {
+                System.err.println("[excessive delay (over 100ms)]");
+                closeConnection(true);
+                break;
+            }
+            
+            expectedTick++;
+            if (payload != null) {
+                lastPacketTime = System.currentTimeMillis();
+                
+                // tick이 맞지 않으면 맞을 때까지 consume
+                while (payload.getKey() != expectedTick) {
+                    System.err.println("[Tick mismatch: expected " + expectedTick + ", got " + payload.getKey() + "]");
+                    try {
+                        payload = tryRead(inputStream);
+                        if (payload == null) {
+                            break;
+                        }
+                    } catch (IOException e) {
+                        System.err.println("[Connection lost while consuming]");
+                        closeConnection(true);
+                        return;
+                    }
+                }
+                
+                if (payload != null && payload.getKey() == expectedTick) {
+                    //payload 처리 로직 추가
+                }
+            }
 
-    //     } catch (SocketTimeoutException e) {
-    //         // 이번 틱에 패킷을 못 받은 것 → 정상
-    //         return null;
+            // 20ms 틱 속도 유지
+            long sleep = 20 - (System.currentTimeMillis() - loopStart);
+            if (sleep > 0) {
+                try {
+                    Thread.sleep(sleep);
+                } catch (InterruptedException e) {
+                    System.err.println("[Connection thread forcibly terminated]");
+                    closeConnection(false);
+                    break;
+                }
+            }
+        }
+    }
 
-    //     } catch (IOException e) {
-    //         // 여기로 오면 반드시 '연결 끊김/EOF/스트림 종료/비정상 종료'
-    //         throw new RuntimeException("연결 끊김", e);
-    //     }
-    // }
+    private Pair<Integer, byte[]> tryRead(DataInputStream in) throws IOException {
+        try {
+            int length = in.readInt(); // 페이로드 길이
+            int tick = in.readInt();   // 패킷 타임스탬프
 
-    // public void startReceiving(InputStream inputStream) throws InterruptedException {
-    //     int expectedTick = 0;
-    //     long lastPacketTime = System.currentTimeMillis();
+            byte[] data = new byte[length];
+            int totalRead = 0;
+            while (totalRead < length) {
+                int bytesRead = in.read(data, totalRead, length - totalRead);
+                if (bytesRead == -1) {
+                    throw new IOException("[EOF: packet body incomplete]");
+                }
+                totalRead += bytesRead;
+            }
+            //혹시 모를 메모:
+            //각 read당 20ms를 줬는데, read와 read 사이에서 20ms 이상 지연되면 다음 tryRead 호출에서 문제가 생김
+            //하나의 패킷 안에서 간격이 20ms까지 안 갈 것 같긴한데 원인 모를 셧다운이 생기면 이를 의심해볼것
 
-    //     while (true) {
-    //         long loopStart = System.currentTimeMillis();
+            return new Pair<>(tick, data);
 
-    //         Packet p = tryRead(in);
-    //         if (p != null) {
-    //             if (p.tick != expectedTick) {
-    //                 System.out.println("Tick mismatch: expected=" + expectedTick + " got=" + p.tick);
-    //                 break;
-    //             }
-    //             lastPacketTime = System.currentTimeMillis();
-    //             expectedTick++;
-    //         }
+        } catch (SocketTimeoutException e) {
+            return null;
+        }
+    }
 
-    //         // 100ms 동안 패킷이 아예 안 오면 끊김으로 간주
-    //         if (System.currentTimeMillis() - lastPacketTime > 100) {
-    //             System.out.println("연결 끊김 or 지연 과다");
-    //             break;
-    //         }
-
-    //         // 20ms 틱 속도 유지
-    //         long sleep = 20 - (System.currentTimeMillis() - loopStart);
-    //         if (sleep > 0) Thread.sleep(sleep);
-    //     }
-    // }
+    private void closeConnection(boolean remoteDisconnect) {
+        if (remoteDisconnect) {
+            onDisconnect.run();
+        }
+        try {
+            socket.close();
+        } catch (IOException e) {
+            System.err.println("[Error while closing socket]");
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 로컬 머신의 IP 주소를 반환합니다.
+     * 
      * @return 로컬 IP 주소 문자열
      */
     public static String getLocalIPAddress() {
@@ -109,6 +168,7 @@ public class NetworkManager {
 
     /**
      * 주어진 문자열이 올바른 IPv4 주소 형식인지 검사합니다.
+     * 
      * @param ipAddress 검사할 IP 주소 문자열
      * @return 올바른 IPv4 주소이면 true, 아니면 false
      */
@@ -117,7 +177,7 @@ public class NetworkManager {
             return false;
         }
         String trimmed = ipAddress.trim();
-        
+
         if (trimmed.isEmpty()) {
             return false;
         }
@@ -127,7 +187,7 @@ public class NetworkManager {
         if (octets.length != 4) {
             return false;
         }
-        
+
         try {
             for (String octet : octets) {
                 int value = Integer.parseInt(octet);
@@ -138,7 +198,7 @@ public class NetworkManager {
         } catch (NumberFormatException e) {
             return false;
         }
-        
+
         return true;
     }
 }
