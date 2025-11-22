@@ -153,7 +153,10 @@ public class LocalMultiPlayController extends BaseController {
                 player1System.getBoard(),
                 player1System.getCurrentPiece(),
                 ghostPiece1,
-                nextPiece1);
+                nextPiece1,
+                player1System.getScore(),
+                player1System.getLines(),
+                player1System.getLevel());
 
         // Player 2 화면 업데이트
         var ghostPiece2 = player2System.getCurrentPiece() != null
@@ -168,7 +171,10 @@ public class LocalMultiPlayController extends BaseController {
                 player2System.getBoard(),
                 player2System.getCurrentPiece(),
                 ghostPiece2,
-                nextPiece2);
+                nextPiece2,
+                player2System.getScore(),
+                player2System.getLines(),
+                player2System.getLevel());
     }
 
     @Override

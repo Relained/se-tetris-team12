@@ -217,9 +217,9 @@ public class GameBoard {
      * @return 추가될 줄들의 배열 (복사본)
      */
     public int[][] getPendingAdderLines() {
-        // 실제로 데이터가 있는 줄의 개수 계산
+        // 버퍼 영역을 제외하고 실제 게임 영역(HEIGHT)에서 데이터가 있는 줄의 개수 계산
         int count = 0;
-        for (int row = HEIGHT + BUFFER_ZONE - 1; row >= 0; row--) {
+        for (int row = HEIGHT + BUFFER_ZONE - 1; row >= BUFFER_ZONE; row--) {
             boolean hasData = false;
             for (int col = 0; col < WIDTH; col++) {
                 if (adderBoard[row][col] != 0) {
@@ -237,9 +237,22 @@ public class GameBoard {
             return new int[0][WIDTH];
         }
         
-        // 하단의 데이터가 있는 줄들만 복사
+        // 버퍼 영역을 제외하고 하단의 데이터가 있는 줄들만 복사
         int[][] result = new int[count][WIDTH];
         int startRow = HEIGHT + BUFFER_ZONE - count;
+        
+        // 버퍼 영역이 포함된 경우 실제 게임 영역만 복사
+        if (startRow < BUFFER_ZONE) {
+            // 버퍼 영역의 줄 수만큼 건너뛰기
+            int skipRows = BUFFER_ZONE - startRow;
+            count = count - skipRows;
+            if (count <= 0) {
+                return new int[0][WIDTH];
+            }
+            result = new int[count][WIDTH];
+            startRow = BUFFER_ZONE;
+        }
+        
         for (int i = 0; i < count; i++) {
             System.arraycopy(adderBoard[startRow + i], 0, result[i], 0, WIDTH);
         }
