@@ -32,8 +32,8 @@ public class WaitingRoomNetworkManager {
 
     private Thread heartbeatThread;
     private volatile long lastHeartbeatTime;
-    private static final long HEARTBEAT_INTERVAL = 2500; // 2.5초마다 heartbeat 전송
-    private static final long HEARTBEAT_TIMEOUT = 5000; // 5초 동안 응답 없으면 끊김으로 판단
+    private static final long HEARTBEAT_INTERVAL = 2000;
+    private static final long HEARTBEAT_TIMEOUT = 3500;
 
     public WaitingRoomNetworkManager(Socket socket, boolean isServer, Runnable onDisconnect, Runnable onGameStart, Consumer<GameMode> onGameModeChange) {
         this.socket = socket;
@@ -65,7 +65,6 @@ public class WaitingRoomNetworkManager {
             sendQueue.put(message);
         } catch (InterruptedException e) {
             System.err.println("[Failed to queue game mode change]");
-            e.printStackTrace();
         }
     }
 
@@ -80,7 +79,6 @@ public class WaitingRoomNetworkManager {
             sendQueue.put(message);
         } catch (InterruptedException e) {
             System.err.println("[Failed to queue ready state]");
-            e.printStackTrace();
         }
     }
 
@@ -98,7 +96,6 @@ public class WaitingRoomNetworkManager {
             sendQueue.put(message);
         } catch (InterruptedException e) {
             System.err.println("[Failed to queue game start]");
-            e.printStackTrace();
         }
     }
 
@@ -109,18 +106,18 @@ public class WaitingRoomNetworkManager {
         try {
             while (true) {
                 Thread.sleep(HEARTBEAT_INTERVAL);
-                
-                // Heartbeat 전송
-                byte[] message = new byte[1];
-                message[0] = 0x04; // Heartbeat 메시지 타입
-                sendQueue.put(message);
-                
+
                 // 타임아웃 체크
                 if (System.currentTimeMillis() - lastHeartbeatTime > HEARTBEAT_TIMEOUT) {
                     System.err.println("[Heartbeat timeout - connection lost]");
                     releaseResources(true);
                     break;
                 }
+
+                // Heartbeat 전송
+                byte[] message = new byte[1];
+                message[0] = 0x04; // Heartbeat 메시지 타입
+                sendQueue.put(message);
             }
         } catch (InterruptedException e) {
             System.err.println("[Heartbeat thread interrupted - graceful shutdown]");
@@ -136,7 +133,6 @@ public class WaitingRoomNetworkManager {
             outputStream = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             System.err.println("[Failed to initialize output stream]");
-            e.printStackTrace();
             releaseResources(true);
             return;
         }
@@ -164,7 +160,6 @@ public class WaitingRoomNetworkManager {
             inputStream = new DataInputStream(socket.getInputStream());
         } catch (IOException e) {
             System.err.println("[Failed to initialize input stream]");
-            e.printStackTrace();
             releaseResources(true);
             return;
         }
@@ -192,7 +187,6 @@ public class WaitingRoomNetworkManager {
                 else if (type == 0x03) { // 게임 시작 (클라이언트만 수신)
                     if (isServer) continue;
                     Platform.runLater(onGameStart);
-                    //게임 시작할 때 WaitingRoom 리소스 어떻게 할건지 생각해봐야함
                 }
                 else if (type == 0x04) { // Heartbeat (양방향)
                     lastHeartbeatTime = System.currentTimeMillis();
@@ -220,11 +214,9 @@ public class WaitingRoomNetworkManager {
         receiveThread.interrupt();
         heartbeatThread.interrupt();
         try {
-            if (!socket.isClosed())
-                socket.close();
+            socket.close();
         } catch (IOException e) {
             System.err.println("[Error while closing socket]");
-            e.printStackTrace();
         }
     }
 

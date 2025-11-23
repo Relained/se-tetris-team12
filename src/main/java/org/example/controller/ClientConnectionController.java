@@ -68,8 +68,8 @@ public class ClientConnectionController extends BaseController {
                 socket.connect(new InetSocketAddress(ipAddress, 54673), 3000);
             }
             catch (IOException e) {
-                e.printStackTrace();
-                try { 
+                System.err.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
+                try {
                     socket.close(); 
                 } catch (Exception ignore) {}
                 Platform.runLater(() -> {

@@ -40,7 +40,6 @@ public class ServerConnectionController extends BaseController {
     }
 
     private void startAccept() {
-        //already bind 에러 핸들링 추가필요
         acceptThread = Thread.startVirtualThread(() -> {
             try {
                 System.out.println("waiting for client connection in port 54673...");
@@ -57,7 +56,8 @@ public class ServerConnectionController extends BaseController {
                 if (Thread.currentThread().isInterrupted()) {
                     System.out.println("Closed Server");
                 } else {
-                    ie.printStackTrace();
+                    System.err.println("[Failed to accept client connection]");
+                    System.err.println("Exception: " + ie.getClass().getName() + " - " + ie.getMessage());
                 }
             }
         });
