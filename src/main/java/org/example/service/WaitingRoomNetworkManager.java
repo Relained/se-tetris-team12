@@ -19,15 +19,21 @@ import javafx.application.Platform;
 public class WaitingRoomNetworkManager {
 
     private final Socket socket;
+    private final BlockingQueue<byte[]> sendQueue;
     private Runnable onDisconnect;
     private Runnable onGameStart;
     private Consumer<GameMode> onGameModeChange;
-    private final BlockingQueue<byte[]> sendQueue;
+
     private Thread sendThread;
     private Thread receiveThread;
     private volatile boolean clientReady = false;
     private volatile boolean serverReady = false;
     private final boolean isServer;
+
+    private Thread heartbeatThread;
+    private volatile long lastHeartbeatTime;
+    private static final long HEARTBEAT_INTERVAL = 2500; // 2.5초마다 heartbeat 전송
+    private static final long HEARTBEAT_TIMEOUT = 5000; // 5초 동안 응답 없으면 끊김으로 판단
 
     public WaitingRoomNetworkManager(Socket socket, boolean isServer, Runnable onDisconnect, Runnable onGameStart, Consumer<GameMode> onGameModeChange) {
         this.socket = socket;
@@ -36,8 +42,11 @@ public class WaitingRoomNetworkManager {
         this.onDisconnect = onDisconnect;
         this.onGameStart = onGameStart;
         this.onGameModeChange = onGameModeChange;
-        receiveThread = Thread.startVirtualThread(() -> receiveLoop());
+        this.lastHeartbeatTime = System.currentTimeMillis();
+        
+        receiveThread = Thread.startVirtualThread(this::receiveLoop);
         sendThread = Thread.startVirtualThread(this::sendLoop);
+        heartbeatThread = Thread.startVirtualThread(this::heartbeatLoop);
     }
 
     public String getRemoteIPAddress() {
@@ -90,6 +99,31 @@ public class WaitingRoomNetworkManager {
         } catch (InterruptedException e) {
             System.err.println("[Failed to queue game start]");
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Heartbeat 전송 및 타임아웃 체크
+     */
+    private void heartbeatLoop() {
+        try {
+            while (true) {
+                Thread.sleep(HEARTBEAT_INTERVAL);
+                
+                // Heartbeat 전송
+                byte[] message = new byte[1];
+                message[0] = 0x04; // Heartbeat 메시지 타입
+                sendQueue.put(message);
+                
+                // 타임아웃 체크
+                if (System.currentTimeMillis() - lastHeartbeatTime > HEARTBEAT_TIMEOUT) {
+                    System.err.println("[Heartbeat timeout - connection lost]");
+                    releaseResources(true);
+                    break;
+                }
+            }
+        } catch (InterruptedException e) {
+            System.err.println("[Heartbeat thread interrupted - graceful shutdown]");
         }
     }
 
@@ -160,6 +194,9 @@ public class WaitingRoomNetworkManager {
                     Platform.runLater(onGameStart);
                     //게임 시작할 때 WaitingRoom 리소스 어떻게 할건지 생각해봐야함
                 }
+                else if (type == 0x04) { // Heartbeat (양방향)
+                    lastHeartbeatTime = System.currentTimeMillis();
+                }
             }
         } catch (EOFException e) {
             System.err.println("[Remote disconnected - graceful shutdown]");
@@ -179,12 +216,9 @@ public class WaitingRoomNetworkManager {
         if (remoteDisconnected) {
             Platform.runLater(onDisconnect);
         }
-        if (sendThread != null) {
-            sendThread.interrupt();
-        }
-        if (receiveThread != null) {
-            receiveThread.interrupt();
-        }
+        sendThread.interrupt();
+        receiveThread.interrupt();
+        heartbeatThread.interrupt();
         try {
             if (!socket.isClosed())
                 socket.close();
