@@ -21,13 +21,13 @@ public class ClientConnectionController extends BaseController {
 
     private final ClientConnectionView view;
     private Thread connectionThread;
-    private Socket socket;
     private AtomicBoolean isConnecting;
     private long lastConnectionAttempt;
+    private final static String connectionTimeOutMsg = "Connection timed out. Please try again.";
+    private final static String connectionFailedMsg = "The IP address is incorrect or your Internet connection is unstable.";
 
     public ClientConnectionController() {
         this.view = new ClientConnectionView();
-        this.socket = new Socket();
         this.isConnecting = new AtomicBoolean(false);
         this.lastConnectionAttempt = 0;
     }
@@ -63,21 +63,17 @@ public class ClientConnectionController extends BaseController {
 
     void startConnection(String ipAddress) {
         connectionThread = Thread.startVirtualThread(() -> {
+            Socket socket = new Socket();
             try {
                 socket.connect(new InetSocketAddress(ipAddress, 54673), 3000);
             }
-            catch (SocketTimeoutException ste) {
-                Platform.runLater(() -> {
-                    view.setTitleText("Connection timed out. Please try again.");
-                });
-                socket = new Socket(); //이거 안하면 오류남
-                isConnecting.set(false);
-                return;
-            }
             catch (IOException e) {
                 e.printStackTrace();
+                try { 
+                    socket.close(); 
+                } catch (Exception ignore) {}
                 Platform.runLater(() -> {
-                    view.setTitleText("The IP address is incorrect or your Internet connection is unstable.");
+                    view.setTitleText(e instanceof SocketTimeoutException ? connectionTimeOutMsg : connectionFailedMsg);
                 });
                 isConnecting.set(false);
                 return;
