@@ -31,9 +31,7 @@ public class WaitingRoomController extends BaseController {
         this.lastToggleTime = 0;
         this.selectedGameMode = GameMode.NORMAL;
         this.netManager = new WaitingRoomNetworkManager(socket, isServer, 
-            this::handleDisconnect, this::handleGameStart);
-        netManager.startReceiving(this::setGameModeText, this::handleRemoteReadyChange);
-        netManager.startSending();
+            this::handleDisconnect, this::handleGameStart, this::setGameModeText);
     }
 
     @Override
@@ -99,11 +97,6 @@ public class WaitingRoomController extends BaseController {
     private void setGameModeText(GameMode mode) {
         this.selectedGameMode = mode;
         view.setGameModeText(mode.toString());
-    }
-
-    private void handleRemoteReadyChange(boolean ready) {
-        // 서버가 받은 클라이언트의 Ready 상태를 UI에 반영할 수 있음
-        System.out.println("[Remote ready state: " + ready + "]");
     }
 
     private void handleGameStart() {
