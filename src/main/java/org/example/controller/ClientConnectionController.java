@@ -23,8 +23,10 @@ public class ClientConnectionController extends BaseController {
     private Thread connectionThread;
     private AtomicBoolean isConnecting;
     private long lastConnectionAttempt;
-    private final static String connectionTimeOutMsg = "Connection timed out. Please try again.";
-    private final static String connectionFailedMsg = "The IP address is incorrect or your Internet connection is unstable.";
+    private static final String MSG_CONNECTION_TIMEOUT = "Connection timed out. Please try again.";
+    private static final String MSG_CONNECTION_FAILED = "The IP address is incorrect or your Internet connection is unstable.";
+    private static final String MSG_INVALID_IP = "Invalid IP address. Please try again.";
+    private static final String MSG_CONNECTING = "Trying to connect...";
 
     public ClientConnectionController() {
         this.view = new ClientConnectionView();
@@ -34,7 +36,13 @@ public class ClientConnectionController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        var root = view.createView(this::handleIpSubmit);
+        var root = view.createView(
+            this::handleSearchedUserSelect,
+            this::handleRefresh,
+            this::handleHistorySelect,
+            this::handleIpSubmit,
+            this::handleGoBack
+        );
         createDefaultScene(root);
         return scene;
     }
@@ -43,9 +51,24 @@ public class ClientConnectionController extends BaseController {
         popState();
     }
 
+    private void handleSearchedUserSelect(String ipAddress) {
+        System.out.println("Searched user selected: " + ipAddress);
+        view.setIpAddressField(ipAddress);
+    }
+
+    private void handleRefresh() {
+        System.out.println("Refresh button clicked");
+        // TODO: Implement refresh logic
+    }
+
+    private void handleHistorySelect(String ipAddress) {
+        System.out.println("History selected: " + ipAddress);
+        view.setIpAddressField(ipAddress);
+    }
+
     private void handleIpSubmit(String ipAddress) {
         if (!NetworkManager.isValidIPv4(ipAddress)) {
-            view.setTitleToInvalidIP();
+            view.setTitleText(MSG_INVALID_IP);
             return;
         }
         long currentTime = System.currentTimeMillis();
@@ -56,8 +79,7 @@ public class ClientConnectionController extends BaseController {
             return;
         
         lastConnectionAttempt = currentTime;
-        System.out.println("Attempting to connect to server at " + ipAddress);
-        view.setTitleToConnecting();
+        view.setTitleText(MSG_CONNECTING);
         startConnection(ipAddress);
     }
 
@@ -68,17 +90,21 @@ public class ClientConnectionController extends BaseController {
                 socket.connect(new InetSocketAddress(ipAddress, 54673), 3000);
             }
             catch (IOException e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    System.err.println("[connection Thread interrupted - graceful shutdown]");
+                    return;
+                }
                 System.err.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
                 try {
                     socket.close(); 
                 } catch (Exception ignore) {}
                 Platform.runLater(() -> {
-                    view.setTitleText(e instanceof SocketTimeoutException ? connectionTimeOutMsg : connectionFailedMsg);
+                    view.setTitleText(e instanceof SocketTimeoutException ?
+                         MSG_CONNECTION_TIMEOUT : MSG_CONNECTION_FAILED);
                 });
                 isConnecting.set(false);
                 return;
             }
-            System.out.println("Connection successful: " + ipAddress);
             Platform.runLater(() -> {
                 swapState(new WaitingRoomController(socket, false));
             });

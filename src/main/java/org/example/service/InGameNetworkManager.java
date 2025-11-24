@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
+import javafx.application.Platform;
 import javafx.util.Pair;
 
 /**
@@ -14,12 +15,10 @@ public class InGameNetworkManager {
 
     private final Socket socket;
     private Runnable onDisconnect;
+    private Thread receiveThread;
 
-    public InGameNetworkManager(Socket socket) {
+    public InGameNetworkManager(Socket socket, Runnable onDisconnect) {
         this.socket = socket;
-    }
-
-    public void setDisconnectHandler(Runnable onDisconnect) {
         this.onDisconnect = onDisconnect;
     }
 
@@ -27,7 +26,7 @@ public class InGameNetworkManager {
      * 게임 중 실시간 데이터 수신 시작
      */
     public void startReceiving() {
-        Thread receiveThread = new Thread(this::receiveLoop);
+        receiveThread = new Thread(this::receiveLoop);
         receiveThread.setDaemon(true);
         receiveThread.start();
     }
@@ -45,7 +44,7 @@ public class InGameNetworkManager {
             inputStream = new DataInputStream(socket.getInputStream());
         } catch (IOException e) {
             System.err.println("[Connection lost]");
-            closeConnection(true);
+            releaseResources(true);
             return;
         }
 
@@ -55,15 +54,19 @@ public class InGameNetworkManager {
             try {
                 payload = readStep(inputStream);
             } catch (IOException e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    System.err.println("[Receive thread interrupted - graceful shutdown]");
+                    return;
+                }
                 System.err.println("[Connection lost]");
-                closeConnection(true);
+                releaseResources(true);
                 break;
             }
 
             // 지연이 100ms를 넘으면 끊김으로 간주
             if (System.currentTimeMillis() - lastPacketTime > 100) {
                 System.err.println("[excessive delay (over 100ms)]");
-                closeConnection(true);
+                releaseResources(true);
                 break;
             }
 
@@ -80,8 +83,12 @@ public class InGameNetworkManager {
                             break;
                         }
                     } catch (IOException e) {
+                        if (Thread.currentThread().isInterrupted()) {
+                            System.err.println("[Receive thread interrupted - graceful shutdown]");
+                            return;
+                        }
                         System.err.println("[Connection lost while consuming]");
-                        closeConnection(true);
+                        releaseResources(true);
                         return;
                     }
                 }
@@ -97,8 +104,7 @@ public class InGameNetworkManager {
                 try {
                     Thread.sleep(sleep);
                 } catch (InterruptedException e) {
-                    System.err.println("[Connection thread forcibly terminated]");
-                    closeConnection(false);
+                    System.err.println("[Receive thread interrupted - graceful shutdown]");
                     break;
                 }
             }
@@ -130,15 +136,15 @@ public class InGameNetworkManager {
         }
     }
 
-    private void closeConnection(boolean remoteDisconnected) {
-        if (remoteDisconnected && onDisconnect != null) {
-            onDisconnect.run();
+    private void releaseResources(boolean remoteDisconnected) {
+        if (remoteDisconnected) {
+            Platform.runLater(onDisconnect);
         }
+        receiveThread.interrupt();
         try {
             socket.close();
         } catch (IOException e) {
             System.err.println("[Error while closing socket]");
-            e.printStackTrace();
         }
     }
 }
