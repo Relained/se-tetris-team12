@@ -109,11 +109,18 @@ public class LocalMultiPlayView extends BaseView {
         VBox.setVgrow(scorePanel, Priority.NEVER);
         HBox.setHgrow(widgetContainer, Priority.NEVER);
         
-        // AdderCanvas 너비가 widgetContainer 너비를 따르도록 리스너 설정
+        // AdderCanvas 크기가 컨테이너를 따르도록 리스너 설정
         widgetContainer.widthProperty().addListener((obs, oldVal, newVal) -> {
             double containerWidth = newVal.doubleValue() - 20; // 패딩 고려
             if (containerWidth > 0) {
-                adderCanvas.setCanvasWidth(containerWidth);
+                adderCanvas.setCanvasSize(containerWidth, adderContainer.getHeight());
+            }
+        });
+        
+        adderContainer.heightProperty().addListener((obs, oldVal, newVal) -> {
+            double containerWidth = widgetContainer.getWidth() - 20;
+            if (containerWidth > 0) {
+                adderCanvas.setCanvasSize(containerWidth, newVal.doubleValue());
             }
         });
         
@@ -134,9 +141,10 @@ public class LocalMultiPlayView extends BaseView {
         player1Canvas.setCanvasSize(canvasWidth, availableHeight);
         player2Canvas.setCanvasSize(canvasWidth, availableHeight);
         
-        // AdderCanvas 너비도 맞춤
-        player1AdderCanvas.setCanvasWidth(canvasWidth);
-        player2AdderCanvas.setCanvasWidth(canvasWidth);
+        // AdderCanvas 크기도 맞춤
+        double adderHeight = availableHeight * 0.5; // AdderCanvas는 절반 높이
+        player1AdderCanvas.setCanvasSize(canvasWidth, adderHeight);
+        player2AdderCanvas.setCanvasSize(canvasWidth, adderHeight);
         
         // 위젯 크기 조정
         double widgetSize = Math.min(canvasWidth * 0.8, 120);
@@ -151,10 +159,13 @@ public class LocalMultiPlayView extends BaseView {
                                      TetrominoPosition currentPiece,
                                      TetrominoPosition ghostPiece,
                                      TetrominoPosition nextPiece,
+                                     org.example.model.AdderBoard adderBoard,
                                      int score, int lines, int level) {
         player1Canvas.updateBoard(board, currentPiece, ghostPiece);
         player1NextPanel.updateNextPiece(nextPiece);
-        player1AdderCanvas.setGameBoard(board);
+        if (adderBoard != null) {
+            player1AdderCanvas.updateBoard(adderBoard);
+        }
         player1ScorePanel.updateStats(score, lines, level);
     }
     
@@ -165,39 +176,32 @@ public class LocalMultiPlayView extends BaseView {
                                      TetrominoPosition currentPiece,
                                      TetrominoPosition ghostPiece,
                                      TetrominoPosition nextPiece,
+                                     org.example.model.AdderBoard adderBoard,
                                      int score, int lines, int level) {
         player2Canvas.updateBoard(board, currentPiece, ghostPiece);
         player2NextPanel.updateNextPiece(nextPiece);
-        player2AdderCanvas.setGameBoard(board);
+        if (adderBoard != null) {
+            player2AdderCanvas.updateBoard(adderBoard);
+        }
         player2ScorePanel.updateStats(score, lines, level);
     }
     
     /**
-     * Player 1의 AdderCanvas를 업데이트합니다.
+     * Player 1의 AdderBoard를 업데이트합니다.
      */
-    public void updatePlayer1AdderCanvas() {
-        player1AdderCanvas.updateDisplay();
+    public void updatePlayer1AdderBoard(org.example.model.AdderBoard adderBoard) {
+        if (adderBoard != null) {
+            player1AdderCanvas.updateBoard(adderBoard);
+        }
     }
     
     /**
-     * Player 2의 AdderCanvas를 업데이트합니다.
+     * Player 2의 AdderBoard를 업데이트합니다.
      */
-    public void updatePlayer2AdderCanvas() {
-        player2AdderCanvas.updateDisplay();
-    }
-    
-    /**
-     * Player 1의 AdderCanvas를 초기화합니다.
-     */
-    public void clearPlayer1Adder() {
-        player1AdderCanvas.clear();
-    }
-    
-    /**
-     * Player 2의 AdderCanvas를 초기화합니다.
-     */
-    public void clearPlayer2Adder() {
-        player2AdderCanvas.clear();
+    public void updatePlayer2AdderBoard(org.example.model.AdderBoard adderBoard) {
+        if (adderBoard != null) {
+            player2AdderCanvas.updateBoard(adderBoard);
+        }
     }
     
     // Getters

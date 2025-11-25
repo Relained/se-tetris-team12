@@ -8,6 +8,7 @@ import javafx.scene.input.KeyEvent;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.example.model.AdderBoard;
 import org.example.model.KeyData;
 import org.example.service.ItemTetrisSystem;
 import org.example.service.SuperRotationSystem;
@@ -27,6 +28,10 @@ public class LocalMultiPlayController extends BaseController {
 
     private long lastDropTime1;
     private long lastDropTime2;
+    
+    // AdderBoard for each player
+    private AdderBoard player1AdderBoard;
+    private AdderBoard player2AdderBoard;
     
     // Player 1 키 입력
     private final Set<KeyCode> player1PressedKeys = new HashSet<>();
@@ -62,6 +67,39 @@ public class LocalMultiPlayController extends BaseController {
         this.localMultiPlayView = new LocalMultiPlayView();
         this.lastDropTime1 = System.currentTimeMillis();
         this.lastDropTime2 = System.currentTimeMillis();
+        
+        // AdderBoard 초기화
+        this.player1AdderBoard = new AdderBoard();
+        this.player2AdderBoard = new AdderBoard();
+        
+        // lockPiece 후 콜백 설정: 2줄 이상 완성 시 상대방 AdderBoard에 추가
+        player1System.setOnPieceLocked(() -> {
+            // Player 1이 2줄 이상 완성한 경우에만 Player 2의 AdderBoard에 추가
+            // previousSnapshot 사용 (이전 턴의 보드 상태, 빈 칸 있는 상태)
+            var completedLines = player1System.getCompletedLineIndices();
+            if (completedLines.size() >= 2 && player1System.getPreviousSnapshot() != null) {
+                int[][] lines = player1System.getPreviousSnapshot().getLines(completedLines);
+                player2AdderBoard.addLines(lines);
+            }
+            // Player 1의 AdderBoard 라인을 게임보드에 적용
+            if (player1AdderBoard.getLineCount() > 0) {
+                player1AdderBoard.applyToBoard(player1System.getBoard());
+            }
+        });
+
+        player2System.setOnPieceLocked(() -> {
+            // Player 2가 2줄 이상 완성한 경우에만 Player 1의 AdderBoard에 추가
+            // previousSnapshot 사용 (이전 턴의 보드 상태, 빈 칸 있는 상태)
+            var completedLines = player2System.getCompletedLineIndices();
+            if (completedLines.size() >= 2 && player2System.getPreviousSnapshot() != null) {
+                int[][] lines = player2System.getPreviousSnapshot().getLines(completedLines);
+                player1AdderBoard.addLines(lines);
+            }
+            // Player 2의 AdderBoard 라인을 게임보드에 적용
+            if (player2AdderBoard.getLineCount() > 0) {
+                player2AdderBoard.applyToBoard(player2System.getBoard());
+            }
+        });
 
         gameTimer = new AnimationTimer() {
             @Override
@@ -120,6 +158,7 @@ public class LocalMultiPlayController extends BaseController {
             player1System.update();
             lastDropTime1 = currentTime;
         }
+        
         player1System.getBoard().processPendingClearsIfDue();
         
         // Player 2 업데이트
@@ -127,6 +166,7 @@ public class LocalMultiPlayController extends BaseController {
             player2System.update();
             lastDropTime2 = currentTime;
         }
+        
         player2System.getBoard().processPendingClearsIfDue();
 
         // 화면 업데이트
@@ -154,6 +194,7 @@ public class LocalMultiPlayController extends BaseController {
                 player1System.getCurrentPiece(),
                 ghostPiece1,
                 nextPiece1,
+                player1AdderBoard,
                 player1System.getScore(),
                 player1System.getLines(),
                 player1System.getLevel());
@@ -172,6 +213,7 @@ public class LocalMultiPlayController extends BaseController {
                 player2System.getCurrentPiece(),
                 ghostPiece2,
                 nextPiece2,
+                player2AdderBoard,
                 player2System.getScore(),
                 player2System.getLines(),
                 player2System.getLevel());
@@ -376,5 +418,19 @@ public class LocalMultiPlayController extends BaseController {
     public void resetLastDropTime() {
         this.lastDropTime1 = System.currentTimeMillis();
         this.lastDropTime2 = System.currentTimeMillis();
+    }
+    
+    /**
+     * Player 1의 AdderBoard 반환
+     */
+    public AdderBoard getPlayer1AdderBoard() {
+        return player1AdderBoard;
+    }
+    
+    /**
+     * Player 2의 AdderBoard 반환
+     */
+    public AdderBoard getPlayer2AdderBoard() {
+        return player2AdderBoard;
     }
 }

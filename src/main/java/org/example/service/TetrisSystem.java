@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.model.BoardSnapshot;
 import org.example.model.GameBoard;
 import org.example.model.Tetromino;
 import org.example.model.TetrominoPosition;
@@ -17,6 +18,8 @@ public class TetrisSystem {
     protected final Deque<TetrominoPosition> nextQueue;
     protected final Random random;
     private final List<Double> cumulativeWeights;
+    protected BoardSnapshot previousSnapshot;
+    protected Runnable onPieceLocked;
 
     // 게임 상태
     protected int score;
@@ -226,6 +229,41 @@ public class TetrisSystem {
         } else {
             spawnNewPiece();
         }
+
+        // 피스가 배치된 후 콜백 실행 (previousSnapshot 사용)
+        if (onPieceLocked != null) {
+            onPieceLocked.run();
+        }
+
+        // 현재 보드 상태를 스냅샷으로 캡처 (다음 턴에서 사용)
+        captureSnapshotBeforeLock();
+    }
+    
+    /**
+     * 현재 보드에서 완성된 라인의 인덱스 리스트를 반환합니다.
+     * 버퍼존을 제외한 보이는 영역 기준 인덱스(0-based)입니다.
+     * CLEAR_MARK(-1)로 표시된 전체 라인을 찾습니다.
+     * 
+     * @return 완성된 라인의 인덱스 리스트
+     */
+    public java.util.List<Integer> getCompletedLineIndices() {
+        java.util.List<Integer> completed = new java.util.ArrayList<>();
+        
+        for (int row = GameBoard.BUFFER_ZONE; row < GameBoard.HEIGHT + GameBoard.BUFFER_ZONE; row++) {
+            boolean isFullyMarked = true;
+            for (int col = 0; col < GameBoard.WIDTH; col++) {
+                if (board.getCellColor(row, col) != GameBoard.CLEAR_MARK) {
+                    isFullyMarked = false;
+                    break;
+                }
+            }
+            if (isFullyMarked) {
+                // 보이는 영역 기준으로 인덱스 변환
+                completed.add(row - GameBoard.BUFFER_ZONE);
+            }
+        }
+        
+        return completed;
     }
 
     public void update() {
@@ -248,6 +286,7 @@ public class TetrisSystem {
     public GameBoard getBoard() { return board; }
     public TetrominoPosition getCurrentPiece() { return currentPiece; }
     public TetrominoPosition getHoldPiece() { return holdPiece; }
+    public BoardSnapshot getPreviousSnapshot() { return previousSnapshot; }
     public List<TetrominoPosition> getNextQueue() {
         List<TetrominoPosition> preview = new ArrayList<>(5);
         int i = 0;
@@ -268,6 +307,7 @@ public class TetrisSystem {
         currentPiece = null;
         holdPiece = null;
         nextQueue.clear();
+        previousSnapshot = null;
         score = 0;
         lines = 0;
         level = 1;
@@ -290,5 +330,19 @@ public class TetrisSystem {
         for (int i = idx; i < n; i++) {
             cumulativeWeights.set(i, cumulativeWeights.get(i) + val);
         }
+    }
+    
+    /**
+     * 현재 보드 상태의 스냅샷을 캡처합니다. (다음 턴에서 사용)
+     */
+    protected void captureSnapshotBeforeLock() {
+        previousSnapshot = new BoardSnapshot(board);
+    }
+    
+    /**
+     * lockPiece 후 실행할 콜백을 설정합니다.
+     */
+    public void setOnPieceLocked(Runnable callback) {
+        this.onPieceLocked = callback;
     }
 }

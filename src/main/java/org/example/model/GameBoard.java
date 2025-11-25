@@ -152,6 +152,12 @@ public class GameBoard {
         }
         return 0;
     }
+    
+    public void setCellColor(int row, int col, int color) {
+        if (row >= 0 && row < HEIGHT + BUFFER_ZONE && col >= 0 && col < WIDTH) {
+            board[row][col] = color;
+        }
+    }
 
     public boolean isGameOver() {
         // Check if any blocks exist in the buffer zone (invisible top area)
