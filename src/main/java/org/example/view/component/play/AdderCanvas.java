@@ -72,13 +72,15 @@ public class AdderCanvas extends Canvas {
         
         if (adderBoard == null) return;
         
-        // Draw AdderBoard blocks
+        // Draw AdderBoard blocks (아래에서부터 쌓이도록 표시)
         int[][] lines = adderBoard.getLines();
-        for (int row = 0; row < HEIGHT; row++) {
+        int lineCount = adderBoard.getLineCount();
+        for (int i = 0; i < lineCount; i++) {
+            int drawRow = HEIGHT - 1 - i; // lines[0]은 맨 아래, lines[1]은 그 위...
             for (int col = 0; col < WIDTH; col++) {
-                int colorIndex = lines[row][col];
+                int colorIndex = lines[i][col];
                 if (colorIndex != 0) {
-                    drawCell(gc, row, col, colorIndex);
+                    drawCell(gc, drawRow, col, colorIndex);
                 }
             }
         }
