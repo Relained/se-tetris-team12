@@ -50,15 +50,22 @@ public class ColorManager {
     
     /**
      * 인덱스로 색상 가져오기
-     * @param index 1부터 7까지의 테트로미노 타입 인덱스, 8은 회색(AdderBoard용)
+     * @param index 1부터 7까지의 테트로미노 타입 인덱스, 8은 회색(AdderBoard용), 또는 아이템 char 값
      * @return 해당 인덱스의 색상
      */
     public Color getColorFromIndex(int index) {
+        // 아이템 블록 색상 (char 값)
+        if (index == 'L') return Color.GOLD;      // LINE_CLEAR
+        if (index == 'I') return Color.SILVER;    // COLUMN_CLEAR
+        if (index == 'X') return Color.HOTPINK;   // CROSS_CLEAR
+        if (index == 'W') return Color.BROWN;     // WEIGHT
+        if (index == 'B') return Color.DARKRED;   // BOMB
+
         // 8번 인덱스는 AdderBoard용 회색
         if (index == 8) {
             return Color.GRAY;
         }
-        
+
         if (index < 1 || index > currentColorSet.length) {
             throw new IllegalArgumentException("Invalid color index: " + index);
         }
