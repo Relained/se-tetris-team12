@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
@@ -23,6 +25,8 @@ public class WaitingRoomNetworkManager {
     private Runnable onDisconnect;
     private Runnable onGameStart;
     private Consumer<GameMode> onGameModeChange;
+    private Consumer<String> onChatMessageReceived;
+    private Consumer<Boolean> onOpponentReadyChanged;
 
     private Thread sendThread;
     private Thread receiveThread;
@@ -35,15 +39,22 @@ public class WaitingRoomNetworkManager {
     private static final long HEARTBEAT_INTERVAL = 2000;
     private static final long HEARTBEAT_TIMEOUT = 3500;
 
-    public WaitingRoomNetworkManager(Socket socket, boolean isServer, Runnable onDisconnect, Runnable onGameStart, Consumer<GameMode> onGameModeChange) {
+    public WaitingRoomNetworkManager(Socket socket, boolean isServer, 
+                                    Runnable onDisconnect, 
+                                    Runnable onGameStart, 
+                                    Consumer<GameMode> onGameModeChange, 
+                                    Consumer<Boolean> onOpponentReadyChanged,
+                                    Consumer<String> onChatMessageReceived) 
+    {
         this.socket = socket;
         this.isServer = isServer;
         this.sendQueue = new LinkedBlockingQueue<>();
         this.onDisconnect = onDisconnect;
         this.onGameStart = onGameStart;
         this.onGameModeChange = onGameModeChange;
+        this.onOpponentReadyChanged = onOpponentReadyChanged;
+        this.onChatMessageReceived = onChatMessageReceived;
         this.lastHeartbeatTime = System.currentTimeMillis();
-        
         receiveThread = Thread.startVirtualThread(this::receiveLoop);
         sendThread = Thread.startVirtualThread(this::sendLoop);
         heartbeatThread = Thread.startVirtualThread(this::heartbeatLoop);
@@ -58,11 +69,11 @@ public class WaitingRoomNetworkManager {
      */
     public void sendGameModeChange(GameMode mode) {
         try {
-            byte[] modeData = mode.name().getBytes();
-            byte[] message = new byte[1 + modeData.length];
-            message[0] = 0x01; // 게임 모드 변경 메시지 타입
-            System.arraycopy(modeData, 0, message, 1, modeData.length);
-            sendQueue.put(message);
+            byte[] modeData = mode.name().getBytes(StandardCharsets.UTF_8);
+            ByteBuffer buffer = ByteBuffer.allocate(1 + modeData.length);
+            buffer.put((byte) 0x01); // 게임 모드 변경 메시지 타입
+            buffer.put(modeData);
+            sendQueue.put(buffer.array());
         } catch (InterruptedException e) {
             System.err.println("[Failed to queue game mode change]");
         }
@@ -96,6 +107,21 @@ public class WaitingRoomNetworkManager {
             sendQueue.put(message);
         } catch (InterruptedException e) {
             System.err.println("[Failed to queue game start]");
+        }
+    }
+
+    /**
+     * 채팅 메시지를 상대에게 전송
+     */
+    public void sendChatMessage(String chatMessage) {
+        try {
+            byte[] messageData = chatMessage.getBytes(StandardCharsets.UTF_8);
+            ByteBuffer buffer = ByteBuffer.allocate(1 + messageData.length);
+            buffer.put((byte) 0x05); // 채팅 메시지 타입
+            buffer.put(messageData);
+            sendQueue.put(buffer.array());
+        } catch (InterruptedException e) {
+            System.err.println("[Failed to queue chat message]");
         }
     }
 
@@ -174,14 +200,16 @@ public class WaitingRoomNetworkManager {
                     GameMode mode = GameMode.valueOf(new String(data));
                     Platform.runLater(() -> onGameModeChange.accept(mode));
                 } 
-                else if (type == 0x02) { // Ready 상태 변경 (서버만 수신)
-                    if (!isServer) continue;
+                else if (type == 0x02) { // Ready 상태 변경
                     boolean ready = data[0] == 1;
-                    clientReady = ready;
-                    // 서버: 클라이언트와 서버 모두 Ready면 게임 시작
-                    if (clientReady && serverReady) {
-                        sendGameStart();
-                        Platform.runLater(onGameStart);
+                    Platform.runLater(() -> onOpponentReadyChanged.accept(ready));
+                    if (isServer) {
+                        clientReady = ready;
+                        // 클라이언트와 서버 모두 Ready면 게임 시작
+                        if (clientReady && serverReady) {
+                            sendGameStart();
+                            Platform.runLater(onGameStart);
+                        }
                     }
                 }
                 else if (type == 0x03) { // 게임 시작 (클라이언트만 수신)
@@ -190,6 +218,10 @@ public class WaitingRoomNetworkManager {
                 }
                 else if (type == 0x04) { // Heartbeat (양방향)
                     lastHeartbeatTime = System.currentTimeMillis();
+                }
+                else if (type == 0x05) { // 채팅 메시지 (양방향)
+                    String chatMessage = new String(data, StandardCharsets.UTF_8);
+                    Platform.runLater(() -> onChatMessageReceived.accept(chatMessage));
                 }
             }
         } catch (EOFException e) {

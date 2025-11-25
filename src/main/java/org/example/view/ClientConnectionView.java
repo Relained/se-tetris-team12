@@ -22,6 +22,7 @@ public class ClientConnectionView extends BaseView {
     private Button refreshButton;
     private Text connectionHistoryTitle;
     private ListView<String> connectionHistoryList;
+    private Button clearHistoryButton;
     private Text title;
     private TextField ipAddressField;
     private Button submitButton;
@@ -36,7 +37,8 @@ public class ClientConnectionView extends BaseView {
             Runnable onRefresh,
             Consumer<String> onHistorySelect,
             Consumer<String> onIpSubmit,
-            Runnable onGoBack) {
+            Runnable onGoBack,
+            Runnable onClearHistory) {
         VBox root = new VBox(20);
         root.setAlignment(Pos.TOP_LEFT);
         root.setBackground(new Background(
@@ -53,7 +55,7 @@ public class ClientConnectionView extends BaseView {
         VBox spacer2 = new VBox();
         spacer2.setMinHeight(15);
 
-        createConnectionHistorySection(onHistorySelect);
+        HBox connectionHistorySection = createConnectionHistorySection(onHistorySelect, onClearHistory);
 
         VBox spacer3 = new VBox();
         spacer3.setMinHeight(15);
@@ -73,7 +75,7 @@ public class ClientConnectionView extends BaseView {
                 searchedUsersSection,
                 spacer2,
                 connectionHistoryTitle,
-                connectionHistoryList,
+                connectionHistorySection,
                 spacer3,
                 goBackButton);
 
@@ -157,7 +159,7 @@ public class ClientConnectionView extends BaseView {
         return searchedUsersBox;
     }
 
-    private void createConnectionHistorySection(Consumer<String> onHistorySelect) {
+    private HBox createConnectionHistorySection(Consumer<String> onHistorySelect, Runnable onClearHistory) {
         connectionHistoryTitle = new Text("IP connection history");
         connectionHistoryTitle.setFill(colorManager.getPrimaryTextColor());
         connectionHistoryTitle.setFont(
@@ -167,6 +169,8 @@ public class ClientConnectionView extends BaseView {
         var dm = DisplayManager.getInstance();
         connectionHistoryList = new ListView<>();
         connectionHistoryList.setMaxHeight(dm.getHeight(dm.getCurrentSize()) * 0.16);
+        connectionHistoryList.setMinWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
+        connectionHistoryList.setPrefWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
         connectionHistoryList.setMaxWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
         connectionHistoryList.setStyle(String.format(
                 "-fx-font-family: '%s'; -fx-font-size: %dpx; -fx-font-weight: bold; -fx-cell-size: %dpx;",
@@ -181,6 +185,19 @@ public class ClientConnectionView extends BaseView {
                 }
             }
         });
+
+        clearHistoryButton = new Button("Clear History");
+        clearHistoryButton.setPrefSize(150 * currentScale, 40 * currentScale);
+        clearHistoryButton.setStyle(String.format(
+                "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
+                (int) (16 * currentScale)));
+        clearHistoryButton.setOnAction(event -> onClearHistory.run());
+
+        HBox historyBox = new HBox(10);
+        historyBox.setAlignment(Pos.BOTTOM_LEFT);
+        historyBox.getChildren().addAll(connectionHistoryList, clearHistoryButton);
+
+        return historyBox;
     }
 
     public void setConnectionHistoryItems(java.util.List<String> items) {
@@ -238,6 +255,12 @@ public class ClientConnectionView extends BaseView {
         if (connectionHistoryList != null) {
             connectionHistoryList.setMaxHeight(dm.getHeight(dm.getCurrentSize()) * 0.15);
             connectionHistoryList.setMaxWidth(dm.getWidth(dm.getCurrentSize()) * 0.4);
+        }
+        if (clearHistoryButton != null) {
+            clearHistoryButton.setPrefSize(150 * scale, 40 * scale);
+            clearHistoryButton.setStyle(String.format(
+                    "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
+                    (int) (16 * scale)));
         }
         if (title != null) {
             title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * scale));

@@ -20,18 +20,25 @@ public class WaitingRoomController extends BaseController {
     private final boolean isServer;
     private boolean isReady;
     private long lastToggleTime;
+    private long lastChatSubmitTime;
     private GameMode selectedGameMode;
     private WaitingRoomNetworkManager netManager;
     private static final long TOGGLE_COOLDOWN_MS = 1000; // 1초 쿨다운
+    private static final long CHAT_COOLDOWN_MS = 500; // 500ms 쿨다운
 
     public WaitingRoomController(Socket socket, boolean isServer) {
         this.view = new WaitingRoomView(isServer);
         this.isServer = isServer;
         this.isReady = false;
         this.lastToggleTime = 0;
+        this.lastChatSubmitTime = 0;
         this.selectedGameMode = GameMode.NORMAL;
         this.netManager = new WaitingRoomNetworkManager(socket, isServer, 
-            this::handleDisconnect, this::handleGameStart, this::setGameModeText);
+            this::handleDisconnect, 
+            this::handleGameStart, 
+            this::setGameModeText,
+            this::handleOpponentReadyChanged,
+            this::handleChatReceived);
     }
 
     @Override
@@ -39,7 +46,9 @@ public class WaitingRoomController extends BaseController {
         var root = view.createView(
             netManager.getRemoteIPAddress(),
             this::handleGameModeChange,
-            this::handleReadyToggle
+            this::handleReadyToggle,
+            this::handleChatSubmit,
+            this::handleGoBack
         );
         createDefaultScene(root);
 
@@ -63,14 +72,11 @@ public class WaitingRoomController extends BaseController {
 
     private void handleReadyToggle() {
         long currentTime = System.currentTimeMillis();
-        
-        // 쿨다운 체크
         if (currentTime - lastToggleTime < TOGGLE_COOLDOWN_MS) {
             return;
         }
-        
-        // 토글 수행
         lastToggleTime = currentTime;
+
         isReady = !isReady;
         view.updateToggleButtonStyle(isReady);
         
@@ -78,6 +84,29 @@ public class WaitingRoomController extends BaseController {
             netManager.setServerReady(isReady);
         }
         netManager.sendReadyState(isReady);
+    }
+
+    private void handleChatSubmit(String message) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastChatSubmitTime < CHAT_COOLDOWN_MS) {
+            return;
+        }
+        lastChatSubmitTime = currentTime;
+
+        netManager.sendChatMessage(message);
+        view.addChatMessage("[You]: " + message);
+    }
+
+    private void handleChatReceived(String message) {
+        view.addChatMessage("[Opponent]: " + message);
+    }
+
+    private void handleOpponentReadyChanged(boolean ready) {
+        if (ready) {
+            view.addChatMessage("[System]: Opponent is ready");
+        } else {
+            view.addChatMessage("[System]: Opponent cancelled ready");
+        }
     }
 
     private void handleGoBack() {

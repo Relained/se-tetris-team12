@@ -54,7 +54,8 @@ public class ClientConnectionController extends BaseController {
             this::handleRefresh,
             this::handleHistorySelect,
             this::handleIpSubmit,
-            this::handleGoBack
+            this::handleGoBack,
+            this::handleClearHistory
         );
         createDefaultScene(root);
         view.setConnectionHistoryItems(connectionHistory);
@@ -79,6 +80,11 @@ public class ClientConnectionController extends BaseController {
         view.setIpAddressField(ipAddress);
     }
 
+    private void handleClearHistory() {
+        connectionHistory.clear();
+        view.setConnectionHistoryItems(connectionHistory);
+    }
+
     private void handleIpSubmit(String ipAddress) {
         if (!NetworkUtility.isValidIPv4(ipAddress)) {
             view.setTitleText(MSG_INVALID_IP);
@@ -101,12 +107,13 @@ public class ClientConnectionController extends BaseController {
             Socket socket = new Socket();
             try {
                 socket.connect(new InetSocketAddress(ipAddress, 54673), 3000);
-
+                
+                if (!connectionHistory.contains(ipAddress)) {
+                    connectionHistory.add(ipAddress);
+                }
                 Platform.runLater(() -> {
                     swapState(new WaitingRoomController(socket, false));
                 });
-                connectionHistory.add(ipAddress);
-                saveConnectionHistory(connectionHistory);
             }
             catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {
@@ -187,6 +194,7 @@ public class ClientConnectionController extends BaseController {
         if (connectionThread != null && connectionThread.isAlive()) {
             connectionThread.interrupt();
         }
+        saveConnectionHistory(connectionHistory);
     }
 
     @Override
