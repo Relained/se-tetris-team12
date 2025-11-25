@@ -14,16 +14,16 @@ import org.example.service.ItemTetrisSystem;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
 import org.example.service.ScoreManager;
-import org.example.view.MultiPlayView;
+import org.example.view.P2PMultiPlayView;
 import org.example.model.ScoreRecord;
 
 /**
- * MultiPlayState의 게임 로직과 입력을 처리하는 Controller
+ * P2P MultiPlay의 게임 로직과 입력을 처리하는 Controller
  * 멀티플레이어 게임을 관리하며, 내 게임과 상대방 게임을 모두 처리합니다.
  */
-public class MultiPlayController extends BaseController {
+public class P2PMultiPlayController extends BaseController {
 
-    private MultiPlayView multiPlayView;
+    private P2PMultiPlayView multiPlayView;
     private TetrisSystem myTetrisSystem;
     private GameMode gameMode;
     private AnimationTimer gameTimer;
@@ -32,7 +32,7 @@ public class MultiPlayController extends BaseController {
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
 
-    public MultiPlayController(GameMode gameMode, int difficulty) {
+    public P2PMultiPlayController(GameMode gameMode, int difficulty) {
         // 내 게임 시스템 초기화
         if (gameMode == GameMode.ITEM) {
             myTetrisSystem = new ItemTetrisSystem();
@@ -41,7 +41,7 @@ public class MultiPlayController extends BaseController {
         }
         myTetrisSystem.setDifficulty(difficulty);
 
-        this.multiPlayView = new MultiPlayView();
+        this.multiPlayView = new P2PMultiPlayView();
         this.gameMode = gameMode;
         this.lastDropTime = System.currentTimeMillis();
 

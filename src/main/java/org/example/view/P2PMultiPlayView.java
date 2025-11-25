@@ -11,6 +11,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.example.model.TetrominoPosition;
 import org.example.view.component.play.HoldPanel;
@@ -20,9 +21,9 @@ import org.example.view.component.play.TetrisCanvas;
 
 
 /**
- * MultiPlay 화면의 UI를 담당하는 View 클래스
+ * P2P MultiPlay 화면의 UI를 담당하는 View 클래스
  */
-public class MultiPlayView extends BaseView{
+public class P2PMultiPlayView extends BaseView{
 
     private TetrisCanvas myGameCanvas;
     private ArrayList<TetrisCanvas> opGameCanvases;
@@ -32,7 +33,7 @@ public class MultiPlayView extends BaseView{
     private HBox root; // HBox 참조 저장
     private GridPane opponentsContainer; // GridPane 참조 저장
 
-    public MultiPlayView() {
+    public P2PMultiPlayView() {
         super(false); // NavigableButtonSystem 사용하지 않음
     }
 
@@ -78,7 +79,7 @@ public class MultiPlayView extends BaseView{
         HBox.setHgrow(rightContainer, Priority.ALWAYS);
         
         // 좌측: 상대방 게임 캔버스들 (초기에는 빈 GridPane)
-        opGameCanvases = new ArrayList<>();
+        opGameCanvases = new ArrayList<>(List.of(new TetrisCanvas(), new TetrisCanvas(), new TetrisCanvas()));
         opponentsContainer = createOpponentsGrid();
 
         root.getChildren().addAll(opponentsContainer, myGameCanvas, rightContainer);
