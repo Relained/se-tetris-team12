@@ -31,7 +31,9 @@ public class ClientConnectionController extends BaseController {
 
     private final ClientConnectionView view;
     private Thread connectionThread;
+    private Thread broadcastThread;
     private AtomicBoolean isConnecting;
+    private AtomicBoolean isBroadcasting;
     private List<String> connectionHistory;
     private long lastConnectionAttempt;
     private static final String MSG_CONNECTION_TIMEOUT = "Connection timed out. Please try again.";
@@ -43,6 +45,7 @@ public class ClientConnectionController extends BaseController {
     public ClientConnectionController() {
         this.view = new ClientConnectionView();
         this.isConnecting = new AtomicBoolean(false);
+        this.isBroadcasting = new AtomicBoolean(false);
         this.lastConnectionAttempt = 0;
         this.connectionHistory = loadConnectionHistory();
     }
@@ -72,8 +75,9 @@ public class ClientConnectionController extends BaseController {
     }
 
     private void handleRefresh() {
-        System.out.println("Refresh button clicked");
-        // TODO: Implement refresh logic
+        if (!isBroadcasting.getAndSet(true)) {
+            broadcastDiscovery();
+        }
     }
 
     private void handleHistorySelect(String ipAddress) {
@@ -102,7 +106,7 @@ public class ClientConnectionController extends BaseController {
         startConnection(ipAddress);
     }
 
-    void startConnection(String ipAddress) {
+    private void startConnection(String ipAddress) {
         connectionThread = Thread.startVirtualThread(() -> {
             Socket socket = new Socket();
             try {
@@ -134,8 +138,9 @@ public class ClientConnectionController extends BaseController {
         });
     }
 
-    void broadcastDiscovery() {
-        Thread.startVirtualThread(() -> {
+    private void broadcastDiscovery() {
+        view.setRefreshButtonText("...");
+        broadcastThread = Thread.startVirtualThread(() -> {
             DatagramSocket socket = null;
             try {
                 socket = new DatagramSocket();
@@ -182,9 +187,11 @@ public class ClientConnectionController extends BaseController {
                 }
                 System.err.println("Broadcast exception: " + e.getClass().getName() + " - " + e.getMessage());
             } finally {
-                if (socket != null && !socket.isClosed()) {
+                if (socket != null) {
                     socket.close();
                 }
+                isBroadcasting.set(false);
+                Platform.runLater(() -> view.setRefreshButtonText("↻"));
             }
         });
     }
@@ -193,6 +200,9 @@ public class ClientConnectionController extends BaseController {
     protected void exit() {
         if (connectionThread != null && connectionThread.isAlive()) {
             connectionThread.interrupt();
+        }
+        if (broadcastThread != null && broadcastThread.isAlive()) {
+            broadcastThread.interrupt();
         }
         saveConnectionHistory(connectionHistory);
     }

@@ -43,6 +43,37 @@ public class NetworkUtility {
     }
 
     /**
+     * 브로드캐스트 주소를 계산합니다.
+     * 
+     * @return 브로드캐스트 주소, 실패 시 null
+     */
+    public static InetAddress getBroadcastAddress() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) {
+                    continue;
+                }
+                
+                // System.err.println("name: " + iface.getDisplayName());
+                // System.err.println("list: " + iface.getInterfaceAddresses());
+                // System.err.println("size: " + iface.getInterfaceAddresses().size());
+                // System.err.println("-------------------------------");
+
+                for (var addr : iface.getInterfaceAddresses()) {
+                    if (addr.getBroadcast() != null && addr.getAddress() instanceof java.net.Inet4Address) {
+                        return addr.getBroadcast();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to get network interfaces: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
      * 주어진 문자열이 올바른 IPv4 주소 형식인지 검사합니다. (trim 되어있다고 가정)
      * 
      * @param ipAddress 검사할 IP 주소 문자열
@@ -72,38 +103,4 @@ public class NetworkUtility {
 
         return true;
     }
-
-    /**
-     * 브로드캐스트 주소를 계산합니다.
-     * 
-     * @return 브로드캐스트 주소, 실패 시 null
-     */
-    public static InetAddress getBroadcastAddress() {
-        try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = interfaces.nextElement();
-                if (networkInterface.isLoopback() || !networkInterface.isUp()) {
-                    continue;
-                }
-
-                networkInterface.getInterfaceAddresses().stream()
-                    .filter(addr -> addr.getBroadcast() != null)
-                    .findFirst()
-                    .ifPresent(addr -> {
-                        System.out.println("Using broadcast address: " + addr.getBroadcast().getHostAddress());
-                    });
-
-                return networkInterface.getInterfaceAddresses().stream()
-                    .filter(addr -> addr.getBroadcast() != null)
-                    .map(addr -> addr.getBroadcast())
-                    .findFirst()
-                    .orElse(null);
-            }
-        } catch (IOException e) {
-            System.err.println("Failed to get network interfaces: " + e.getMessage());
-        }
-        return null;
-    }
 }
-

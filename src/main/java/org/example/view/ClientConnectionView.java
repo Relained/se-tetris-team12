@@ -127,7 +127,6 @@ public class ClientConnectionView extends BaseView {
 
         var dm = DisplayManager.getInstance();
         searchedUsersList = new ListView<>();
-        searchedUsersList.getItems().addAll("192.168.0.100", "192.168.0.101", "10.0.0.50");
         searchedUsersList.setMaxHeight(dm.getHeight(dm.getCurrentSize()) * 0.16);
         searchedUsersList.setMinWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
         searchedUsersList.setPrefWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
@@ -216,6 +215,12 @@ public class ClientConnectionView extends BaseView {
         if (ipAddressField == null)
             return;
         ipAddressField.setText(text);
+    }
+
+    public void setRefreshButtonText(String text) {
+        if (refreshButton == null)
+            return;
+        refreshButton.setText(text);
     }
 
     @Override
