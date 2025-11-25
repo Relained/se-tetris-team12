@@ -13,6 +13,9 @@ import java.util.List;
 public class ScoreManager {
     private static final String SCORE_SAVE_PATH = System.getProperty("user.home") 
             + File.separator + "tetris_scores.ser";
+    // private static final String SCORE_SAVE_PATH = TetrisUtil.getAppDataPath() 
+    //                                                     + "tetris_scores.ser";
+    
     private static final int MAX_SCORES = 10;
     
     private List<ScoreRecord> scores;

@@ -17,9 +17,30 @@ public class NavigableButtonSystem {
     
     // 현재 스케일 (기본값: 1.0 = MEDIUM)
     private double scale = 1.0;
+    
+    // 2D 그리드 레이아웃 지원
+    private int gridColumns = 1; // 기본값: 1열 (수직 리스트)
+    private boolean horizontalNavigation = false; // 좌우 네비게이션 활성화 여부
 
     public NavigableButtonSystem() {
         buttons = new ArrayList<>();
+    }
+    
+    /**
+     * 그리드 열 수를 설정합니다. (2D 레이아웃 지원)
+     * @param columns 열 개수 (1 = 수직 리스트, 2+ = 그리드)
+     */
+    public void setGridColumns(int columns) {
+        this.gridColumns = Math.max(1, columns);
+        this.horizontalNavigation = (columns > 1);
+    }
+    
+    /**
+     * 수평 네비게이션 활성화 여부를 설정합니다.
+     * @param enabled true면 좌우 키로 이동 가능
+     */
+    public void setHorizontalNavigation(boolean enabled) {
+        this.horizontalNavigation = enabled;
     }
     
     /**
@@ -89,12 +110,32 @@ public class NavigableButtonSystem {
         int newIdx;
         switch (event.getCode()) {
             case UP:
-                newIdx = (selectedButtonIndex - 1 + buttons.size()) % buttons.size();
-                updateSelectedButton(newIdx);
+                newIdx = navigateUp();
+                if (newIdx != selectedButtonIndex) {
+                    updateSelectedButton(newIdx);
+                }
                 break;
             case DOWN:
-                newIdx = (selectedButtonIndex + 1) % buttons.size();
-                updateSelectedButton(newIdx);
+                newIdx = navigateDown();
+                if (newIdx != selectedButtonIndex) {
+                    updateSelectedButton(newIdx);
+                }
+                break;
+            case LEFT:
+                if (horizontalNavigation) {
+                    newIdx = navigateLeft();
+                    if (newIdx != selectedButtonIndex) {
+                        updateSelectedButton(newIdx);
+                    }
+                }
+                break;
+            case RIGHT:
+                if (horizontalNavigation) {
+                    newIdx = navigateRight();
+                    if (newIdx != selectedButtonIndex) {
+                        updateSelectedButton(newIdx);
+                    }
+                }
                 break;
             case ENTER:
             case SPACE:
@@ -104,6 +145,108 @@ public class NavigableButtonSystem {
                 // 다른 키들은 무시
                 break;
         }
+    }
+    
+    /**
+     * 위로 이동할 때의 새 인덱스를 계산합니다.
+     */
+    private int navigateUp() {
+        if (gridColumns == 1) {
+            // 수직 리스트: 단순히 이전 버튼
+            return (selectedButtonIndex - 1 + buttons.size()) % buttons.size();
+        } else {
+            // 그리드: 현재 행에서 위 행으로
+            int currentRow = selectedButtonIndex / gridColumns;
+            int currentCol = selectedButtonIndex % gridColumns;
+            int newRow = (currentRow - 1 + getGridRows()) % getGridRows();
+            int newIdx = newRow * gridColumns + currentCol;
+            
+            // 유효한 버튼 인덱스인지 확인
+            if (newIdx >= buttons.size()) {
+                // 마지막 행이 불완전한 경우, 같은 열의 마지막 유효한 버튼으로
+                newIdx = buttons.size() - 1;
+            }
+            return newIdx;
+        }
+    }
+    
+    /**
+     * 아래로 이동할 때의 새 인덱스를 계산합니다.
+     */
+    private int navigateDown() {
+        if (gridColumns == 1) {
+            // 수직 리스트: 단순히 다음 버튼
+            return (selectedButtonIndex + 1) % buttons.size();
+        } else {
+            // 그리드: 현재 행에서 아래 행으로
+            int currentRow = selectedButtonIndex / gridColumns;
+            int currentCol = selectedButtonIndex % gridColumns;
+            int newRow = (currentRow + 1) % getGridRows();
+            int newIdx = newRow * gridColumns + currentCol;
+            
+            // 유효한 버튼 인덱스인지 확인
+            if (newIdx >= buttons.size()) {
+                // 순환하여 첫 번째 행의 같은 열로
+                newIdx = currentCol;
+                if (newIdx >= buttons.size()) {
+                    newIdx = 0;
+                }
+            }
+            return newIdx;
+        }
+    }
+    
+    /**
+     * 왼쪽으로 이동할 때의 새 인덱스를 계산합니다.
+     */
+    private int navigateLeft() {
+        if (gridColumns == 1) {
+            // 수직 리스트에서는 이전 버튼으로
+            return (selectedButtonIndex - 1 + buttons.size()) % buttons.size();
+        } else {
+            // 그리드: 같은 행에서 왼쪽으로
+            int currentRow = selectedButtonIndex / gridColumns;
+            int currentCol = selectedButtonIndex % gridColumns;
+            int newCol = (currentCol - 1 + gridColumns) % gridColumns;
+            int newIdx = currentRow * gridColumns + newCol;
+            
+            // 유효한 버튼 인덱스인지 확인
+            if (newIdx >= buttons.size()) {
+                // 현재 행의 마지막 유효한 버튼으로
+                newIdx = Math.min(currentRow * gridColumns + gridColumns - 1, buttons.size() - 1);
+            }
+            return newIdx;
+        }
+    }
+    
+    /**
+     * 오른쪽으로 이동할 때의 새 인덱스를 계산합니다.
+     */
+    private int navigateRight() {
+        if (gridColumns == 1) {
+            // 수직 리스트에서는 다음 버튼으로
+            return (selectedButtonIndex + 1) % buttons.size();
+        } else {
+            // 그리드: 같은 행에서 오른쪽으로
+            int currentRow = selectedButtonIndex / gridColumns;
+            int currentCol = selectedButtonIndex % gridColumns;
+            int newCol = (currentCol + 1) % gridColumns;
+            int newIdx = currentRow * gridColumns + newCol;
+            
+            // 유효한 버튼 인덱스인지 확인
+            if (newIdx >= buttons.size()) {
+                // 현재 행의 첫 번째 버튼으로 순환
+                newIdx = currentRow * gridColumns;
+            }
+            return newIdx;
+        }
+    }
+    
+    /**
+     * 그리드의 행 수를 계산합니다.
+     */
+    private int getGridRows() {
+        return (buttons.size() + gridColumns - 1) / gridColumns;
     }
 
     private void updateSelectedButton(int newSelectedIndex) {
@@ -137,5 +280,91 @@ public class NavigableButtonSystem {
         Runnable action = (Runnable) selectedButton.getUserData();
         
         action.run();
+    }
+    
+    /**
+     * 특정 인덱스의 버튼으로 포커스를 이동합니다.
+     * @param index 이동할 버튼의 인덱스
+     * @return 성공 여부
+     */
+    public boolean focusButton(int index) {
+        if (index < 0 || index >= buttons.size()) {
+            return false;
+        }
+        updateSelectedButton(index);
+        return true;
+    }
+    
+    /**
+     * 특정 텍스트를 가진 버튼으로 포커스를 이동합니다.
+     * @param buttonText 버튼의 텍스트
+     * @return 성공 여부
+     */
+    public boolean focusButtonByText(String buttonText) {
+        for (int i = 0; i < buttons.size(); i++) {
+            if (buttons.get(i).getText().equals(buttonText)) {
+                updateSelectedButton(i);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 현재 선택된 버튼의 인덱스를 반환합니다.
+     */
+    public int getSelectedIndex() {
+        return selectedButtonIndex;
+    }
+    
+    /**
+     * 현재 선택된 버튼을 반환합니다.
+     */
+    public Button getSelectedButton() {
+        if (selectedButtonIndex >= 0 && selectedButtonIndex < buttons.size()) {
+            return buttons.get(selectedButtonIndex);
+        }
+        return null;
+    }
+    
+    /**
+     * 버튼 리스트를 반환합니다.
+     */
+    public ArrayList<Button> getButtons() {
+        return buttons;
+    }
+    
+    /**
+     * 버튼 개수를 반환합니다.
+     */
+    public int getButtonCount() {
+        return buttons.size();
+    }
+
+    /**
+     * NavigableButtonSystem에 영향을 받지 않는 독립적인 버튼을 생성합니다.
+     * 선택된 스타일이 적용되며, 마우스 클릭이 비활성화됩니다.
+     * 
+     * @param text 버튼에 표시할 텍스트
+     * @return 스타일이 적용된 독립적인 버튼
+     */
+    public static Button createStandaloneButton(String text) {
+        Button button = new Button(text);
+        button.setPrefSize(200, 50);
+        button.setFocusTraversable(false);
+
+        // 마우스 클릭 비활성화
+        button.setOnMouseClicked(event -> event.consume());
+        button.setOnAction(event -> event.consume());
+
+        // 선택된 스타일 적용
+        button.setStyle("-fx-font-size: 18px; " +
+                "-fx-background-color: #6a6a6a; " +
+                "-fx-text-fill: yellow; " +
+                "-fx-border-color: white; " +
+                "-fx-border-width: 2px; " +
+                "-fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.7), 10, 0, 0, 0);");
+
+        return button;
     }
 }

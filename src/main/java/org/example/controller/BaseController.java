@@ -35,7 +35,11 @@ public abstract class BaseController {
     }
 
     protected void createDefaultScene(Parent root) {
-        scene = new Scene(root, 1000, 700);
+        DisplayManager displayManager = DisplayManager.getInstance();
+        int width = displayManager.getWidth(displayManager.getCurrentSize());
+        int height = displayManager.getHeight(displayManager.getCurrentSize());
+        
+        scene = new Scene(root, width, height);
         scene.setFill(ColorManager.getInstance().getBackgroundColor());
         scene.setOnKeyPressed(event -> handleKeyInput(event));
     }

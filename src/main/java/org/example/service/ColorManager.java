@@ -49,11 +49,16 @@ public class ColorManager {
     }
     
     /**
-     * 인덱스로 색상 가져오기 (1-based index)
-     * @param index 1부터 7까지의 테트로미노 타입 인덱스
+     * 인덱스로 색상 가져오기
+     * @param index 1부터 7까지의 테트로미노 타입 인덱스, 8은 회색(AdderBoard용)
      * @return 해당 인덱스의 색상
      */
     public Color getColorFromIndex(int index) {
+        // 8번 인덱스는 AdderBoard용 회색
+        if (index == 8) {
+            return Color.GRAY;
+        }
+        
         if (index < 1 || index > currentColorSet.length) {
             throw new IllegalArgumentException("Invalid color index: " + index);
         }

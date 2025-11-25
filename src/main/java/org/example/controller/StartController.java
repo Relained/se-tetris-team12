@@ -49,7 +49,14 @@ public class StartController extends BaseController {
     public void handleStartGame() {
         stackState(new GameModeController());
     }
-    
+
+    /**
+     * MultiPlay 버튼 클릭 시 처리
+     */
+    public void handleMultiPlay() {
+        stackState(new MultiPlayModeController());
+    }
+
     /**
      * MultiPlay 버튼 클릭 시 처리
      */
