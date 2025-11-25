@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import org.example.service.NetworkManager;
+import org.example.service.NetworkUtility;
 import org.example.view.ServerConnectionView;
 
 /**
@@ -25,7 +25,7 @@ public class ServerConnectionController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        var ip = NetworkManager.getLocalIPAddress();
+        var ip = NetworkUtility.getLocalIPAddress();
 
         var root = view.createView(ip, this::handleGoBack);
         createDefaultScene(root);

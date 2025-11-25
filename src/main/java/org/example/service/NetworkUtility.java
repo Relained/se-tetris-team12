@@ -1,14 +1,15 @@
 package org.example.service;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 
 /**
- * 네트워크 유틸리티 클래스 (추후 슈퍼클래스로 수정 예정)
+ * 네트워크 유틸리티 클래스
  */
-public class NetworkManager {
+public class NetworkUtility {
 
     /**
      * 로컬 머신의 IP 주소를 반환합니다.
@@ -70,6 +71,39 @@ public class NetworkManager {
         }
 
         return true;
+    }
+
+    /**
+     * 브로드캐스트 주소를 계산합니다.
+     * 
+     * @return 브로드캐스트 주소, 실패 시 null
+     */
+    public static InetAddress getBroadcastAddress() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+                if (networkInterface.isLoopback() || !networkInterface.isUp()) {
+                    continue;
+                }
+
+                networkInterface.getInterfaceAddresses().stream()
+                    .filter(addr -> addr.getBroadcast() != null)
+                    .findFirst()
+                    .ifPresent(addr -> {
+                        System.out.println("Using broadcast address: " + addr.getBroadcast().getHostAddress());
+                    });
+
+                return networkInterface.getInterfaceAddresses().stream()
+                    .filter(addr -> addr.getBroadcast() != null)
+                    .map(addr -> addr.getBroadcast())
+                    .findFirst()
+                    .orElse(null);
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to get network interfaces: " + e.getMessage());
+        }
+        return null;
     }
 }
 

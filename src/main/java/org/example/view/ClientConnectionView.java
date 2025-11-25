@@ -100,7 +100,7 @@ public class ClientConnectionView extends BaseView {
             onIpSubmit.accept(ipAddressField.getText().trim());
         });
 
-        submitButton = new Button("Submit");
+        submitButton = new Button("Connect");
         submitButton.setPrefSize(150 * currentScale, 40 * currentScale);
         submitButton.setStyle(String.format(
                 "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
@@ -144,11 +144,10 @@ public class ClientConnectionView extends BaseView {
             }
         });
 
-        refreshButton = new Button("Refresh");
-        refreshButton.setPrefSize(150 * currentScale, 40 * currentScale);
-        refreshButton.setStyle(String.format(
-                "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
-                (int) (16 * currentScale)));
+        refreshButton = new Button("↻");
+        refreshButton.setPrefSize(40 * currentScale, 40 * currentScale);
+        refreshButton.setStyle("-fx-background-color: #4a4a4a; -fx-text-fill: white;");
+        refreshButton.setFont(fontManager.getFont(FontManager.SIZE_BODY_LARGE * currentScale));
         refreshButton.setOnAction(event -> onRefresh.run());
 
         HBox searchedUsersBox = new HBox(10);
@@ -167,8 +166,6 @@ public class ClientConnectionView extends BaseView {
 
         var dm = DisplayManager.getInstance();
         connectionHistoryList = new ListView<>();
-        connectionHistoryList.getItems().addAll(
-                "192.168.1.50", "172.16.0.10", "10.0.0.25", "192.168.1.100");
         connectionHistoryList.setMaxHeight(dm.getHeight(dm.getCurrentSize()) * 0.16);
         connectionHistoryList.setMaxWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
         connectionHistoryList.setStyle(String.format(
@@ -184,6 +181,12 @@ public class ClientConnectionView extends BaseView {
                 }
             }
         });
+    }
+
+    public void setConnectionHistoryItems(java.util.List<String> items) {
+        if (connectionHistoryList == null)
+            return;
+        connectionHistoryList.getItems().setAll(items);
     }
 
     public void setTitleText(String text) {
