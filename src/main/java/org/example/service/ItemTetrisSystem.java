@@ -200,6 +200,14 @@ public class ItemTetrisSystem extends TetrisSystem {
         } else {
             spawnNewPiece();
         }
+
+        // 피스가 배치된 후 콜백 실행 (멀티플레이 공격용)
+        if (onPieceLocked != null) {
+            onPieceLocked.run();
+        }
+
+        // 현재 보드 상태를 스냅샷으로 캡처 (다음 턴에서 사용)
+        captureSnapshotBeforeLock();
     }
 
     @Override
