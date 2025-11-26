@@ -2,6 +2,8 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
+
+import org.example.model.GameMode;
 import org.example.view.MultiPlayModeView;
 
 /**
@@ -40,7 +42,8 @@ public class MultiPlayModeController extends BaseController {
      * Online MultiPlay 선택 시 처리
      */
     public void handleOnline() {
-        stackState(new P2PModeController());
+        //stackState(new P2PModeController());
+        stackState(new P2PMultiPlayController(null, GameMode.ITEM, 1));
     }
 
     /**

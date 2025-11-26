@@ -256,6 +256,12 @@ public class WaitingRoomNetworkManager {
         releaseResources(false);
     }
 
+    public void stopAllThreads() {
+        sendThread.interrupt();
+        receiveThread.interrupt();
+        heartbeatThread.interrupt();
+    }
+
     /**
      * 서버의 Ready 상태 설정 (서버 전용)
      */

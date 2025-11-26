@@ -345,4 +345,95 @@ public class TetrisSystem {
     public void setOnPieceLocked(Runnable callback) {
         this.onPieceLocked = callback;
     }
+
+    /**
+     * 현재 게임 상태를 압축하여 int[][]로 반환
+     * @param ghostPiece 고스트 조각 (없으면 null)
+     * @return 압축된 int[20][10] 보드
+     */
+    public int[][] getCompressedBoardData(TetrominoPosition ghostPiece) {
+        // Magic Number
+        final int WEIGHT_MARK = 200;
+        final int BOMB_MARK = 201;
+        final int GHOST_MARK = -2;
+
+        // 비트마스킹: 상위 16비트(symbol), 하위 8비트(color)
+        // 아이템 블록: (symbol << 16) | colorIndex
+
+        // 나중에 이 부분을 보드에서 바로 압축해서 주도록 바꿔야함
+        int[][] visible = board.getVisibleBoard();
+        int[][] compressed = new int[GameBoard.HEIGHT][GameBoard.WIDTH];
+
+        // 1. 보드 복사 및 아이템 정보 반영
+        for (int row = 0; row < GameBoard.HEIGHT; row++) {
+            for (int col = 0; col < GameBoard.WIDTH; col++) {
+                int v = visible[row][col];
+                if (v == 0) {
+                    compressed[row][col] = 0;
+                } else if (v == GameBoard.CLEAR_MARK) {
+                    compressed[row][col] = GameBoard.CLEAR_MARK;
+                } else {
+                    var item = board.getItemAt(row + GameBoard.BUFFER_ZONE, col);
+                    if (item != null && item.isItem()) {
+                        int symbol = item.getSymbol();
+                        compressed[row][col] = (symbol << 16) | (v & 0xFF);
+                    } else {
+                        compressed[row][col] = v;
+                    }
+                }
+            }
+        }
+
+        // 2. 고스트 조각 덮어쓰기 (테두리만 표시하고 싶으면 GHOST_MARK 사용)
+        if (ghostPiece != null) {
+            int[][] shape = ghostPiece.getCurrentShape();
+            int startX = ghostPiece.getX();
+            int startY = ghostPiece.getY() - GameBoard.BUFFER_ZONE;
+            for (int r = 0; r < shape.length; r++) {
+                for (int c = 0; c < shape[r].length; c++) {
+                    if (shape[r][c] == 1) {
+                        int x = startX + c;
+                        int y = startY + r;
+                        if (x >= 0 && x < GameBoard.WIDTH && y >= 0 && y < GameBoard.HEIGHT) {
+                            compressed[y][x] = GHOST_MARK;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. 현재 조각 덮어쓰기 (특수/아이템/일반)
+        if (currentPiece != null) {
+            var special = currentPiece.getSpecialKind();
+            int[][] shape = currentPiece.getCurrentShape();
+            int startX = currentPiece.getX();
+            int startY = currentPiece.getY() - GameBoard.BUFFER_ZONE;
+            for (int r = 0; r < shape.length; r++) {
+                for (int c = 0; c < shape[r].length; c++) {
+                    if (shape[r][c] == 1) {
+                        int x = startX + c;
+                        int y = startY + r;
+                        if (x >= 0 && x < GameBoard.WIDTH && y >= 0 && y < GameBoard.HEIGHT) {
+                            if (special == TetrominoPosition.SpecialKind.WEIGHT) {
+                                compressed[y][x] = WEIGHT_MARK;
+                            } else if (special == TetrominoPosition.SpecialKind.BOMB) {
+                                compressed[y][x] = BOMB_MARK;
+                            } else {
+                                var item = currentPiece.getItemAt(r, c);
+                                if (item != null && item.isItem()) {
+                                    int symbol = item.getSymbol();
+                                    int color = currentPiece.getType().getColorIndex();
+                                    compressed[y][x] = (symbol << 16) | (color & 0xFF);
+                                } else {
+                                    compressed[y][x] = currentPiece.getType().getColorIndex();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return compressed;
+    }
 }

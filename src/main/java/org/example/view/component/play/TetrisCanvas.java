@@ -13,11 +13,11 @@ import org.example.model.TetrominoPosition;
  * 창의 높이에 따라 동적으로 크기가 조정됩니다.
  */
 public class TetrisCanvas extends Canvas {
-    private double cellSize = 30;
-    private static final Color BORDER_COLOR = Color.DARKGRAY;
-    private final ColorManager colorManager;
-    private final Color BACKGROUND_COLOR;
-    private static final Color GHOST_COLOR = Color.GRAY;
+    protected double cellSize = 30;
+    protected static final Color BORDER_COLOR = Color.DARKGRAY;
+    protected static final Color GHOST_COLOR = Color.GRAY;
+    protected final ColorManager colorManager;
+    protected final Color BACKGROUND_COLOR;
 
     private GameBoard board;
     private TetrominoPosition currentPiece;
@@ -27,13 +27,6 @@ public class TetrisCanvas extends Canvas {
         super(GameBoard.WIDTH * 30, GameBoard.HEIGHT * 30);
         this.colorManager = ColorManager.getInstance();
         this.BACKGROUND_COLOR = colorManager.getBackgroundColor();
-        
-        // 높이 변경 시 자동으로 cell size 재계산
-        heightProperty().addListener((_, _, newHeight) -> {
-            cellSize = newHeight.doubleValue() / GameBoard.HEIGHT;
-            setWidth(GameBoard.WIDTH * cellSize);
-            draw(); // 크기 변경 시 다시 그리기
-        });
     }
     
     public void setCanvasHeight(double height) {
@@ -65,7 +58,7 @@ public class TetrisCanvas extends Canvas {
         draw();
     }
 
-    private void draw() {
+    protected void draw() {
         GraphicsContext gc = getGraphicsContext2D();
         gc.clearRect(0, 0, getWidth(), getHeight());
 
@@ -151,7 +144,7 @@ public class TetrisCanvas extends Canvas {
         }
     }
 
-    private void drawCell(GraphicsContext gc, int x, int y, Color color) {
+    protected void drawCell(GraphicsContext gc, int x, int y, Color color) {
         double pixelX = x * cellSize;
         double pixelY = y * cellSize;
 
@@ -163,7 +156,7 @@ public class TetrisCanvas extends Canvas {
         gc.strokeRect(pixelX, pixelY, cellSize, cellSize);
     }
 
-    private void drawGhostCell(GraphicsContext gc, int x, int y) {
+    protected void drawGhostCell(GraphicsContext gc, int x, int y) {
         double pixelX = x * cellSize;
         double pixelY = y * cellSize;
 
@@ -172,7 +165,7 @@ public class TetrisCanvas extends Canvas {
         gc.strokeRect(pixelX + 2, pixelY + 2, cellSize - 4, cellSize - 4);
     }
 
-    private void drawGrid(GraphicsContext gc) {
+    protected void drawGrid(GraphicsContext gc) {
         gc.setStroke(Color.DARKGRAY);
         gc.setLineWidth(0.5);
 
@@ -187,7 +180,7 @@ public class TetrisCanvas extends Canvas {
         }
     }
 
-    private void drawItemMark(GraphicsContext gc, int x, int y, char symbol) {
+    protected void drawItemMark(GraphicsContext gc, int x, int y, char symbol) {
         double pixelX = x * cellSize;
         double pixelY = y * cellSize;
         

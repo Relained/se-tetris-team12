@@ -1,15 +1,20 @@
 package org.example.controller;
 
 import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
+import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.example.model.GameMode;
 import org.example.model.KeyData;
+import org.example.service.DisplayManager;
+import org.example.service.InGameNetworkManager;
 import org.example.service.ItemTetrisSystem;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
@@ -27,12 +32,15 @@ public class P2PMultiPlayController extends BaseController {
     private TetrisSystem myTetrisSystem;
     private GameMode gameMode;
     private AnimationTimer gameTimer;
+    private InGameNetworkManager netManager;
 
     private long lastDropTime;
+    private long lastNetworkSyncTime;
+    private static final long NETWORK_SYNC_INTERVAL_MS = 500;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
 
-    public P2PMultiPlayController(GameMode gameMode, int difficulty) {
+    public P2PMultiPlayController(Socket socket, GameMode gameMode, int difficulty) {
         // 내 게임 시스템 초기화
         if (gameMode == GameMode.ITEM) {
             myTetrisSystem = new ItemTetrisSystem();
@@ -42,6 +50,7 @@ public class P2PMultiPlayController extends BaseController {
         myTetrisSystem.setDifficulty(difficulty);
 
         this.multiPlayView = new P2PMultiPlayView();
+        //this.netManager = new InGameNetworkManager(socket, this::handleDisconnect);
         this.gameMode = gameMode;
         this.lastDropTime = System.currentTimeMillis();
 
@@ -79,13 +88,13 @@ public class P2PMultiPlayController extends BaseController {
     @Override
     protected void exit() {
         gameTimer.stop();
-        // 멀티플레이 모드 비활성화
-        org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
+        DisplayManager.getInstance().setMultiplayerMode(false);
     }
 
     @Override
     protected void resume() {
         gameTimer.start();
+        DisplayManager.getInstance().setMultiplayerMode(true);
     }
 
     private String getDifficultyString(int difficulty) {
@@ -110,9 +119,13 @@ public class P2PMultiPlayController extends BaseController {
             myTetrisSystem.update();
             lastDropTime = currentTime;
         }
-
-        // Apply any pending board clears (after effect delay)
         myTetrisSystem.getBoard().processPendingClearsIfDue();
+
+        if (currentTime - lastNetworkSyncTime >= NETWORK_SYNC_INTERVAL_MS) {
+            var data = myTetrisSystem.getCompressedBoardData(null);
+            multiPlayView.updateOpponentDisplay(0, data);
+            lastNetworkSyncTime = currentTime;
+        }
 
         // Update UI through View
         updateDisplay();
@@ -210,6 +223,15 @@ public class P2PMultiPlayController extends BaseController {
         stackState(new PauseController(() -> myTetrisSystem.reset()));
     }
 
+    public void handleDisconnect() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Connection Lost");
+        alert.setHeaderText(null);
+        alert.setContentText("Disconnected from opponent.");
+        alert.showAndWait();
+        popState();
+    }
+
     /**
      * 게임 오버 처리
      */
@@ -239,24 +261,6 @@ public class P2PMultiPlayController extends BaseController {
         multiPlayView.addOpponentCanvas(scene);
     }
 
-    /**
-     * 특정 상대방의 게임 화면을 업데이트합니다.
-     * 
-     * @param opponentIndex 상대방 인덱스
-     * @param board 상대방의 게임 보드
-     * @param currentPiece 상대방의 현재 테트로미노
-     * @param ghostPiece 상대방의 고스트 테트로미노
-     */
-    public void updateOpponentDisplay(int opponentIndex,
-                                     org.example.model.GameBoard board,
-                                     org.example.model.TetrominoPosition currentPiece,
-                                     org.example.model.TetrominoPosition ghostPiece) {
-        multiPlayView.updateOpponentDisplay(opponentIndex, board, currentPiece, ghostPiece);
-    }
-
-    /**
-     * 내 게임 로직 반환
-     */
     public TetrisSystem getMyGameLogic() {
         return myTetrisSystem;
     }
@@ -265,9 +269,6 @@ public class P2PMultiPlayController extends BaseController {
         return gameMode;
     }
 
-    /**
-     * lastDropTime 리셋
-     */
     public void resetLastDropTime() {
         this.lastDropTime = System.currentTimeMillis();
     }

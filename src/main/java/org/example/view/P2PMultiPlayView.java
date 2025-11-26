@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.example.model.TetrominoPosition;
+import org.example.view.component.play.DummyTetrisCanvas;
 import org.example.view.component.play.HoldPanel;
 import org.example.view.component.play.NextPiecePanel;
 import org.example.view.component.play.ScorePanel;
@@ -26,7 +27,7 @@ import org.example.view.component.play.TetrisCanvas;
 public class P2PMultiPlayView extends BaseView{
 
     private TetrisCanvas myGameCanvas;
-    private ArrayList<TetrisCanvas> opGameCanvases;
+    private ArrayList<DummyTetrisCanvas> opGameCanvases;
     private HoldPanel holdPanel;
     private NextPiecePanel nextPanel;
     private ScorePanel scorePanel;
@@ -78,8 +79,7 @@ public class P2PMultiPlayView extends BaseView{
 
         HBox.setHgrow(rightContainer, Priority.ALWAYS);
         
-        // 좌측: 상대방 게임 캔버스들 (초기에는 빈 GridPane)
-        opGameCanvases = new ArrayList<>(List.of(new TetrisCanvas(), new TetrisCanvas(), new TetrisCanvas()));
+        opGameCanvases = new ArrayList<>(List.of(new DummyTetrisCanvas()));
         opponentsContainer = createOpponentsGrid();
 
         root.getChildren().addAll(opponentsContainer, myGameCanvas, rightContainer);
@@ -138,7 +138,7 @@ public class P2PMultiPlayView extends BaseView{
      * @param scene 현재 씬 (캔버스 크기 조정용)
      */
     public void addOpponentCanvas(Scene scene) {
-        TetrisCanvas opCanvas = new TetrisCanvas();
+        DummyTetrisCanvas opCanvas = new DummyTetrisCanvas();
         opGameCanvases.add(opCanvas);
         updateOpponentsGrid();
         
@@ -207,7 +207,7 @@ public class P2PMultiPlayView extends BaseView{
             }
             
             // 모든 상대방 캔버스에 동일한 크기 적용
-            for (TetrisCanvas opCanvas : opGameCanvases) {
+            for (DummyTetrisCanvas opCanvas : opGameCanvases) {
                 opCanvas.setCanvasSize(opponentCanvasWidth, opponentCanvasHeight);
             }
         }
@@ -228,20 +228,10 @@ public class P2PMultiPlayView extends BaseView{
         scorePanel.updateStats(score, lines, level);
     }
 
-    /**
-     * 특정 상대방의 게임 화면을 업데이트합니다.
-     * 
-     * @param opponentIndex 상대방 인덱스 (0부터 시작)
-     * @param board 게임 보드
-     * @param currentPiece 현재 테트로미노
-     * @param ghostPiece 고스트 테트로미노
-     */
-    public void updateOpponentDisplay(int opponentIndex, 
-                                     org.example.model.GameBoard board,
-                                     TetrominoPosition currentPiece,
-                                     TetrominoPosition ghostPiece) {
+    // 상대방 화면 업데이트
+    public void updateOpponentDisplay(int opponentIndex, int[][] board) {
         if (opponentIndex >= 0 && opponentIndex < opGameCanvases.size()) {
-            opGameCanvases.get(opponentIndex).updateBoard(board, currentPiece, ghostPiece);
+            opGameCanvases.get(opponentIndex).updateBoard(board);
         }
     }
 
@@ -250,11 +240,11 @@ public class P2PMultiPlayView extends BaseView{
         return myGameCanvas;
     }
 
-    public ArrayList<TetrisCanvas> getOpponentCanvases() {
+    public ArrayList<DummyTetrisCanvas> getOpponentCanvases() {
         return opGameCanvases;
     }
 
-    public TetrisCanvas getOpponentCanvas(int index) {
+    public DummyTetrisCanvas getOpponentCanvas(int index) {
         if (index >= 0 && index < opGameCanvases.size()) {
             return opGameCanvases.get(index);
         }

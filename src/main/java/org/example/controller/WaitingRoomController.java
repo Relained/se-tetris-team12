@@ -109,6 +109,12 @@ public class WaitingRoomController extends BaseController {
         }
     }
 
+    private void handleGameStart() {
+        System.out.println("[Game starting...]");
+        netManager.stopAllThreads();
+        swapState(new P2PMultiPlayController(netManager.getSocket(), selectedGameMode, 2));
+    }
+
     private void handleGoBack() {
         netManager.disconnect();
         popState();
@@ -126,12 +132,6 @@ public class WaitingRoomController extends BaseController {
     private void setGameModeText(GameMode mode) {
         this.selectedGameMode = mode;
         view.setGameModeText(mode.toString());
-    }
-
-    private void handleGameStart() {
-        System.out.println("[Game starting...]");
-        // TODO: 게임 화면으로 전환
-        // swapState(new PlayController(netManager.getSocket(), selectedGameMode));
     }
 
     @Override
