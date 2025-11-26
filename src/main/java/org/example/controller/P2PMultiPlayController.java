@@ -17,9 +17,7 @@ import org.example.service.InGameNetworkManager;
 import org.example.service.ItemTetrisSystem;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
-import org.example.service.ScoreManager;
 import org.example.view.P2PMultiPlayView;
-import org.example.model.ScoreRecord;
 
 /**
  * P2P MultiPlay의 게임 로직과 입력을 처리하는 Controller
@@ -70,7 +68,7 @@ public class P2PMultiPlayController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        
+        DisplayManager.getInstance().setMultiplayerMode(true);
         var root = multiPlayView.createView(
             gameMode.toString(),
             getDifficultyString(myTetrisSystem.getDifficulty())
@@ -234,21 +232,23 @@ public class P2PMultiPlayController extends BaseController {
      * 게임 오버 처리
      */
     public void handleGameOver() {
-        ScoreRecord record = new ScoreRecord(
-            myTetrisSystem.getScore(), 
-            myTetrisSystem.getLines(),
-            myTetrisSystem.getLevel(), 
-            myTetrisSystem.getDifficulty(), 
-            gameMode, 
-            ScoreManager.getInstance().isScoreEligibleForSaving(myTetrisSystem.getScore())
-        );
+        // ScoreRecord record = new ScoreRecord(
+        //     myTetrisSystem.getScore(), 
+        //     myTetrisSystem.getLines(),
+        //     myTetrisSystem.getLevel(), 
+        //     myTetrisSystem.getDifficulty(), 
+        //     gameMode, 
+        //     ScoreManager.getInstance().isScoreEligibleForSaving(myTetrisSystem.getScore())
+        // );
 
-        // 점수가 상위 10개에 드는지에 따라 다른 Controller로 전환
-        if (record.isNewAndEligible()) {
-            setState(new ScoreInputController(record));
-        } else {
-            setState(new ScoreNotEligibleController(record));
-        }
+        // // 점수가 상위 10개에 드는지에 따라 다른 Controller로 전환
+        // if (record.isNewAndEligible()) {
+        //     setState(new ScoreInputController(record));
+        // } else {
+        //     setState(new ScoreNotEligibleController(record));
+        // }
+        netManager.disconnect();
+        popState();
     }
 
     /**

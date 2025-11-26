@@ -39,7 +39,7 @@ public class NetworkUtility {
         } catch (SocketException e) {
             e.printStackTrace();
         }
-        return "Unable to detect IP";
+        return "";
     }
 
     /**

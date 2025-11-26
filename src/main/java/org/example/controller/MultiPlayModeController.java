@@ -3,7 +3,6 @@ package org.example.controller;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 
-import org.example.model.GameMode;
 import org.example.view.MultiPlayModeView;
 
 /**
@@ -17,7 +16,7 @@ public class MultiPlayModeController extends BaseController {
 
     public MultiPlayModeController() {
         this.view = new MultiPlayModeView();
-        org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
+        //org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
     }
 
     @Override

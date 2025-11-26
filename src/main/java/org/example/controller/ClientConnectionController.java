@@ -62,6 +62,7 @@ public class ClientConnectionController extends BaseController {
         );
         createDefaultScene(root);
         view.setConnectionHistoryItems(connectionHistory);
+        handleRefresh();
         return scene;
     }
 
@@ -70,8 +71,9 @@ public class ClientConnectionController extends BaseController {
     }
 
     private void handleSearchedUserSelect(String ipAddress) {
-        System.out.println("Searched user selected: " + ipAddress);
+        ipAddress = ipAddress.trim();
         view.setIpAddressField(ipAddress);
+        handleIpSubmit(ipAddress);
     }
 
     private void handleRefresh() {
@@ -139,6 +141,7 @@ public class ClientConnectionController extends BaseController {
     }
 
     private void broadcastDiscovery() {
+        view.resetSearchedUsersItems();
         view.setRefreshButtonText("...");
         broadcastThread = Thread.startVirtualThread(() -> {
             DatagramSocket socket = null;
@@ -160,13 +163,13 @@ public class ClientConnectionController extends BaseController {
                     sendData, 
                     sendData.length, 
                     broadcastAddress, 
-                    54673
+                    54777
                 );
                 socket.send(sendPacket);
                 System.out.println("Broadcast sent to: " + broadcastAddress.getHostAddress());
 
                 // 응답 대기
-                byte[] receiveData = new byte[1024];
+                byte[] receiveData = new byte[512];
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                 socket.receive(receivePacket);
 
@@ -174,10 +177,11 @@ public class ClientConnectionController extends BaseController {
                 String responseAddress = receivePacket.getAddress().getHostAddress();
                 System.out.println("Received response from " + responseAddress + ": " + response);
 
-                Platform.runLater(() -> {
-                    view.setIpAddressField(responseAddress);
-                });
-
+                if ("TETRIS_RESPONSE".equals(response)) {
+                    Platform.runLater(() -> {
+                        view.addSearchedUsersItems(responseAddress);
+                    });
+                }
             } catch (SocketTimeoutException e) {
                 System.err.println("Broadcast discovery timed out - no response received");
             } catch (IOException e) {

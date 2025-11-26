@@ -205,6 +205,18 @@ public class ClientConnectionView extends BaseView {
         connectionHistoryList.getItems().setAll(items);
     }
 
+    public void addSearchedUsersItems(String item) {
+        if (searchedUsersList == null)
+            return;
+        searchedUsersList.getItems().add(item);
+    }
+
+    public void resetSearchedUsersItems() {
+        if (searchedUsersList == null)
+            return;
+        searchedUsersList.getItems().clear();
+    }
+
     public void setTitleText(String text) {
         if (title == null)
             return;

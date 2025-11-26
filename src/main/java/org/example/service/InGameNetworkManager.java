@@ -42,7 +42,8 @@ public class InGameNetworkManager {
 
     // ----------- 상수 -----------
     private static final int TICK_TIME = 40;
-    private static final int CONNECTION_LOST_TIME = 200;
+    private static final int CONNECTION_LOST_TIME = 3000;
+    private static final int CONNECTION_DELAY_TIME = 500;
     private static final int MAX_PACKET_SIZE = 1024; // 1KB
 
     public InGameNetworkManager(Socket socket, Runnable onDisconnect, Consumer<int[][]> onDataReceived, Supplier<int[][]> dataProvider) {
@@ -149,8 +150,11 @@ public class InGameNetworkManager {
         }
 
         while (true) {
+            if (System.currentTimeMillis() - lastPacketTime > CONNECTION_DELAY_TIME) {
+                System.err.println("[Connection delay detected (>500ms)]");
+            }
             if (System.currentTimeMillis() - lastPacketTime > CONNECTION_LOST_TIME) {
-                System.err.println("[excessive delay (over 200ms)]");
+                System.err.println("[Connection lost detected (>3000ms)]");
                 releaseResources(true);
                 return;
             }
@@ -159,9 +163,9 @@ public class InGameNetworkManager {
             int readLength = -1;
 
             try {
+                readLength = readStep(inputStream);
                 while (inputStream.available() != 0) {
                     readLength = readStep(inputStream);
-                    if (readLength == -1) break;
                 }
             } catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {

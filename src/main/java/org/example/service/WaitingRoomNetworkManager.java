@@ -142,7 +142,7 @@ public class WaitingRoomNetworkManager {
                 sendQueue.put(message);
             }
         } catch (InterruptedException e) {
-            System.err.println("[Heartbeat thread interrupted - graceful shutdown]");
+            System.err.println("(WaitingRoom)[Heartbeat thread interrupted - graceful shutdown]");
         }
     }
 
@@ -165,12 +165,12 @@ public class WaitingRoomNetworkManager {
                 outputStream.write(message);
                 outputStream.flush();
                 if (message[0] == 0x03) { // 게임 시작 메시지 전송 후 종료
-                    System.err.println("[Game start message sent - send loop shutdown]");
+                    System.err.println("(WaitingRoom)[Game start message sent - send loop shutdown]");
                     return;
                 }
             }
         } catch (InterruptedException e) {
-            System.err.println("[Send thread interrupted - graceful shutdown]");
+            System.err.println("(WaitingRoom)[Send thread interrupted - graceful shutdown]");
         } catch (IOException e) {
             System.err.println("[Send failed - connection lost]");
             releaseResources(true);
@@ -229,7 +229,7 @@ public class WaitingRoomNetworkManager {
                         heartbeatThread.interrupt();
                         Platform.runLater(onGameStart);
                     }
-                    System.err.println("[Game start signal received - receive loop shutdown]");
+                    System.err.println("(WaitingRoom)[Game start signal received - receive loop shutdown]");
                     return;
                 }
                 else if (type == 0x04) { // Heartbeat (양방향)
@@ -246,7 +246,7 @@ public class WaitingRoomNetworkManager {
         }
         catch (IOException e) {
             if (Thread.currentThread().isInterrupted()) {
-                System.err.println("[Receive thread interrupted - graceful shutdown]");
+                System.err.println("(WaitingRoom)[Receive thread interrupted - graceful shutdown]");
             } else {
                 System.err.println("[Receive failed - connection lost]");
                 releaseResources(true);
@@ -276,10 +276,6 @@ public class WaitingRoomNetworkManager {
      * 서버의 Ready 상태 설정 (서버 전용)
      */
     public void setServerReady(boolean ready) {
-        if (!isServer) {
-            System.err.println("[Only server can set server ready state]");
-            return;
-        }
         this.serverReady = ready;
         // 클라이언트와 서버 모두 Ready면 게임 시작
         if (clientReady && serverReady) {

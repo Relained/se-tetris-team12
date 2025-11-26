@@ -2,16 +2,20 @@ package org.example.view;
 
 import java.util.List;
 
+import org.example.service.DisplayManager;
 import org.example.service.FontManager;
 
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 
 public class ServerConnectionView extends BaseView {
+
+    private Text title;
+    private Text ipText;
 
     public ServerConnectionView() {
         super(true);
@@ -24,13 +28,16 @@ public class ServerConnectionView extends BaseView {
             new BackgroundFill(colorManager.getBackgroundColor(), null, null)
         ));
 
-        Text title = new Text("Waiting for Client...");
+        title = new Text("Waiting for Client...");
+        title.setTextAlignment(TextAlignment.CENTER);
         title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(Font.font("Arial", FontManager.SIZE_TITLE_LARGE));
+        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * currentScale));
+        var dm = DisplayManager.getInstance();
+        title.setWrappingWidth(dm.getWidth(dm.getCurrentSize()) * 0.8);
 
-        Text ipText = new Text("IP Number: " + IPAddress);
+        ipText = new Text("IP Number: " + IPAddress);
         ipText.setFill(colorManager.getSecondaryTextColor());
-        ipText.setFont(Font.font("Arial", FontManager.SIZE_TITLE_MEDIUM));
+        ipText.setFont(fontManager.getFont(FontManager.SIZE_TITLE_MEDIUM * currentScale));
 
         var created = buttonSystem.createNavigableButtonFromList(
             List.of("Go Back"),
@@ -42,5 +49,23 @@ public class ServerConnectionView extends BaseView {
         root.getChildren().addAll(created);
 
         return root;
+    }
+
+    public void setTitle(String text) {
+        if (title == null) 
+            return;
+        title.setText(text);
+    }
+
+    @Override
+    protected void onScaleChanged(double scale) {
+        var dm = DisplayManager.getInstance();
+        if (title != null) {
+            title.setWrappingWidth(dm.getWidth(dm.getCurrentSize()) * 0.8);
+            title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * scale));
+        }
+        if (ipText != null) {
+            ipText.setFont(fontManager.getFont(FontManager.SIZE_TITLE_MEDIUM * scale));
+        }
     }
 }
