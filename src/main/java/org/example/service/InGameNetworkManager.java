@@ -1,7 +1,6 @@
 package org.example.service;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -11,12 +10,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-
 import org.example.model.GameBoard;
-
 import javafx.application.Platform;
-import javafx.util.Pair;
 
 /**
  * 게임 중 실시간 데이터를 송수신하는 네트워크 매니저
@@ -38,7 +33,6 @@ public class InGameNetworkManager {
 
     // readStep 진행 상태 저장용 멤버 변수
     private int stepLength = -1;
-    private int stepTick = -1;
     private int stepTotalRead = 0;
 
     // ----------- 송신 관련 -----------
@@ -79,7 +73,6 @@ public class InGameNetworkManager {
             Thread.sleep(100);
         } catch (Exception e) {}
 
-        int sendTick = 0;
         int[][] data;
         OutputStream outputStream;
 
@@ -96,13 +89,11 @@ public class InGameNetworkManager {
             data = dataProvider.get();
             sendDataBuffer.clear();
             sendDataBuffer.putInt(GameBoard.HEIGHT * GameBoard.WIDTH * 4);
-            sendDataBuffer.putInt(sendTick);
             for (int i = 0; i < GameBoard.HEIGHT; i++) {
                 for (int j = 0; j < GameBoard.WIDTH; j++) {
                     sendDataBuffer.putInt(data[i][j]);
                 }
             }
-            sendTick++;
             try {
                 outputStream.write(sendDataBuffer.array(), 0, sendDataBuffer.position());
             } catch (IOException e) {
@@ -129,7 +120,7 @@ public class InGameNetworkManager {
             //         sendDataBuffer.putInt(data[i][j]);
             //     }
             // }
-            // sendTick++;
+            // 
             // try {
             //     socket.getOutputStream().write(sendDataBuffer.array(), 0, sendDataBuffer.position());
             // } catch (IOException e) {
@@ -145,7 +136,6 @@ public class InGameNetworkManager {
             Thread.sleep(100);
         } catch (Exception e) {}
 
-        int expectedTick = 0;
         long lastPacketTime = System.currentTimeMillis();
         DataInputStream inputStream;
 
@@ -166,9 +156,13 @@ public class InGameNetworkManager {
             }
 
             long loopStart = System.currentTimeMillis();
-            Pair<Integer, Integer> payload;
+            int readLength = -1;
+
             try {
-                payload = readStep(inputStream);
+                while (inputStream.available() != 0) {
+                    readLength = readStep(inputStream);
+                    if (readLength == -1) break;
+                }
             } catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.err.println("[Receive thread interrupted - graceful shutdown]");
@@ -180,43 +174,11 @@ public class InGameNetworkManager {
                 return;
             }
 
-            if (payload != null) {
+            if (readLength != -1) {
                 lastPacketTime = System.currentTimeMillis();
-
-                // 상대가 보낸 틱이 예상 틱보다 작으면:
-                // 송신 지연이 생겼다는 의미이고, 나중에 한 번에 들어와서 버퍼에 쌓일 수 있음
-                // 또는 수신 인터벌이 송신 인터벌보다 짧다는 의미인데, 이 경우에는 어쩔 수 없음. (문제가 생기진 않음)
-
-                // 상대가 보낸 틱이 예상 틱보다 크면:
-                // 송신 인터벌이 수신 인터벌보다 짧다는 의미이고,
-                // expected tick은 맞는데 inputStream이 계속 쌓이고 지연이 늘어나게 됨.
-                if (payload.getValue() != expectedTick) {
-                    System.err.println("[Tick mismatch: expected " + expectedTick + ", got " + payload.getValue() + "]");
-                    try {
-                        while (inputStream.available() != 0) {
-                            payload = readStep(inputStream);
-                            if (payload == null) break;
-                        }
-                    } catch (IOException e) {
-                        if (Thread.currentThread().isInterrupted()) {
-                            System.err.println("[Receive thread interrupted - graceful shutdown]");
-                            return;
-                        }
-                        System.err.println("[Connection lost while consuming]");
-                        releaseResources(true);
-                        return;
-                    }
-                }
-                if (payload != null) {
-                    if (payload.getValue() > expectedTick) {
-                        //expectedTick을 업데이트해줌
-                        expectedTick = payload.getValue();
-                    }
-                    var decodeData = decode(payload.getKey());
-                    onDataReceived.accept(decodeData);
-                }
+                var decodeData = decodeReceivedData(readLength);
+                onDataReceived.accept(decodeData);
             }
-            expectedTick++;
 
             long sleep = TICK_TIME - (System.currentTimeMillis() - loopStart);
             if (sleep <= 0)
@@ -231,31 +193,23 @@ public class InGameNetworkManager {
         }
     }
 
-    // 한 덩어리의 패킷을 읽고 <길이, tick> 반환함
-    // 데이터는 dataBuffer에 저장됨
-    // 이 함수의 실행 시간은 절대 1tick을 넘기지 않음. 넘기게 되면 즉시 null 반환
-    private Pair<Integer, Integer> readStep(DataInputStream in) throws IOException {
+    // 한 덩어리의 패킷을 읽고 길이를 반환함
+    // 데이터는 receiveDataBuffer에 저장됨
+    // 이 함수의 실행 시간은 절대 1 tick을 넘기지 않음. 넘기게 되면 즉시 null 반환
+    private int readStep(DataInputStream in) throws IOException {
         long start = System.currentTimeMillis();
         try {
-            // 1. length 읽기
+            // length 읽기
             if (stepLength == -1) {
                 int remain = (int) (TICK_TIME - (System.currentTimeMillis() - start));
                 socket.setSoTimeout(remain);
                 stepLength = in.readInt();
             }
-            // 2. tick 읽기
-            if (stepTick == -1) {
-                int remain = (int) (TICK_TIME - (System.currentTimeMillis() - start));
-                if (remain <= 0)
-                    return null;
-                socket.setSoTimeout(remain);
-                stepTick = in.readInt();
-            }
-            // 3. 데이터 읽기
+            // 데이터 읽기
             while (stepTotalRead < stepLength) {
                 int remain = (int) (TICK_TIME - (System.currentTimeMillis() - start));
                 if (remain <= 0)
-                    return null;
+                    return -1;
                 socket.setSoTimeout(remain);
                 int bytesRead = in.read(receiveDataBuffer, stepTotalRead, stepLength - stepTotalRead);
                 if (bytesRead == -1) {
@@ -263,17 +217,16 @@ public class InGameNetworkManager {
                 }
                 stepTotalRead += bytesRead;
             }
-            var ret = new Pair<Integer, Integer>(stepLength, stepTick);
+            int ret = stepLength;
             stepLength = -1;
-            stepTick = -1;
             stepTotalRead = 0;
             return ret;
         } catch (SocketTimeoutException e) {
-            return null;
+            return -1;
         }
     }
 
-    private int[][] decode(int length) {
+    private int[][] decodeReceivedData(int length) {
         ByteBuffer buffer = ByteBuffer.wrap(receiveDataBuffer, 0, length);
         int[][] arr = new int[GameBoard.HEIGHT][GameBoard.WIDTH];
 

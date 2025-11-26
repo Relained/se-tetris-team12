@@ -1,7 +1,6 @@
 package org.example.controller;
 
 import javafx.animation.AnimationTimer;
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.input.KeyCode;
@@ -35,8 +34,6 @@ public class P2PMultiPlayController extends BaseController {
     private InGameNetworkManager netManager;
 
     private long lastDropTime;
-    private long lastNetworkSyncTime;
-    private static final long NETWORK_SYNC_INTERVAL_MS = 40;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
 
@@ -56,7 +53,7 @@ public class P2PMultiPlayController extends BaseController {
             (receiveData) -> {
                 multiPlayView.updateOpponentDisplay(0, receiveData);
             },
-            () -> myTetrisSystem.getCompressedBoardData(null)
+            () -> myTetrisSystem.getCompressedBoardData(true)
         );
         this.gameMode = gameMode;
         this.lastDropTime = System.currentTimeMillis();
@@ -127,12 +124,6 @@ public class P2PMultiPlayController extends BaseController {
             lastDropTime = currentTime;
         }
         myTetrisSystem.getBoard().processPendingClearsIfDue();
-
-        // if (currentTime - lastNetworkSyncTime >= NETWORK_SYNC_INTERVAL_MS) {
-        //     var data = myTetrisSystem.getCompressedBoardData(null);
-        //     netManager.sendBoardData(data);
-        //     lastNetworkSyncTime = currentTime;
-        // }
 
         // Update UI through View
         updateDisplay();

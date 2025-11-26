@@ -1,5 +1,7 @@
 package org.example.model;
 
+import java.util.Arrays;
+
 public class GameBoard {
     public static final int WIDTH = 10;
     public static final int HEIGHT = 20;
@@ -138,6 +140,14 @@ public class GameBoard {
         for (int col = 0; col < WIDTH; col++) {
             board[0][col] = 0;
         }
+    }
+
+    public int[][] getCompressedBoard() {
+        int[][] compressed = new int[HEIGHT][WIDTH];
+        for (int i = 0; i < HEIGHT; i++) {
+            compressed[i] = Arrays.copyOf(board[i + BUFFER_ZONE], board[i + BUFFER_ZONE].length);
+        }
+        return compressed;
     }
     
     public int[][] getVisibleBoard() {
