@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -94,13 +95,9 @@ public class WaitingRoomNetworkManager {
     }
 
     /**
-     * 게임 시작 신호를 클라이언트에게 전송 (서버 전용)
+     * 게임 시작 신호 전송
      */
     public void sendGameStart() {
-        if (!isServer) {
-            System.err.println("[Only server can send game start signal]");
-            return;
-        }
         try {
             byte[] message = new byte[1];
             message[0] = 0x03; // 게임 시작 메시지 타입
@@ -168,6 +165,10 @@ public class WaitingRoomNetworkManager {
                 outputStream.writeInt(message.length);
                 outputStream.write(message);
                 outputStream.flush();
+                if (message[0] == 0x03) { // 게임 시작 메시지 전송 후 종료
+                    System.err.println("[Game start message sent - send loop shutdown]");
+                    return;
+                }
             }
         } catch (InterruptedException e) {
             System.err.println("[Send thread interrupted - graceful shutdown]");
@@ -207,14 +208,30 @@ public class WaitingRoomNetworkManager {
                         clientReady = ready;
                         // 클라이언트와 서버 모두 Ready면 게임 시작
                         if (clientReady && serverReady) {
+                            heartbeatThread.interrupt();
                             sendGameStart();
-                            Platform.runLater(onGameStart);
                         }
                     }
                 }
-                else if (type == 0x03) { // 게임 시작 (클라이언트만 수신)
-                    if (isServer) continue;
-                    Platform.runLater(onGameStart);
+                else if (type == 0x03) { // 게임 시작
+                    // 서버는 ready 조건을 파악하고 게임 시작 신호만 보냄
+                    // 신호를 보내는 동시에 heartbeatThread 종료시킴
+                    // 게임 시작 신호가 보내지면 sendThread도 종료됨
+                    // 클라이언트는 시작 신호를 받으면 다시 서버에게 시작 신호를 보내고,
+                    // 본인은 모든 스레드를 자연스럽게 종료시킴
+                    // 이후 클라이언트의 시작 신호를 서버가 다시 받으면,
+                    // 그때 서버의 리시브 스레드가 마지막으로 정지됨
+                    // 이는 리시브 스레드를 정상 정지하기 위한 조치임
+                    if (isServer) {
+                        Platform.runLater(onGameStart);
+                    }
+                    else {
+                        sendGameStart();
+                        heartbeatThread.interrupt();
+                        Platform.runLater(onGameStart);
+                    }
+                    System.err.println("[Game start signal received - receive loop shutdown]");
+                    return;
                 }
                 else if (type == 0x04) { // Heartbeat (양방향)
                     lastHeartbeatTime = System.currentTimeMillis();
@@ -256,12 +273,6 @@ public class WaitingRoomNetworkManager {
         releaseResources(false);
     }
 
-    public void stopAllThreads() {
-        sendThread.interrupt();
-        receiveThread.interrupt();
-        heartbeatThread.interrupt();
-    }
-
     /**
      * 서버의 Ready 상태 설정 (서버 전용)
      */
@@ -273,8 +284,8 @@ public class WaitingRoomNetworkManager {
         this.serverReady = ready;
         // 클라이언트와 서버 모두 Ready면 게임 시작
         if (clientReady && serverReady) {
+            heartbeatThread.interrupt();
             sendGameStart();
-            Platform.runLater(onGameStart);
         }
     }
 

@@ -1,5 +1,6 @@
 package org.example.view.component.play;
 
+import javafx.application.Platform;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.example.model.GameBoard;
@@ -18,7 +19,7 @@ public class DummyTetrisCanvas extends TetrisCanvas {
 
     public void updateBoard(int[][] compressedBoard) {
         this.compressedBoard = compressedBoard;
-        draw();
+        Platform.runLater(this::draw);
     }
 
     @Override

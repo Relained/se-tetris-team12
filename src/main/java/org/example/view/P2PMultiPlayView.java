@@ -230,9 +230,7 @@ public class P2PMultiPlayView extends BaseView{
 
     // 상대방 화면 업데이트
     public void updateOpponentDisplay(int opponentIndex, int[][] board) {
-        if (opponentIndex >= 0 && opponentIndex < opGameCanvases.size()) {
-            opGameCanvases.get(opponentIndex).updateBoard(board);
-        }
+        opGameCanvases.get(opponentIndex).updateBoard(board);
     }
 
     // Getters

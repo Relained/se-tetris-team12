@@ -42,8 +42,7 @@ public class MultiPlayModeController extends BaseController {
      * Online MultiPlay 선택 시 처리
      */
     public void handleOnline() {
-        //stackState(new P2PModeController());
-        stackState(new P2PMultiPlayController(null, GameMode.ITEM, 1));
+        stackState(new P2PModeController());
     }
 
     /**

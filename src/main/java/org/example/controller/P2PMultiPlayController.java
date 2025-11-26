@@ -36,7 +36,7 @@ public class P2PMultiPlayController extends BaseController {
 
     private long lastDropTime;
     private long lastNetworkSyncTime;
-    private static final long NETWORK_SYNC_INTERVAL_MS = 500;
+    private static final long NETWORK_SYNC_INTERVAL_MS = 40;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
 
@@ -50,7 +50,14 @@ public class P2PMultiPlayController extends BaseController {
         myTetrisSystem.setDifficulty(difficulty);
 
         this.multiPlayView = new P2PMultiPlayView();
-        //this.netManager = new InGameNetworkManager(socket, this::handleDisconnect);
+        this.netManager = new InGameNetworkManager(
+            socket, 
+            this::handleDisconnect,
+            (receiveData) -> {
+                multiPlayView.updateOpponentDisplay(0, receiveData);
+            },
+            () -> myTetrisSystem.getCompressedBoardData(null)
+        );
         this.gameMode = gameMode;
         this.lastDropTime = System.currentTimeMillis();
 
@@ -60,6 +67,8 @@ public class P2PMultiPlayController extends BaseController {
                 update(now / 1_000_000_000.0);
             }
         };
+        netManager.startSending();
+        netManager.startReceiving();
     }
 
     @Override
@@ -87,13 +96,11 @@ public class P2PMultiPlayController extends BaseController {
 
     @Override
     protected void exit() {
-        gameTimer.stop();
         DisplayManager.getInstance().setMultiplayerMode(false);
     }
 
     @Override
     protected void resume() {
-        gameTimer.start();
         DisplayManager.getInstance().setMultiplayerMode(true);
     }
 
@@ -121,11 +128,11 @@ public class P2PMultiPlayController extends BaseController {
         }
         myTetrisSystem.getBoard().processPendingClearsIfDue();
 
-        if (currentTime - lastNetworkSyncTime >= NETWORK_SYNC_INTERVAL_MS) {
-            var data = myTetrisSystem.getCompressedBoardData(null);
-            multiPlayView.updateOpponentDisplay(0, data);
-            lastNetworkSyncTime = currentTime;
-        }
+        // if (currentTime - lastNetworkSyncTime >= NETWORK_SYNC_INTERVAL_MS) {
+        //     var data = myTetrisSystem.getCompressedBoardData(null);
+        //     netManager.sendBoardData(data);
+        //     lastNetworkSyncTime = currentTime;
+        // }
 
         // Update UI through View
         updateDisplay();

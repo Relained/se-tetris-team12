@@ -111,7 +111,6 @@ public class WaitingRoomController extends BaseController {
 
     private void handleGameStart() {
         System.out.println("[Game starting...]");
-        netManager.stopAllThreads();
         swapState(new P2PMultiPlayController(netManager.getSocket(), selectedGameMode, 2));
     }
 
