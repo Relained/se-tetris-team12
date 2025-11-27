@@ -10,8 +10,15 @@ import org.example.view.PauseView;
  */
 public class PauseController extends BaseController {
     
-    private PauseView pauseView;
+    protected PauseView pauseView;
     private Runnable gamePlayResetCallback;
+    
+    /**
+     * 서브클래스용 기본 생성자
+     */
+    protected PauseController() {
+        this.pauseView = new PauseView();
+    }
     
     public PauseController(Runnable gamePlayResetCallback) {
         this.pauseView = new PauseView();
