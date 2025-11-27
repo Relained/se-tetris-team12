@@ -45,7 +45,7 @@ public class LocalMultiPlayView extends BaseView {
      * @return 구성된 HBox root
      */
     public HBox createView() {
-        // 메인 컨테이너 (플레이어1 위젯 | 플레이어1 캔버스 | 플레이어2 캔버스 | 플레이어2 위젯)
+        // 메인 컨테이너 (플레이어2 위젯 | 플레이어2 캔버스 | 플레이어1 캔버스 | 플레이어1 위젯)
         root = new HBox(20);
         root.setBackground(new Background(
             new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)
@@ -53,17 +53,17 @@ public class LocalMultiPlayView extends BaseView {
         root.setPadding(new Insets(20));
         root.setAlignment(Pos.CENTER);
         
-        // Player 1 영역
-        VBox player1Widgets = createPlayerWidgets(true);
-        player1Canvas = new TetrisCanvas();
-        HBox.setHgrow(player1Canvas, Priority.NEVER);
-        
-        // Player 2 영역
+        // Player 2 영역 (좌측)
+        VBox player2Widgets = createPlayerWidgets(false);
         player2Canvas = new TetrisCanvas();
         HBox.setHgrow(player2Canvas, Priority.NEVER);
-        VBox player2Widgets = createPlayerWidgets(false);
         
-        root.getChildren().addAll(player1Widgets, player1Canvas, player2Canvas, player2Widgets);
+        // Player 1 영역 (우측)
+        player1Canvas = new TetrisCanvas();
+        HBox.setHgrow(player1Canvas, Priority.NEVER);
+        VBox player1Widgets = createPlayerWidgets(true);
+        
+        root.getChildren().addAll(player2Widgets, player2Canvas, player1Canvas, player1Widgets);
         
         return root;
     }
