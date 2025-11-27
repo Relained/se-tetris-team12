@@ -1,13 +1,21 @@
-package org.example.controller;
+package org.example.controller.DEPRECATED;
+
+import org.example.controller.BaseController;
+import org.example.controller.LocalMultiPlayController;
+import org.example.controller.LocalMultiSetupController;
+import org.example.view.DEPRECATED.LocalMultiDifficultyView;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 
-import org.example.view.LocalMultiDifficultyView;
-
 /**
  * Local MultiPlay Difficulty 화면의 입력을 처리하는 Controller
+ * 
+ * @deprecated Use {@link LocalMultiSetupController} instead. This controller has been merged
+ *             with LocalMultiGameModeController into a unified setup flow.
+ * @see LocalMultiSetupController
  */
+@Deprecated(since = "1.0", forRemoval = true)
 public class LocalMultiDifficultyController extends BaseController {
 
     private LocalMultiDifficultyView view;

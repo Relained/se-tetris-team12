@@ -33,7 +33,7 @@ public class MultiPlayModeController extends BaseController {
      * Local MultiPlay 선택 시 처리
      */
     public void handleLocal() {
-        stackState(new LocalMultiGameModeController());
+        stackState(new LocalMultiSetupController());
     }
 
     /**

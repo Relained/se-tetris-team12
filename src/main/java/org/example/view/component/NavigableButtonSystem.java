@@ -21,6 +21,9 @@ public class NavigableButtonSystem {
     // 2D 그리드 레이아웃 지원
     private int gridColumns = 1; // 기본값: 1열 (수직 리스트)
     private boolean horizontalNavigation = false; // 좌우 네비게이션 활성화 여부
+    
+    // 순환 네비게이션 활성화 여부 (기본: true)
+    private boolean wrapNavigation = true;
 
     public NavigableButtonSystem() {
         buttons = new ArrayList<>();
@@ -41,6 +44,28 @@ public class NavigableButtonSystem {
      */
     public void setHorizontalNavigation(boolean enabled) {
         this.horizontalNavigation = enabled;
+    }
+    
+    /**
+     * 순환 네비게이션 활성화 여부를 설정합니다.
+     * @param wrap true면 경계에서 순환, false면 경계에서 멈춤
+     */
+    public void setWrapNavigation(boolean wrap) {
+        this.wrapNavigation = wrap;
+    }
+    
+    /**
+     * 첫 번째 버튼이 선택되어 있는지 확인합니다.
+     */
+    public boolean isAtFirstButton() {
+        return selectedButtonIndex == 0;
+    }
+    
+    /**
+     * 마지막 버튼이 선택되어 있는지 확인합니다.
+     */
+    public boolean isAtLastButton() {
+        return selectedButtonIndex == buttons.size() - 1;
     }
     
     /**
@@ -149,15 +174,29 @@ public class NavigableButtonSystem {
     
     /**
      * 위로 이동할 때의 새 인덱스를 계산합니다.
+     * @return 새 인덱스 (이동 불가 시 현재 인덱스 반환)
      */
     private int navigateUp() {
         if (gridColumns == 1) {
             // 수직 리스트: 단순히 이전 버튼
-            return (selectedButtonIndex - 1 + buttons.size()) % buttons.size();
+            if (selectedButtonIndex == 0) {
+                if (wrapNavigation) {
+                    return buttons.size() - 1;
+                }
+                return selectedButtonIndex; // 첫 번째에서 위로 이동 불가
+            }
+            return selectedButtonIndex - 1;
         } else {
             // 그리드: 현재 행에서 위 행으로
             int currentRow = selectedButtonIndex / gridColumns;
             int currentCol = selectedButtonIndex % gridColumns;
+            
+            if (currentRow == 0) {
+                if (!wrapNavigation) {
+                    return selectedButtonIndex; // 첫 번째 행에서 위로 이동 불가
+                }
+            }
+            
             int newRow = (currentRow - 1 + getGridRows()) % getGridRows();
             int newIdx = newRow * gridColumns + currentCol;
             
@@ -172,15 +211,29 @@ public class NavigableButtonSystem {
     
     /**
      * 아래로 이동할 때의 새 인덱스를 계산합니다.
+     * @return 새 인덱스 (이동 불가 시 현재 인덱스 반환)
      */
     private int navigateDown() {
         if (gridColumns == 1) {
             // 수직 리스트: 단순히 다음 버튼
-            return (selectedButtonIndex + 1) % buttons.size();
+            if (selectedButtonIndex == buttons.size() - 1) {
+                if (wrapNavigation) {
+                    return 0;
+                }
+                return selectedButtonIndex; // 마지막에서 아래로 이동 불가
+            }
+            return selectedButtonIndex + 1;
         } else {
             // 그리드: 현재 행에서 아래 행으로
             int currentRow = selectedButtonIndex / gridColumns;
             int currentCol = selectedButtonIndex % gridColumns;
+            
+            if (currentRow == getGridRows() - 1) {
+                if (!wrapNavigation) {
+                    return selectedButtonIndex; // 마지막 행에서 아래로 이동 불가
+                }
+            }
+            
             int newRow = (currentRow + 1) % getGridRows();
             int newIdx = newRow * gridColumns + currentCol;
             
@@ -280,6 +333,15 @@ public class NavigableButtonSystem {
         Runnable action = (Runnable) selectedButton.getUserData();
         
         action.run();
+    }
+    
+    /**
+     * 모든 버튼의 포커스를 해제합니다. (기본 스타일 적용)
+     */
+    public void unfocusAll() {
+        for (Button button : buttons) {
+            setDefaultStyle(button);
+        }
     }
     
     /**

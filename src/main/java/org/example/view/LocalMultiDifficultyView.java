@@ -1,6 +1,9 @@
-package org.example.view;
+package org.example.view.DEPRECATED;
 
 import java.util.List;
+
+import org.example.view.BaseView;
+import org.example.view.LocalMultiSetupView;
 
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
@@ -11,7 +14,12 @@ import javafx.scene.text.Text;
 
 /**
  * Local MultiPlay Difficulty 선택 화면의 UI를 담당하는 View 클래스
+ * 
+ * @deprecated Use {@link LocalMultiSetupView} instead. This view has been merged
+ *             with LocalMultiGameModeView into a unified setup flow.
+ * @see LocalMultiSetupView
  */
+@Deprecated(since = "1.0", forRemoval = true)
 public class LocalMultiDifficultyView extends BaseView {
     
     public LocalMultiDifficultyView() {
