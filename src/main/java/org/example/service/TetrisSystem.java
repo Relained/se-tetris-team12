@@ -22,7 +22,7 @@ public class TetrisSystem {
     protected Runnable onPieceLocked;
 
     // 게임 상태
-    protected int score;
+    protected float score;
     protected int lines;
     protected int level;
     protected int difficulty;
@@ -296,7 +296,7 @@ public class TetrisSystem {
         }
         return preview;
     }
-    public int getScore() { return score; }
+    public int getScore() { return (int) score; }
     public int getLines() { return lines; }
     public int getLevel() { return level; }
     public boolean isGameOver() { return gameOver; }
