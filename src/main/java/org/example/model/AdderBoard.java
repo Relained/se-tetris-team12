@@ -99,20 +99,33 @@ public class AdderBoard {
     }
     
     /**
-     * 저장된 라인들을 고정 20x10 배열로 반환합니다.
+     * 저장된 라인들을 고정 10x10 배열로 반환합니다.
      * AdderCanvas에서 렌더링할 수 있도록 빈 줄은 0으로 채워집니다.
      * 
-     * @return 20x10 크기의 고정 배열
+     * 배열 구조:
+     * - result[0] = 가장 아래 (가장 오래된 라인)
+     * - result[lineCount-1] = 가장 위 (가장 최근 라인)
+     * 
+     * @return 10x10 크기의 고정 배열
      */
     public int[][] getLines() {
         int[][] result = new int[MAX_LINES][WIDTH];
         
-        // 저장된 라인들을 복사 (위쪽부터)
+        // 저장된 라인들을 복사
+        // lines[0] = 가장 오래된 라인 -> result[0]
+        // lines[size-1] = 가장 최근 라인 -> result[size-1]
         for (int i = 0; i < lines.size(); i++) {
             System.arraycopy(lines.get(i), 0, result[i], 0, WIDTH);
         }
         
         // 나머지는 0으로 초기화됨 (자동)
         return result;
+    }
+    
+    /**
+     * 최대 라인 수를 반환합니다.
+     */
+    public int getMaxLines() {
+        return MAX_LINES;
     }
 }

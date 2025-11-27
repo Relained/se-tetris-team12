@@ -9,23 +9,22 @@ import org.example.model.AdderBoard;
 
 /**
  * AdderBoard의 내용을 표시하는 캔버스 컴포넌트입니다.
- * 20x10 크기의 고정 영역을 표시합니다.
+ * 10x10 크기의 고정 영역을 표시합니다.
+ * 새로운 라인은 위쪽에 쌓이고, 오래된 라인은 아래쪽에 있습니다.
  */
 public class AdderCanvas extends Canvas {
     private double cellSize = 30;
     private static final Color BORDER_COLOR = Color.DARKGRAY;
     private final ColorManager colorManager;
-    private final Color BACKGROUND_COLOR;
     
     private static final int WIDTH = 10;
-    private static final int HEIGHT = 20;
+    private static final int HEIGHT = 10;  // 최대 10줄
     
     private AdderBoard adderBoard;
     
     public AdderCanvas() {
         super(WIDTH * 30, HEIGHT * 30);
         this.colorManager = ColorManager.getInstance();
-        this.BACKGROUND_COLOR = colorManager.getBackgroundColor();
         
         // 높이 변경 시 자동으로 cell size 재계산
         heightProperty().addListener((_, _, newHeight) -> {
@@ -66,17 +65,17 @@ public class AdderCanvas extends Canvas {
         GraphicsContext gc = getGraphicsContext2D();
         gc.clearRect(0, 0, getWidth(), getHeight());
         
-        // Draw background
-        gc.setFill(BACKGROUND_COLOR);
-        gc.fillRect(0, 0, getWidth(), getHeight());
-        
         if (adderBoard == null) return;
         
-        // Draw AdderBoard blocks (아래에서부터 쌓이도록 표시)
+        // Draw AdderBoard blocks
+        // lines[0] = 가장 오래된 라인 (GameBoard에 가장 먼저 추가될 라인) -> 화면 아래
+        // lines[lineCount-1] = 가장 최근 라인 -> 화면 위
         int[][] lines = adderBoard.getLines();
         int lineCount = adderBoard.getLineCount();
         for (int i = 0; i < lineCount; i++) {
-            int drawRow = HEIGHT - 1 - i; // lines[0]은 맨 아래, lines[1]은 그 위...
+            // lines[i]를 화면의 (HEIGHT - lineCount + i) 행에 그림
+            // 즉, 오래된 라인은 아래에, 최근 라인은 위에
+            int drawRow = HEIGHT - lineCount + i;
             for (int col = 0; col < WIDTH; col++) {
                 int colorIndex = lines[i][col];
                 if (colorIndex != 0) {
