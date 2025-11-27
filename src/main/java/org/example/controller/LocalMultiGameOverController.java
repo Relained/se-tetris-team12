@@ -8,13 +8,13 @@ import org.example.view.GameOverView;
  * Local Multiplayer 모드의 게임 오버 화면 처리를 담당하는 Controller
  * GameOverController를 상속받아 GameOverView를 재활용합니다.
  */
-public class LocalGameOverController extends GameOverController {
+public class LocalMultiGameOverController extends GameOverController {
     
     private String winner;
     private boolean isItemMode;
     private int difficulty;
     
-    public LocalGameOverController(String winner, boolean isItemMode, int difficulty) {
+    public LocalMultiGameOverController(String winner, boolean isItemMode, int difficulty) {
         super(null); // 부모 생성자 호출 (record는 사용하지 않음)
         this.gameOverView = new GameOverView(); // 부모의 protected 필드 사용
         this.winner = winner;
