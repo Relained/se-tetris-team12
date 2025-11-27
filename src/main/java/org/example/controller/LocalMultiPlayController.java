@@ -393,12 +393,8 @@ public class LocalMultiPlayController extends BaseController {
      */
     private void handleGameOver(String winner) {
         gameTimer.stop();
-        // TODO: LocalMultiGameOverController 구현 후 활성화
         // GameOver 화면으로 전환 (승자 표시)
-        // setState(new LocalMultiGameOverController(winner, player1System, player2System));
-        
-        // 임시: 시작 화면으로 돌아가기
-        setState(new StartController());
+        setState(new LocalMultiGameOverController(winner, isItemMode, difficulty));
     }
 
     /**

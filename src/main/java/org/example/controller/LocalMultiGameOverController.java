@@ -2,21 +2,23 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 
-import org.example.view.GameOverView;
+import org.example.view.LocalMultiGameOverView;
 
 /**
  * Local Multiplayer 모드의 게임 오버 화면 처리를 담당하는 Controller
- * GameOverController를 상속받아 GameOverView를 재활용합니다.
+ * GameOverController를 상속받아 LocalMultiGameOverView를 사용합니다.
  */
 public class LocalMultiGameOverController extends GameOverController {
     
+    private LocalMultiGameOverView localMultiGameOverView;
     private String winner;
     private boolean isItemMode;
     private int difficulty;
     
     public LocalMultiGameOverController(String winner, boolean isItemMode, int difficulty) {
         super(null); // 부모 생성자 호출 (record는 사용하지 않음)
-        this.gameOverView = new GameOverView(); // 부모의 protected 필드 사용
+        this.localMultiGameOverView = new LocalMultiGameOverView();
+        this.gameOverView = this.localMultiGameOverView; // 부모의 protected 필드도 설정
         this.winner = winner;
         this.isItemMode = isItemMode;
         this.difficulty = difficulty;
@@ -24,7 +26,7 @@ public class LocalMultiGameOverController extends GameOverController {
 
     @Override
     protected Scene createScene() {
-        var root = gameOverView.createView(
+        var root = localMultiGameOverView.createView(
             winner,
             this::handlePlayAgain,
             this::handleMainMenu,
