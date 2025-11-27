@@ -39,20 +39,9 @@ public class AdderCanvas extends Canvas {
     }
     
     public void setCanvasSize(double width, double height) {
-        // 테트리스 비율 (가로:세로 = 1:2) 유지
-        double widthBasedHeight = width * 2;
-        double heightBasedWidth = height * 0.5;
-        
-        // 더 작은 값으로 조정하여 비율 유지
-        if (widthBasedHeight <= height) {
-            setWidth(width);
-            setHeight(widthBasedHeight);
-            cellSize = width / WIDTH;
-        } else {
-            setWidth(heightBasedWidth);
-            setHeight(height);
-            cellSize = height / HEIGHT;
-        }
+        setWidth(width);
+        setHeight(height);
+        cellSize = width / WIDTH;
         draw();
     }
     
