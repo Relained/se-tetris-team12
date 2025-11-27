@@ -1,22 +1,22 @@
 package org.example.controller;
 
 import javafx.scene.Scene;
-import javafx.scene.input.KeyEvent;
 
-import org.example.view.LocalGameOverView;
+import org.example.view.GameOverView;
 
 /**
  * Local Multiplayer 모드의 게임 오버 화면 처리를 담당하는 Controller
+ * GameOverController를 상속받아 GameOverView를 재활용합니다.
  */
-public class LocalGameOverController extends BaseController {
+public class LocalGameOverController extends GameOverController {
     
-    private LocalGameOverView localGameOverView;
     private String winner;
     private boolean isItemMode;
     private int difficulty;
     
     public LocalGameOverController(String winner, boolean isItemMode, int difficulty) {
-        this.localGameOverView = new LocalGameOverView();
+        super(null); // 부모 생성자 호출 (record는 사용하지 않음)
+        this.gameOverView = new GameOverView(); // 부모의 protected 필드 사용
         this.winner = winner;
         this.isItemMode = isItemMode;
         this.difficulty = difficulty;
@@ -24,7 +24,7 @@ public class LocalGameOverController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        var root = localGameOverView.createView(
+        var root = gameOverView.createView(
             winner,
             this::handlePlayAgain,
             this::handleMainMenu,
@@ -37,30 +37,9 @@ public class LocalGameOverController extends BaseController {
     /**
      * Play Again 버튼 클릭 시 처리 - 같은 모드와 난이도로 게임을 다시 시작
      */
+    @Override
     public void handlePlayAgain() {
         setState(new LocalMultiPlayController(isItemMode, difficulty));
     }
-    
-    /**
-     * Main Menu 버튼 클릭 시 처리 - 시작 화면으로 이동
-     */
-    public void handleMainMenu() {
-        setState(new StartController());
-    }
-    
-    /**
-     * Exit Game 버튼 클릭 시 처리 - 게임 종료
-     */
-    public void handleExit() {
-        System.exit(0);
-    }
-    
-    /**
-     * 키보드 입력 처리
-     * NavigableButtonSystem을 통해 버튼 내비게이션 처리
-     */
-    @Override
-    public void handleKeyInput(KeyEvent event) {
-        localGameOverView.getButtonSystem().handleInput(event);
-    }
+    // handleMainMenu, handleExit, handleKeyInput은 부모 클래스에서 상속받아 사용
 }
