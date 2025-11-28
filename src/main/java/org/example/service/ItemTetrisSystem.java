@@ -135,6 +135,9 @@ public class ItemTetrisSystem extends TetrisSystem {
     
     @Override
     protected void lockPiece() {
+        // lockPiece 시작 전에 스냅샷 캡처 (라인 클리어 전 상태)
+        captureSnapshotBeforeLock();
+        
         TetrominoPosition.SpecialKind special = currentPiece != null ? currentPiece.getSpecialKind() : TetrominoPosition.SpecialKind.NONE;
 
         // 특수 조각 처리
@@ -205,9 +208,6 @@ public class ItemTetrisSystem extends TetrisSystem {
         if (onPieceLocked != null) {
             onPieceLocked.run();
         }
-
-        // 현재 보드 상태를 스냅샷으로 캡처 (다음 턴에서 사용)
-        captureSnapshotBeforeLock();
     }
 
     @Override

@@ -10,7 +10,9 @@ import org.example.model.AdderBoard;
 /**
  * AdderBoard의 내용을 표시하는 캔버스 컴포넌트입니다.
  * 10x10 크기의 고정 영역을 표시합니다.
- * 새로운 라인은 위쪽에 쌓이고, 오래된 라인은 아래쪽에 있습니다.
+ * getLines()가 아래부터 채워서 반환하므로 그대로 그립니다.
+ * - result[0] = 화면 위쪽 (빈 줄일 수 있음)
+ * - result[9] = 화면 아래쪽 (가장 최근 라인)
  */
 public class AdderCanvas extends Canvas {
     private double cellSize = 30;
@@ -26,10 +28,10 @@ public class AdderCanvas extends Canvas {
         super(WIDTH * 30, HEIGHT * 30);
         this.colorManager = ColorManager.getInstance();
         
-        // 높이 변경 시 자동으로 cell size 재계산
-        heightProperty().addListener((_, _, newHeight) -> {
-            cellSize = newHeight.doubleValue() / HEIGHT;
-            setWidth(WIDTH * cellSize);
+        // 너비 변경 시 자동으로 cell size 재계산
+        widthProperty().addListener((_, _, newWidth) -> {
+            cellSize = newWidth.doubleValue() / WIDTH;
+            setHeight(HEIGHT * cellSize);
             draw();
         });
     }
@@ -57,18 +59,14 @@ public class AdderCanvas extends Canvas {
         if (adderBoard == null) return;
         
         // Draw AdderBoard blocks
-        // lines[0] = 가장 오래된 라인 (GameBoard에 가장 먼저 추가될 라인) -> 화면 아래
-        // lines[lineCount-1] = 가장 최근 라인 -> 화면 위
+        // getLines()가 아래부터 채워서 반환하므로 그대로 그림
+        // result[0] = 화면 위쪽, result[9] = 화면 아래쪽 (가장 최근 라인)
         int[][] lines = adderBoard.getLines();
-        int lineCount = adderBoard.getLineCount();
-        for (int i = 0; i < lineCount; i++) {
-            // lines[i]를 화면의 (HEIGHT - lineCount + i) 행에 그림
-            // 즉, 오래된 라인은 아래에, 최근 라인은 위에
-            int drawRow = HEIGHT - lineCount + i;
+        for (int row = 0; row < HEIGHT; row++) {
             for (int col = 0; col < WIDTH; col++) {
-                int colorIndex = lines[i][col];
+                int colorIndex = lines[row][col];
                 if (colorIndex != 0) {
-                    drawCell(gc, drawRow, col, colorIndex);
+                    drawCell(gc, row, col, colorIndex);
                 }
             }
         }

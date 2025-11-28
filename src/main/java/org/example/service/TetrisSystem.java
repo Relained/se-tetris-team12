@@ -215,6 +215,9 @@ public class TetrisSystem {
     }
 
     protected void lockPiece() {
+        // lockPiece 시작 전에 스냅샷 캡처 (라인 클리어 전 상태)
+        captureSnapshotBeforeLock();
+        
         board.placeTetromino(currentPiece);
 
         int clearedLines = board.clearLines();
@@ -230,13 +233,10 @@ public class TetrisSystem {
             spawnNewPiece();
         }
 
-        // 피스가 배치된 후 콜백 실행 (previousSnapshot 사용)
+        // 피스가 배치된 후 콜백 실행 (previousSnapshot은 라인 클리어 전 상태)
         if (onPieceLocked != null) {
             onPieceLocked.run();
         }
-
-        // 현재 보드 상태를 스냅샷으로 캡처 (다음 턴에서 사용)
-        captureSnapshotBeforeLock();
     }
     
     /**
