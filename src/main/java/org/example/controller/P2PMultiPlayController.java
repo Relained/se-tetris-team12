@@ -48,9 +48,7 @@ public class P2PMultiPlayController extends BaseController {
         this.netManager = new InGameNetworkManager(
             socket, 
             this::handleDisconnect,
-            (receiveData) -> {
-                multiPlayView.updateOpponentDisplay(0, receiveData);
-            },
+            multiPlayView::updateOpponentDisplay,
             () -> myTetrisSystem.getCompressedBoardData(true)
         );
         this.gameMode = gameMode;
@@ -248,15 +246,8 @@ public class P2PMultiPlayController extends BaseController {
         //     setState(new ScoreNotEligibleController(record));
         // }
         netManager.disconnect();
+        gameTimer.stop();
         popState();
-    }
-
-    /**
-     * 상대방을 추가합니다.
-     * 네트워크나 AI 상대방이 연결될 때 호출됩니다.
-     */
-    public void addOpponent() {
-        multiPlayView.addOpponentCanvas(scene);
     }
 
     public TetrisSystem getMyGameLogic() {
