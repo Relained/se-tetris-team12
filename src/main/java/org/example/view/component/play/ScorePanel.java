@@ -88,7 +88,7 @@ public class ScorePanel extends VBox {
      * 가로 크기를 기준으로 폰트 크기를 조정합니다.
      */
     private void adjustFontSizeByWidth(double containerWidth) {
-        double padding = 10; // 좌우 패딩
+        double padding = 15; // 좌우 패딩
         double availableWidth = containerWidth - padding;
         
         if (availableWidth <= 0) return;
