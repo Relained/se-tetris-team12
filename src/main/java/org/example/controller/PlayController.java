@@ -13,6 +13,7 @@ import org.example.model.KeyData;
 import org.example.service.ItemTetrisSystem;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
+import org.example.service.TimeTetrisSystem;
 import org.example.service.ScoreManager;
 import org.example.view.PlayView;
 import org.example.model.ScoreRecord;
@@ -34,6 +35,8 @@ public class PlayController extends BaseController {
     public PlayController(GameMode gameMode, int difficulty) {
         if (gameMode == GameMode.ITEM) {
             tetrisSystem = new ItemTetrisSystem();
+        } else if (gameMode == GameMode.TIME_ATTACK) {
+            tetrisSystem = new TimeTetrisSystem();
         } else {
             tetrisSystem = new TetrisSystem();
         }
@@ -66,6 +69,11 @@ public class PlayController extends BaseController {
         // 초기 캔버스 크기 설정
         playView.updateCanvasSize(scene);
 
+        // TIME_ATTACK 모드일 경우 타이머 표시 활성화
+        if (gameMode == GameMode.TIME_ATTACK) {
+            playView.setShowTimer(true);
+        }
+
         //키 릴리즈 핸들 따로 추가
         scene.setOnKeyReleased(event -> handleKeyReleased(event.getCode()));
 
@@ -76,10 +84,18 @@ public class PlayController extends BaseController {
     @Override
     protected void exit() {
         gameTimer.stop();
+        // TIME_ATTACK 모드: 타이머 일시정지
+        if (tetrisSystem instanceof TimeTetrisSystem) {
+            ((TimeTetrisSystem) tetrisSystem).pauseTimer();
+        }
     }
 
     @Override
     protected void resume() {
+        // TIME_ATTACK 모드: 타이머 재개
+        if (tetrisSystem instanceof TimeTetrisSystem) {
+            ((TimeTetrisSystem) tetrisSystem).resumeTimer();
+        }
         gameTimer.start();
     }
 
@@ -101,6 +117,16 @@ public class PlayController extends BaseController {
      */
     public void update(double deltaTime) {
         long currentTime = System.currentTimeMillis();
+        
+        // TIME_ATTACK 모드: 시간 체크
+        if (tetrisSystem instanceof TimeTetrisSystem) {
+            TimeTetrisSystem timeSystem = (TimeTetrisSystem) tetrisSystem;
+            if (timeSystem.isTimeUp()) {
+                handleGameOver();
+                return;
+            }
+        }
+        
         if (currentTime - lastDropTime >= tetrisSystem.getDropInterval()) {
             tetrisSystem.update();
             lastDropTime = currentTime;
@@ -126,6 +152,12 @@ public class PlayController extends BaseController {
                 ? SuperRotationSystem.hardDrop(tetrisSystem.getCurrentPiece(), tetrisSystem.getBoard())
                 : null;
 
+        // TIME_ATTACK 모드일 경우 남은 시간 전달, 아니면 -1
+        long remainingMillis = -1;
+        if (tetrisSystem instanceof TimeTetrisSystem) {
+            remainingMillis = ((TimeTetrisSystem) tetrisSystem).getRemainingTime();
+        }
+
         playView.updateDisplay(
                 tetrisSystem.getBoard(),
                 tetrisSystem.getCurrentPiece(),
@@ -134,8 +166,8 @@ public class PlayController extends BaseController {
                 tetrisSystem.getNextQueue(),
                 tetrisSystem.getScore(),
                 tetrisSystem.getLines(),
-                tetrisSystem.getLevel());
-
+                tetrisSystem.getLevel(),
+                remainingMillis);
     }
 
     @Override

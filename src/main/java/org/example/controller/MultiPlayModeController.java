@@ -16,7 +16,6 @@ public class MultiPlayModeController extends BaseController {
 
     public MultiPlayModeController() {
         this.view = new MultiPlayModeView();
-        //org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
     }
 
     @Override
@@ -34,7 +33,7 @@ public class MultiPlayModeController extends BaseController {
      * Local MultiPlay 선택 시 처리
      */
     public void handleLocal() {
-        stackState(new LocalMultiGameModeController());
+        stackState(new LocalMultiSetupController());
     }
 
     /**

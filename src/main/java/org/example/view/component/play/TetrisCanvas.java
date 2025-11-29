@@ -81,11 +81,10 @@ public class TetrisCanvas extends Canvas {
                 }
                 Color color = colorManager.getColorFromIndex(v);
                 drawCell(gc, col, row, color);
-                
-                // 보드에 배치된 블록의 아이템 표시 (skip when pending-clear)
-                org.example.model.ItemBlock item = board.getItemAt(row + GameBoard.BUFFER_ZONE, col);
-                if (item != null && item.isItem()) {
-                    drawItemMark(gc, col, row, item.getSymbol());
+
+                // 아이템 마크 표시 (board 값이 아이템 char인 경우)
+                if (org.example.model.ItemBlock.isItemValue(v)) {
+                    drawItemMark(gc, col, row, (char) v);
                 }
             }
         }

@@ -22,9 +22,12 @@ public class NextPiecePanel extends VBox {
     private HBox canvasContainer;
 
     public NextPiecePanel() {
-        super(10);
+        super(5);
         setAlignment(Pos.TOP_CENTER);
         setPadding(new Insets(10));
+        
+        // 테두리 스타일
+        setStyle("-fx-background-color: #444; -fx-border-color: #888; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
         
         this.title = new Text("Next");
         title.setFill(Color.WHITE);
@@ -38,11 +41,13 @@ public class NextPiecePanel extends VBox {
         // 캔버스 초기화
         initializeCanvases();
         
-        setStyle("-fx-background-color: #333;");
-        
-        // 크기 변경 감지
-        widthProperty().addListener((obs, oldVal, newVal) -> adjustCanvasSize());
-        heightProperty().addListener((obs, oldVal, newVal) -> adjustCanvasSize());
+        // 가로 크기 변경 감지 - 가로 크기 기준으로 비율 조정
+        widthProperty().addListener((obs, oldVal, newVal) -> {
+            double newWidth = newVal.doubleValue();
+            if (newWidth > 0) {
+                adjustCanvasSizeByWidth(newWidth);
+            }
+        });
     }
     
     public void setHorizontalMode(boolean horizontal) {
@@ -54,8 +59,6 @@ public class NextPiecePanel extends VBox {
         for (int i = 0; i < 5; i++) {
             if (i == 0) {
                 nextCanvases[i] = new Canvas(4 * largeCellSize + 8, 4 * largeCellSize + 8);
-                nextCanvases[i].setStyle("-fx-effect: dropshadow(gaussian, rgba(255,255,255,0.3), 3, 0.5, 0, 0); " +
-                                       "-fx-background-color: #444; -fx-background-radius: 5;");
             } else {
                 nextCanvases[i] = new Canvas(4 * smallCellSize + 4, 4 * smallCellSize + 4);
             }
@@ -82,25 +85,26 @@ public class NextPiecePanel extends VBox {
         }
     }
     
-    private void adjustCanvasSize() {
-        double availableWidth = getPrefWidth() > 0 ? getPrefWidth() - 20 : getWidth() - 20;
-        double availableHeight = getPrefHeight() > 0 ? getPrefHeight() - 60 : getHeight() - 60;
+    /**
+     * 가로 크기를 기준으로 캔버스 크기를 조정합니다.
+     */
+    private void adjustCanvasSizeByWidth(double containerWidth) {
+        double padding = 24; // 좌우 패딩 + 테두리
+        double availableWidth = containerWidth - padding;
         
-        if (availableWidth <= 0 || availableHeight <= 0) return;
+        if (availableWidth <= 0) return;
         
         double largeCanvasSize;
         double smallCanvasSize;
         
         if (horizontalMode) {
             // 수평 모드: 너비를 5개의 캔버스로 나눔
-            largeCanvasSize = Math.min(availableWidth / 5 - 10, availableHeight - 20);
-            largeCanvasSize = Math.max(60, largeCanvasSize);
+            largeCanvasSize = Math.max(50, (availableWidth / 5) - 10);
             smallCanvasSize = largeCanvasSize; // 수평 모드에서는 모두 같은 크기
         } else {
-            // 수직 모드: 기존 로직
-            largeCanvasSize = Math.min(availableWidth, availableHeight * 0.25);
-            largeCanvasSize = Math.max(80, largeCanvasSize);
-            smallCanvasSize = largeCanvasSize * 0.6;
+            // 수직 모드: 가로 크기의 80%로 제한하여 늘어남 방지
+            largeCanvasSize = Math.max(60, Math.min(availableWidth * 0.85, 150));
+            smallCanvasSize = Math.max(40, largeCanvasSize * 0.55);
         }
         
         nextCanvases[0].setWidth(largeCanvasSize);
@@ -114,8 +118,8 @@ public class NextPiecePanel extends VBox {
             nextCanvases[i].setHeight(smallCanvasSize);
         }
         
-        // 폰트 크기도 조정
-        double fontSize = Math.max(12, largeCanvasSize / 6);
+        // 폰트 크기도 비례하여 조정
+        double fontSize = Math.max(10, Math.min(18, largeCanvasSize / 4));
         title.setFont(Font.font(fontSize));
     }
 

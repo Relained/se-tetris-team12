@@ -25,4 +25,25 @@ public enum ItemBlock {
     public boolean isItem() {
         return this != NONE;
     }
+
+    /**
+     * int 값으로부터 ItemBlock을 반환합니다.
+     * @param value board에 저장된 int 값
+     * @return 해당하는 ItemBlock, 없으면 NONE
+     */
+    public static ItemBlock fromSymbol(int value) {
+        for (ItemBlock item : values()) {
+            if (item.symbol == value) return item;
+        }
+        return NONE;
+    }
+
+    /**
+     * 값이 아이템 블록인지 확인합니다.
+     * @param value board에 저장된 int 값
+     * @return 아이템이면 true
+     */
+    public static boolean isItemValue(int value) {
+        return value == 'L' || value == 'I' || value == 'X' || value == 'W' || value == 'B';
+    }
 }
