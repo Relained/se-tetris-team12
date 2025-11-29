@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox;
 
 import org.example.model.TetrominoPosition;
 import org.example.view.component.play.AdderCanvas;
+import org.example.view.component.play.HoldPanel;
 import org.example.view.component.play.ScorePanel;
 import org.example.view.component.play.ShortNextPiecePanel;
 import org.example.view.component.play.TetrisCanvas;
@@ -24,12 +25,14 @@ public class LocalMultiPlayView extends BaseView {
     // Player 1 (좌측)
     private TetrisCanvas player1Canvas;
     private ShortNextPiecePanel player1NextPanel;
+    private HoldPanel player1HoldPanel;
     private AdderCanvas player1AdderCanvas;
     private ScorePanel player1ScorePanel;
     
     // Player 2 (우측)
     private TetrisCanvas player2Canvas;
     private ShortNextPiecePanel player2NextPanel;
+    private HoldPanel player2HoldPanel;
     private AdderCanvas player2AdderCanvas;
     private ScorePanel player2ScorePanel;
     
@@ -83,29 +86,28 @@ public class LocalMultiPlayView extends BaseView {
         widgetContainer.setPrefWidth(150);
         
         ShortNextPiecePanel nextPanel = new ShortNextPiecePanel();
+        HoldPanel holdPanel = new HoldPanel();
         AdderCanvas adderCanvas = new AdderCanvas();
+        VBox spacer = new VBox(); // 빈 공간을 채우기 위한 스페이서
         ScorePanel scorePanel = new ScorePanel("Local Multi", "Normal");
-        
-        // AdderCanvas를 감싸는 VBox 생성 (크기 조절 가능하도록)
-        VBox adderContainer = new VBox(adderCanvas);
-        adderContainer.setAlignment(Pos.TOP_CENTER);
-        adderContainer.setMinHeight(100);
-        adderContainer.setPrefHeight(200);
-        adderContainer.setStyle("-fx-background-color: #222;");
         
         if (isPlayer1) {
             player1NextPanel = nextPanel;
+            player1HoldPanel = holdPanel;
             player1AdderCanvas = adderCanvas;
             player1ScorePanel = scorePanel;
         } else {
             player2NextPanel = nextPanel;
+            player2HoldPanel = holdPanel;
             player2AdderCanvas = adderCanvas;
             player2ScorePanel = scorePanel;
         }
         
-        widgetContainer.getChildren().addAll(nextPanel, adderContainer, scorePanel);
+        widgetContainer.getChildren().addAll(nextPanel, holdPanel, adderCanvas, spacer, scorePanel);
         VBox.setVgrow(nextPanel, Priority.NEVER);
-        VBox.setVgrow(adderContainer, Priority.ALWAYS);
+        VBox.setVgrow(holdPanel, Priority.NEVER);
+        VBox.setVgrow(adderCanvas, Priority.NEVER);
+        VBox.setVgrow(spacer, Priority.ALWAYS);
         VBox.setVgrow(scorePanel, Priority.NEVER);
         HBox.setHgrow(widgetContainer, Priority.NEVER);
         
@@ -113,14 +115,14 @@ public class LocalMultiPlayView extends BaseView {
         widgetContainer.widthProperty().addListener((obs, oldVal, newVal) -> {
             double containerWidth = newVal.doubleValue() - 20; // 패딩 고려
             if (containerWidth > 0) {
-                adderCanvas.setCanvasSize(containerWidth, adderContainer.getHeight());
+                adderCanvas.setCanvasSize(containerWidth, adderCanvas.getHeight());
             }
         });
         
-        adderContainer.heightProperty().addListener((obs, oldVal, newVal) -> {
+        widgetContainer.heightProperty().addListener((obs, oldVal, newVal) -> {
             double containerWidth = widgetContainer.getWidth() - 20;
             if (containerWidth > 0) {
-                adderCanvas.setCanvasSize(containerWidth, newVal.doubleValue());
+                adderCanvas.setCanvasSize(containerWidth, adderCanvas.getHeight());
             }
         });
         
@@ -159,11 +161,13 @@ public class LocalMultiPlayView extends BaseView {
     public void updatePlayer1Display(org.example.model.GameBoard board,
                                      TetrominoPosition currentPiece,
                                      TetrominoPosition ghostPiece,
+                                     TetrominoPosition holdPiece,
                                      TetrominoPosition nextPiece,
                                      org.example.model.AdderBoard adderBoard,
                                      int score, int lines, int level,
                                      long remainingMillis) {
         player1Canvas.updateBoard(board, currentPiece, ghostPiece);
+        player1HoldPanel.updateHoldPiece(holdPiece);
         player1NextPanel.updateNextPiece(nextPiece);
         if (adderBoard != null) {
             player1AdderCanvas.updateBoard(adderBoard);
@@ -182,11 +186,13 @@ public class LocalMultiPlayView extends BaseView {
     public void updatePlayer2Display(org.example.model.GameBoard board,
                                      TetrominoPosition currentPiece,
                                      TetrominoPosition ghostPiece,
+                                     TetrominoPosition holdPiece,
                                      TetrominoPosition nextPiece,
                                      org.example.model.AdderBoard adderBoard,
                                      int score, int lines, int level,
                                      long remainingMillis) {
         player2Canvas.updateBoard(board, currentPiece, ghostPiece);
+        player2HoldPanel.updateHoldPiece(holdPiece);
         player2NextPanel.updateNextPiece(nextPiece);
         if (adderBoard != null) {
             player2AdderCanvas.updateBoard(adderBoard);
@@ -239,6 +245,14 @@ public class LocalMultiPlayView extends BaseView {
     
     public ShortNextPiecePanel getPlayer2NextPanel() {
         return player2NextPanel;
+    }
+    
+    public HoldPanel getPlayer1HoldPanel() {
+        return player1HoldPanel;
+    }
+    
+    public HoldPanel getPlayer2HoldPanel() {
+        return player2HoldPanel;
     }
     
     public AdderCanvas getPlayer1AdderCanvas() {

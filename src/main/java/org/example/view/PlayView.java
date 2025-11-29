@@ -46,30 +46,28 @@ public class PlayView extends BaseView {
         // 게임 캔버스는 확장되지 않도록 설정
         HBox.setHgrow(gameCanvas, Priority.NEVER);
         
-        // 우측: VBox로 상하 분할
-        VBox rightContainer = new VBox(10);
-        rightContainer.setAlignment(Pos.TOP_CENTER);
-        
-        // 상단 영역: Hold와 Next
-        VBox topContainer = new VBox(10);
-        topContainer.setAlignment(Pos.TOP_CENTER);
+        // 우측: 위젯 컨테이너
+        VBox widgetContainer = new VBox(10);
+        widgetContainer.setAlignment(Pos.TOP_CENTER);
+        widgetContainer.setPadding(new Insets(10));
+        widgetContainer.setStyle("-fx-background-color: #333;");
         
         holdPanel = new HoldPanel();
         nextPanel = new NextPiecePanel();
         nextPanel.setHorizontalMode(false); // 수직 모드
-        
-        topContainer.getChildren().addAll(holdPanel, nextPanel);
-        VBox.setVgrow(topContainer, Priority.ALWAYS);
-        
-        // 하단 영역: Score
+        VBox spacer = new VBox(); // 빈 공간을 채우기 위한 스페이서
         scorePanel = new ScorePanel(mode, difficulty);
         
-        rightContainer.getChildren().addAll(topContainer, scorePanel);
+        widgetContainer.getChildren().addAll(holdPanel, nextPanel, spacer, scorePanel);
+        VBox.setVgrow(holdPanel, Priority.NEVER);
+        VBox.setVgrow(nextPanel, Priority.NEVER);
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+        VBox.setVgrow(scorePanel, Priority.NEVER);
         
         // 우측 컨테이너가 나머지 공간을 꽉 채우도록 설정
-        HBox.setHgrow(rightContainer, Priority.ALWAYS);
+        HBox.setHgrow(widgetContainer, Priority.ALWAYS);
         
-        root.getChildren().addAll(gameCanvas, rightContainer);
+        root.getChildren().addAll(gameCanvas, widgetContainer);
         
         return root;
     }

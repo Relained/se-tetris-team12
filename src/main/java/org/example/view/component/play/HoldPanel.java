@@ -53,40 +53,53 @@ public class HoldPanel extends VBox {
         title.setFont(Font.font(fontSize));
     }
 
+    private static final double BORDER_PADDING = 4; // 테두리 안쪽 패딩
+
     public void updateHoldPiece(TetrominoPosition holdPiece) {
         GraphicsContext gc = holdCanvas.getGraphicsContext2D();
         gc.clearRect(0, 0, holdCanvas.getWidth(), holdCanvas.getHeight());
+
+        // 창틀 효과를 위한 배경
+        gc.setFill(Color.web("#444"));
+        gc.fillRoundRect(0, 0, holdCanvas.getWidth(), holdCanvas.getHeight(), 5, 5);
+        gc.setStroke(Color.web("#666"));
+        gc.setLineWidth(2);
+        gc.strokeRoundRect(1, 1, holdCanvas.getWidth() - 2, holdCanvas.getHeight() - 2, 5, 5);
 
         if (holdPiece == null) return;
 
         int[][] shape = holdPiece.getCurrentShape();
         Color color = holdPiece.getDisplayColor(org.example.service.ColorManager.getInstance());
 
-        // Center the piece in the canvas
-        double offsetX = (holdCanvas.getWidth() - shape[0].length * cellSize) / 2;
-        double offsetY = (holdCanvas.getHeight() - shape.length * cellSize) / 2;
+        // 테두리 패딩을 고려한 사용 가능 영역
+        double usableSize = holdCanvas.getWidth() - (BORDER_PADDING * 2);
+        double drawCellSize = usableSize / 4;
+
+        // Center the piece in the canvas (패딩 고려)
+        double offsetX = BORDER_PADDING + (usableSize - shape[0].length * drawCellSize) / 2;
+        double offsetY = BORDER_PADDING + (usableSize - shape.length * drawCellSize) / 2;
 
         for (int row = 0; row < shape.length; row++) {
             for (int col = 0; col < shape[row].length; col++) {
                 if (shape[row][col] == 1) {
-                    double x = offsetX + col * cellSize;
-                    double y = offsetY + row * cellSize;
+                    double x = offsetX + col * drawCellSize;
+                    double y = offsetY + row * drawCellSize;
 
                     gc.setFill(color);
-                    gc.fillRect(x, y, cellSize, cellSize);
+                    gc.fillRect(x, y, drawCellSize, drawCellSize);
 
                     gc.setStroke(Color.DARKGRAY);
                     gc.setLineWidth(1);
-                    gc.strokeRect(x, y, cellSize, cellSize);
+                    gc.strokeRect(x, y, drawCellSize, drawCellSize);
                     
                     // 아이템 글자 표시
                     org.example.model.ItemBlock item = holdPiece.getItemAt(row, col);
                     if (item != null && item.isItem()) {
                         gc.setFill(Color.WHITE);
-                        gc.setFont(Font.font("Arial", javafx.scene.text.FontWeight.BOLD, cellSize * 0.8));
+                        gc.setFont(Font.font("Arial", javafx.scene.text.FontWeight.BOLD, drawCellSize * 0.8));
                         gc.fillText(String.valueOf(item.getSymbol()), 
-                                  x + cellSize * 0.2, 
-                                  y + cellSize * 0.8);
+                                  x + drawCellSize * 0.2, 
+                                  y + drawCellSize * 0.8);
                     }
                 }
             }
