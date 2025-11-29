@@ -36,7 +36,15 @@ public class LocalMultiPlayView extends BaseView {
     private AdderCanvas player2AdderCanvas;
     private ScorePanel player2ScorePanel;
     
+    // 위젯 컨테이너
+    private VBox player1WidgetContainer;
+    private VBox player2WidgetContainer;
+    
     private HBox root;
+    
+    // 게임 모드 정보
+    private String gameModeName;
+    private String difficultyName;
     
     public LocalMultiPlayView() {
         super(false); // NavigableButtonSystem 사용하지 않음
@@ -45,9 +53,13 @@ public class LocalMultiPlayView extends BaseView {
     /**
      * LocalMultiPlay 화면의 UI를 구성하고 반환합니다.
      * 
+     * @param mode 게임 모드 이름
+     * @param difficulty 난이도 이름
      * @return 구성된 HBox root
      */
-    public HBox createView() {
+    public HBox createView(String mode, String difficulty) {
+        this.gameModeName = mode;
+        this.difficultyName = difficulty;
         // 메인 컨테이너 (플레이어2 위젯 | 플레이어2 캔버스 | 플레이어1 캔버스 | 플레이어1 위젯)
         root = new HBox(20);
         root.setBackground(new Background(
@@ -57,16 +69,16 @@ public class LocalMultiPlayView extends BaseView {
         root.setAlignment(Pos.CENTER);
         
         // Player 2 영역 (좌측)
-        VBox player2Widgets = createPlayerWidgets(false);
+        player2WidgetContainer = createPlayerWidgets(false);
         player2Canvas = new TetrisCanvas();
         HBox.setHgrow(player2Canvas, Priority.NEVER);
         
         // Player 1 영역 (우측)
         player1Canvas = new TetrisCanvas();
         HBox.setHgrow(player1Canvas, Priority.NEVER);
-        VBox player1Widgets = createPlayerWidgets(true);
+        player1WidgetContainer = createPlayerWidgets(true);
         
-        root.getChildren().addAll(player2Widgets, player2Canvas, player1Canvas, player1Widgets);
+        root.getChildren().addAll(player2WidgetContainer, player2Canvas, player1Canvas, player1WidgetContainer);
         
         return root;
     }
@@ -89,7 +101,7 @@ public class LocalMultiPlayView extends BaseView {
         HoldPanel holdPanel = new HoldPanel();
         AdderCanvas adderCanvas = new AdderCanvas();
         VBox spacer = new VBox(); // 빈 공간을 채우기 위한 스페이서
-        ScorePanel scorePanel = new ScorePanel("Local Multi", "Normal");
+        ScorePanel scorePanel = new ScorePanel(gameModeName, difficultyName);
         
         if (isPlayer1) {
             player1NextPanel = nextPanel;
@@ -136,22 +148,43 @@ public class LocalMultiPlayView extends BaseView {
     public void updateCanvasSize(Scene scene) {
         if (player1Canvas == null || player2Canvas == null || scene == null) return;
         
+        double sceneWidth = scene.getWidth();
+        double sceneHeight = scene.getHeight();
+        double padding = 40; // 상하 패딩
+        double spacing = 20; // 간격
+        
         // 사용 가능한 높이 전체를 캔버스에 할당
-        double availableHeight = scene.getHeight() - 40; // 상하 패딩
+        double availableHeight = sceneHeight - padding;
         double canvasWidth = availableHeight * 0.5; // 1:2 비율 유지
         
         player1Canvas.setCanvasSize(canvasWidth, availableHeight);
         player2Canvas.setCanvasSize(canvasWidth, availableHeight);
         
-        // AdderCanvas 크기도 맞춤
-        double adderHeight = availableHeight * 0.5; // AdderCanvas는 절반 높이
-        player1AdderCanvas.setCanvasSize(canvasWidth, adderHeight);
-        player2AdderCanvas.setCanvasSize(canvasWidth, adderHeight);
+        // 위젯 컨테이너 크기 조정 (창 너비에서 캔버스 2개와 패딩/간격을 빼고 2로 나눔)
+        double totalCanvasWidth = canvasWidth * 2;
+        double availableWidgetWidth = (sceneWidth - totalCanvasWidth - padding - spacing * 3) / 2;
+        double widgetWidth = Math.max(100, Math.min(180, availableWidgetWidth));
         
-        // 위젯 크기 조정
-        double widgetSize = Math.min(canvasWidth * 0.8, 120);
-        player1NextPanel.setPreferredCanvasSize(widgetSize);
-        player2NextPanel.setPreferredCanvasSize(widgetSize);
+        if (player1WidgetContainer != null) {
+            player1WidgetContainer.setPrefWidth(widgetWidth);
+            player1WidgetContainer.setMinWidth(widgetWidth);
+            player1WidgetContainer.setMaxWidth(widgetWidth);
+        }
+        if (player2WidgetContainer != null) {
+            player2WidgetContainer.setPrefWidth(widgetWidth);
+            player2WidgetContainer.setMinWidth(widgetWidth);
+            player2WidgetContainer.setMaxWidth(widgetWidth);
+        }
+        
+        // AdderCanvas 크기도 맞춤 (위젯 컨테이너 너비 기준)
+        double adderSize = widgetWidth - 20; // 패딩 고려
+        player1AdderCanvas.setCanvasSize(adderSize, adderSize);
+        player2AdderCanvas.setCanvasSize(adderSize, adderSize);
+        
+        // NextPanel 크기 조정
+        double nextPanelSize = Math.max(60, adderSize * 0.8);
+        player1NextPanel.setPreferredCanvasSize(nextPanelSize);
+        player2NextPanel.setPreferredCanvasSize(nextPanelSize);
     }
     
     /**

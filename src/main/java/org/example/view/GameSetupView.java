@@ -126,7 +126,7 @@ public class GameSetupView extends BaseView {
         label.setFill(colorManager.getPrimaryTextColor());
         label.setFont(Font.font("Arial", 20));
         
-        // 라디오 버튼 그룹 생성 (1=Easy, 2=Medium, 3=Hard)
+        // 라디오 버튼 그룹 생성 (1=Easy, 2=Normal, 3=Hard)
         List<Integer> difficulties = List.of(1, 2, 3);
         difficultyRadio = radioButtonSystem.createRadioButtonGroup(
             difficulties, 
@@ -134,7 +134,7 @@ public class GameSetupView extends BaseView {
             d -> {
                 switch (d) {
                     case 1: return "Easy";
-                    case 2: return "Medium";
+                    case 2: return "Normal";
                     case 3: return "Hard";
                     default: return "Unknown";
                 }
@@ -176,7 +176,7 @@ public class GameSetupView extends BaseView {
     }
     
     /**
-     * 현재 선택된 난이도를 반환합니다. (1=Easy, 2=Medium, 3=Hard)
+     * 현재 선택된 난이도를 반환합니다. (1=Easy, 2=Normal, 3=Hard)
      */
     public int getSelectedDifficulty() {
         return difficultyRadio.getSelectedOption();

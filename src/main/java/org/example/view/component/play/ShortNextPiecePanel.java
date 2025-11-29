@@ -42,9 +42,13 @@ public class ShortNextPiecePanel extends VBox {
         
         setStyle("-fx-background-color: #333;");
         
-        // 크기 변경 감지
-        widthProperty().addListener((obs, oldVal, newVal) -> adjustCanvasSize());
-        heightProperty().addListener((obs, oldVal, newVal) -> adjustCanvasSize());
+        // 가로 크기 변경 감지 - 가로 크기 기준으로 비율 조정
+        widthProperty().addListener((obs, oldVal, newVal) -> {
+            double newWidth = newVal.doubleValue();
+            if (newWidth > 0) {
+                adjustCanvasSizeByWidth(newWidth);
+            }
+        });
     }
     
     /**
@@ -53,24 +57,27 @@ public class ShortNextPiecePanel extends VBox {
     public void setPreferredCanvasSize(double size) {
         setPrefWidth(size + 20);
         setPrefHeight(size + 50);
-        adjustCanvasSize();
+        adjustCanvasSizeByWidth(size + 20);
     }
     
-    private void adjustCanvasSize() {
-        double availableWidth = getPrefWidth() > 0 ? getPrefWidth() - 20 : getWidth() - 20;
-        double availableHeight = getPrefHeight() > 0 ? getPrefHeight() - 60 : getHeight() - 60;
+    /**
+     * 가로 크기를 기준으로 캔버스 크기를 조정합니다.
+     */
+    private void adjustCanvasSizeByWidth(double containerWidth) {
+        double padding = 20; // 좌우 패딩
+        double availableWidth = containerWidth - padding;
         
-        if (availableWidth <= 0 || availableHeight <= 0) return;
+        if (availableWidth <= 0) return;
         
-        double canvasSize = Math.min(availableWidth, availableHeight);
-        canvasSize = Math.max(60, canvasSize); // 최소 크기 60
+        // 정사각형 캔버스 크기 계산 (가로 크기 기준)
+        double canvasSize = Math.max(50, availableWidth);
         
         nextCanvas.setWidth(canvasSize);
         nextCanvas.setHeight(canvasSize);
         cellSize = (canvasSize - 8) / 4;
         
-        // 폰트 크기도 조정
-        double fontSize = Math.max(12, canvasSize / 6);
+        // 폰트 크기도 비례하여 조정
+        double fontSize = Math.max(10, Math.min(18, canvasSize / 4));
         title.setFont(Font.font(fontSize));
     }
     

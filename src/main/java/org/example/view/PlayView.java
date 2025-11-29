@@ -24,6 +24,7 @@ public class PlayView extends BaseView {
     private HoldPanel holdPanel;
     private NextPiecePanel nextPanel;
     private ScorePanel scorePanel;
+    private VBox widgetContainer;
     
     public PlayView() {
         super(false); // NavigableButtonSystem 사용하지 않음
@@ -47,7 +48,7 @@ public class PlayView extends BaseView {
         HBox.setHgrow(gameCanvas, Priority.NEVER);
         
         // 우측: 위젯 컨테이너
-        VBox widgetContainer = new VBox(10);
+        widgetContainer = new VBox(10);
         widgetContainer.setAlignment(Pos.TOP_CENTER);
         widgetContainer.setPadding(new Insets(10));
         widgetContainer.setStyle("-fx-background-color: #333;");
@@ -78,11 +79,25 @@ public class PlayView extends BaseView {
     public void updateCanvasSize(Scene scene) {
         if (gameCanvas == null || scene == null) return;
         
+        double sceneWidth = scene.getWidth();
+        double sceneHeight = scene.getHeight();
+        double padding = 40; // 상하 패딩
+        double spacing = 20; // 간격
+        
         // 사용 가능한 높이 전체를 캔버스에 할당
-        double availableHeight = scene.getHeight() - 40; // 상하 패딩
+        double availableHeight = sceneHeight - padding;
         double canvasWidth = availableHeight * 0.5; // 1:2 비율 유지
         
         gameCanvas.setCanvasSize(canvasWidth, availableHeight);
+        
+        // 위젯 컨테이너 크기 조정 (창 너비에서 캔버스 너비를 빼고 나머지)
+        if (widgetContainer != null) {
+            double widgetWidth = sceneWidth - canvasWidth - padding - spacing;
+            widgetWidth = Math.max(120, Math.min(250, widgetWidth)); // 최소 120, 최대 250
+            widgetContainer.setPrefWidth(widgetWidth);
+            widgetContainer.setMinWidth(widgetWidth);
+            widgetContainer.setMaxWidth(widgetWidth);
+        }
     }
     
     /**

@@ -69,6 +69,7 @@ public class LocalMultiPlayController extends BaseController {
         } else {
             player2System = new TetrisSystem();
         }
+        player2System.setDifficulty(difficulty);
 
         this.localMultiPlayView = new LocalMultiPlayView();
         this.lastDropTime1 = System.currentTimeMillis();
@@ -120,7 +121,22 @@ public class LocalMultiPlayController extends BaseController {
         // 멀티플레이 모드 활성화
         org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
         
-        var root = localMultiPlayView.createView();
+        // 게임 모드 이름 변환
+        String modeName = switch (gameMode) {
+            case ITEM -> "Item";
+            case TIME_ATTACK -> "Time Attack";
+            default -> "Normal";
+        };
+        
+        // 난이도 이름 변환 (1=Easy, 2=Normal, 3=Hard)
+        String difficultyName = switch (difficulty) {
+            case 1 -> "Easy";
+            case 2 -> "Normal";
+            case 3 -> "Hard";
+            default -> "Normal";
+        };
+        
+        var root = localMultiPlayView.createView(modeName, difficultyName);
         createDefaultScene(root);
 
         // 높이와 너비 변경 시 캔버스 크기 비율에 맞게 자동 조정
