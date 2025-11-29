@@ -96,6 +96,8 @@ public class PlayController extends BaseController {
         if (tetrisSystem instanceof TimeTetrisSystem) {
             ((TimeTetrisSystem) tetrisSystem).resumeTimer();
         }
+        // PlayView의 모든 UI 요소 크기 업데이트
+        playView.onResume();
         gameTimer.start();
     }
 

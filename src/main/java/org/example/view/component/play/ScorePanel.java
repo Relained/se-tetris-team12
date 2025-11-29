@@ -73,15 +73,27 @@ public class ScorePanel extends VBox {
         timerText.setVisible(false);
 
         getChildren().addAll(title, scoreText, linesLevelRow, modeDifficultyRow, timerText);
-        setStyle("-fx-background-color: #333;");
-        
-        // 가로 크기 변경 감지 - 가로 크기 기준으로 폰트 조정
-        widthProperty().addListener((obs, oldVal, newVal) -> {
-            double newWidth = newVal.doubleValue();
-            if (newWidth > 0) {
-                adjustFontSizeByWidth(newWidth);
-            }
-        });
+        getStyleClass().add("panel-score");
+
+        // 생성 시 폰트 크기 초기화
+        updateFontSize();
+    }
+
+    /**
+     * ScorePanel의 크기에 맞게 폰트 크기를 조정합니다. (외부에서 명시적으로 호출)
+     */
+    public void updateFontSize() {
+        double currentWidth = getWidth();
+        if (currentWidth > 0) {
+            adjustFontSizeByWidth(currentWidth);
+        }
+    }
+
+    /**
+     * 일시정지 해제(resume) 시 반드시 updateFontSize()를 호출해야 함
+     */
+    public void onResume() {
+        updateFontSize();
     }
     
     /**

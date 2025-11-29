@@ -15,6 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.example.model.ScoreRecord;
+import org.example.service.ColorManager;
 import org.example.service.FontManager;
 
 import java.time.format.DateTimeFormatter;
@@ -47,13 +48,15 @@ public class ScoreboardView extends BaseView {
     private Text titleLabel;
     private boolean showNewlyAddedHighlight = false;
     private boolean isAfterGamePlay = false; // 게임 플레이 후인지 여부
-    
+
     private double currentWidth;
+    private final ColorManager colorManager;
 
     public ScoreboardView() {
         super(true);
         var displayManager = org.example.service.DisplayManager.getInstance();
         this.currentWidth = displayManager.getWidth(displayManager.getCurrentSize());
+        this.colorManager = ColorManager.getInstance();
     }
     
     public ScoreboardView(boolean isAfterGamePlay, boolean showNewlyAddedHighlight) {
@@ -83,7 +86,7 @@ public class ScoreboardView extends BaseView {
      */
     public BorderPane createView(Runnable onBackToMenu, Runnable onClearScores) {
         BorderPane root = new BorderPane();
-        root.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
+        root.setBackground(new Background(new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)));
 
         // Scoreboard content를 포함하는 컨테이너
         VBox topContainer = new VBox();
@@ -106,7 +109,7 @@ public class ScoreboardView extends BaseView {
         container.setAlignment(Pos.CENTER);
         container.setSpacing(15);
         container.setPadding(new Insets(20));
-        container.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
+        container.setBackground(new Background(new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)));
         container.setMinHeight(550);
 
         titleLabel = new Text("HIGH SCORES");

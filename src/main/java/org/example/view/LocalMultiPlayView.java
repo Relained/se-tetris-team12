@@ -93,7 +93,7 @@ public class LocalMultiPlayView extends BaseView {
         VBox widgetContainer = new VBox(10);
         widgetContainer.setAlignment(Pos.TOP_CENTER);
         widgetContainer.setPadding(new Insets(10));
-        widgetContainer.setStyle("-fx-background-color: #333;");
+        widgetContainer.getStyleClass().add("panel-widget");
         widgetContainer.setMinWidth(150);
         widgetContainer.setPrefWidth(150);
         
@@ -270,6 +270,36 @@ public class LocalMultiPlayView extends BaseView {
     public void setShowTimer(boolean show) {
         player1ScorePanel.setShowTimer(show);
         player2ScorePanel.setShowTimer(show);
+    }
+
+    /**
+     * Play 재개 시 모든 UI 요소의 크기를 업데이트합니다.
+     */
+    public void onResume() {
+        if (player1Canvas != null) {
+            player1Canvas.onResume();
+        }
+        if (player2Canvas != null) {
+            player2Canvas.onResume();
+        }
+        if (player1HoldPanel != null) {
+            player1HoldPanel.onResume();
+        }
+        if (player2HoldPanel != null) {
+            player2HoldPanel.onResume();
+        }
+        if (player1NextPanel != null) {
+            player1NextPanel.onResume();
+        }
+        if (player2NextPanel != null) {
+            player2NextPanel.onResume();
+        }
+        if (player1ScorePanel != null) {
+            player1ScorePanel.onResume();
+        }
+        if (player2ScorePanel != null) {
+            player2ScorePanel.onResume();
+        }
     }
     
     public ShortNextPiecePanel getPlayer1NextPanel() {

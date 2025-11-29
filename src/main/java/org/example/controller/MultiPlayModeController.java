@@ -41,7 +41,7 @@ public class MultiPlayModeController extends BaseController {
     public void handleOnline() {
         // TODO: 온라인 멀티플레이 구현 및 난이도 선택
         // 임시로 기본 설정(NORMAL, difficulty=1) 사용
-        stackState(new MultiPlayController(org.example.model.GameMode.NORMAL, 1));
+        System.out.println("온라인 멀티플레이 선택 - 추후 구현 필요");
     }
 
     /**

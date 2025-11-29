@@ -3,11 +3,7 @@ package org.example.view;
 import java.util.List;
 
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 /**
@@ -15,11 +11,11 @@ import javafx.scene.text.Text;
  * GameOverView를 상속받아 파란색 배경과 승자 표시만 제공합니다.
  */
 public class LocalMultiGameOverView extends GameOverView {
-    
+
     public LocalMultiGameOverView() {
         super();
     }
-    
+
     /**
      * Local Multiplayer Game Over 화면의 UI를 구성하고 반환합니다.
      * GAME OVER 텍스트 없이 승자만 표시하고, 파란색 배경을 사용합니다.
@@ -35,13 +31,12 @@ public class LocalMultiGameOverView extends GameOverView {
                           Runnable onExit) {
         VBox root = new VBox(25);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(Color.DARKBLUE, null, null)));
+        root.getStyleClass().add("root-blue");
 
         // 승자 표시 - 무승부 케이스도 처리
         String resultMessage = winner.equals("Draw") ? "It's a Draw!" : winner + " Wins!";
         Text winnerText = new Text(resultMessage);
-        winnerText.setFill(Color.GOLD);
-        winnerText.setFont(Font.font("Arial", 48));
+        winnerText.getStyleClass().addAll("text-title-large", "text-gold");
 
         // View Scoreboard를 제외한 버튼들만 생성
         var created = buttonSystem.createNavigableButtonFromList(

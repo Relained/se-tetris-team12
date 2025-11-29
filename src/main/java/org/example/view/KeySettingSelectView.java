@@ -2,11 +2,7 @@ package org.example.view;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 import org.example.view.component.NavigableButtonSystem;
@@ -35,23 +31,19 @@ public class KeySettingSelectView extends BaseView {
         VBox root = new VBox(30);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(50));
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
 
         // 제목
         title = new Text("Key Settings");
-        title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(Font.font("Arial", 42));
-        
+        title.getStyleClass().addAll("text-title-medium", "text-primary");
+
         // 안내 텍스트
         Text instructionText = new Text("Select player to configure");
-        instructionText.setFill(Color.LIGHTGRAY);
-        instructionText.setFont(Font.font("Arial", 18));
+        instructionText.getStyleClass().addAll("text-body-medium", "text-secondary");
 
         // 버튼 시스템 초기화
         buttonSystem = getButtonSystem();
-        
+
         // 버튼 생성
         java.util.List<String> buttonTexts = java.util.Arrays.asList(
             "Single Settings",
@@ -63,10 +55,10 @@ public class KeySettingSelectView extends BaseView {
             onPlayer2,
             onGoBack
         );
-        
-        java.util.ArrayList<javafx.scene.control.Button> buttons = 
+
+        java.util.ArrayList<javafx.scene.control.Button> buttons =
             buttonSystem.createNavigableButtonFromList(buttonTexts, buttonActions);
-        
+
         VBox buttonContainer = new VBox(15);
         buttonContainer.setAlignment(Pos.CENTER);
         buttonContainer.getChildren().addAll(buttons);

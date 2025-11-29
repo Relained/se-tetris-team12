@@ -73,10 +73,15 @@ public class DisplaySettingController extends BaseController {
     private void setScreenSize(ScreenSize size) {
         selectedSize = size;
         displaySettingView.updateCurrentSize(size);
-        
+
         // 설정을 SettingManager에 즉시 저장하고 DisplayManager를 통해 적용
         settingManager.setScreenSize(size);
         settingManager.applyScreenSize();
+
+        // 현재 Scene의 root에 스크린 사이즈 클래스 재적용
+        if (scene != null && scene.getRoot() != null) {
+            org.example.service.DisplayManager.getInstance().applyScreenSizeClass(scene.getRoot());
+        }
     }
     
     /**

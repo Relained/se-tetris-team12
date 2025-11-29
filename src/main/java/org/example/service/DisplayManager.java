@@ -1,5 +1,6 @@
 package org.example.service;
 
+import javafx.scene.Parent;
 import javafx.stage.Stage;
 import org.example.model.SettingData.ScreenSize;
 import org.example.view.BaseView;
@@ -121,10 +122,10 @@ public class DisplayManager {
     public int getWidth(ScreenSize size) {
         int baseWidth;
         switch (size) {
-            case SMALL: baseWidth = SMALL_WIDTH;
-            case MEDIUM: baseWidth = MEDIUM_WIDTH;
-            case LARGE: baseWidth = LARGE_WIDTH;
-            default: baseWidth = MEDIUM_WIDTH;
+            case SMALL: baseWidth = SMALL_WIDTH; break;
+            case MEDIUM: baseWidth = MEDIUM_WIDTH; break;
+            case LARGE: baseWidth = LARGE_WIDTH; break;
+            default: baseWidth = MEDIUM_WIDTH; break;
         }
         return isMultiplayerMode ? baseWidth * 2 : baseWidth;
     }
@@ -178,5 +179,14 @@ public class DisplayManager {
      */
     public void clearAllViews() {
         registeredViews.clear();
+    }
+
+    /**
+     * 현재 스크린 사이즈에 맞는 CSS 클래스를 root에 적용합니다.
+     * @param root Scene의 root 노드
+     */
+    public void applyScreenSizeClass(Parent root) {
+        root.getStyleClass().removeAll("screen-small", "screen-medium", "screen-large");
+        root.getStyleClass().add("screen-" + currentSize.name().toLowerCase());
     }
 }

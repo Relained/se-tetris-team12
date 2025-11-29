@@ -4,11 +4,8 @@ import java.util.List;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 import org.example.model.GameMode;
@@ -55,15 +52,12 @@ public class GameSetupView extends BaseView {
     public VBox createView(String title, Runnable onStart, Runnable onGoBack) {
         VBox root = new VBox(30);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
         root.setPadding(new Insets(20));
 
         // 타이틀
         Text titleText = new Text(title);
-        titleText.setFill(colorManager.getPrimaryTextColor());
-        titleText.setFont(Font.font("Arial", 36));
+        titleText.getStyleClass().addAll("text-title-medium", "text-primary");
 
         // 1. 게임 모드 섹션
         VBox gameModeSection = createGameModeSection();
@@ -93,8 +87,7 @@ public class GameSetupView extends BaseView {
         
         // 섹션 라벨
         Text label = new Text("Game Mode");
-        label.setFill(colorManager.getPrimaryTextColor());
-        label.setFont(Font.font("Arial", 20));
+        label.getStyleClass().addAll("text-body-large", "text-primary");
         
         // 라디오 버튼 그룹 생성
         List<GameMode> modes = List.of(GameMode.NORMAL, GameMode.ITEM, GameMode.TIME_ATTACK);
@@ -123,8 +116,7 @@ public class GameSetupView extends BaseView {
         
         // 섹션 라벨
         Text label = new Text("Difficulty");
-        label.setFill(colorManager.getPrimaryTextColor());
-        label.setFont(Font.font("Arial", 20));
+        label.getStyleClass().addAll("text-body-large", "text-primary");
         
         // 라디오 버튼 그룹 생성 (1=Easy, 2=Normal, 3=Hard)
         List<Integer> difficulties = List.of(1, 2, 3);

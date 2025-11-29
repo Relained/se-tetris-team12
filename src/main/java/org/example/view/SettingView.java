@@ -3,10 +3,7 @@ package org.example.view;
 import java.util.List;
 
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 /**
@@ -28,7 +25,7 @@ public class SettingView extends BaseView {
      * @param onGoBack Go Back 버튼 클릭 시 실행될 콜백
      * @return 구성된 VBox root
      */
-    public VBox createView(Runnable onScreenSize, 
+    public VBox createView(Runnable onScreenSize,
                           Runnable onControls,
                           Runnable onColorBlindSetting,
                           Runnable onResetScoreBoard,
@@ -36,18 +33,15 @@ public class SettingView extends BaseView {
                           Runnable onGoBack) {
         VBox root = new VBox(30);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
 
         Text title = new Text("Settings");
-        title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(Font.font("Arial", 36));
+        title.getStyleClass().addAll("text-title-medium", "text-primary");
 
         var created = buttonSystem.createNavigableButtonFromList(
-            List.of("Screen Size", "Controls", "Color Blind Setting", 
+            List.of("Screen Size", "Controls", "Color Blind Setting",
                     "Reset Score Board", "Reset All Setting", "Go Back"),
-            List.of(onScreenSize, onControls, onColorBlindSetting, 
+            List.of(onScreenSize, onControls, onColorBlindSetting,
                     onResetScoreBoard, onResetAllSetting, onGoBack)
         );
 

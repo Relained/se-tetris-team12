@@ -177,7 +177,7 @@ public class LocalMultiPlayController extends BaseController {
         player1JustPressedKeys.clear();
         player2PressedKeys.clear();
         player2JustPressedKeys.clear();
-        
+
         // TIME_ATTACK 모드: 타이머 재개
         if (player1System instanceof TimeTetrisSystem) {
             ((TimeTetrisSystem) player1System).resumeTimer();
@@ -185,7 +185,10 @@ public class LocalMultiPlayController extends BaseController {
         if (player2System instanceof TimeTetrisSystem) {
             ((TimeTetrisSystem) player2System).resumeTimer();
         }
-        
+
+        // LocalMultiPlayView의 모든 UI 요소 크기 업데이트
+        localMultiPlayView.onResume();
+
         gameTimer.start();
     }
 

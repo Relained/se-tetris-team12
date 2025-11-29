@@ -1,0 +1,488 @@
+/*
+ * Tetris Game CSS Styles
+ * Modern & Stylish UI Theme
+ * JavaFX CSS Specification (requires -fx- prefix for all properties)
+ */
+
+/* ========== CSS CUSTOM PROPERTIES (Color Variables) ========== */
+.root {
+    /* Primary Theme Colors */
+    -fx-primary-dark: #1a1a2e;
+    -fx-primary-darker: #0f0f23;
+    -fx-primary-blue: #16213e;
+
+    /* UI Element Colors */
+    -fx-button-base: #3a3a5c;
+    -fx-button-dark: #2a2a4a;
+    -fx-button-hover: #4a4a6c;
+    -fx-button-hover-dark: #3a3a5a;
+
+    /* Border Colors */
+    -fx-border-base: #4a4a6a;
+    -fx-border-light: #3a3a5a;
+
+    /* Text Colors */
+    -fx-text-primary: #b8b8d1;
+    -fx-text-hover: #e0e0ff;
+    -fx-text-selected: #00ffff;
+    -fx-text-secondary: #a0a0c0;
+
+    /* Panel Colors */
+    -fx-panel-base: rgba(30,30,50,0.95);
+    -fx-panel-dark: rgba(20,20,40,0.95);
+}
+
+/* ========== ROOT/BACKGROUND STYLES ========== */
+.root-dark {
+    -fx-background-color: linear-gradient(to bottom, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+}
+
+.root-slate {
+    -fx-background-color: linear-gradient(to bottom right, #2c3e50 0%, #1a252f 100%);
+}
+
+.root-red {
+    -fx-background-color: linear-gradient(to bottom, #4a0000 0%, #8b0000 50%, #4a0000 100%);
+}
+
+.root-blue {
+    -fx-background-color: linear-gradient(to bottom, #0a1628 0%, #1e3a5f 50%, #0a1628 100%);
+}
+
+/* ========== NAVIGATION BUTTONS ========== */
+.nav-button {
+    -fx-background-color: linear-gradient(to bottom, #3a3a5c 0%, #2a2a4a 100%);
+    -fx-text-fill: #b8b8d1;
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #4a4a6a;
+    -fx-border-width: 1px;
+    -fx-padding: 12 28;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 4);
+}
+
+.nav-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #4a4a6c 0%, #3a3a5a 100%);
+    -fx-text-fill: #e0e0ff;
+}
+
+.nav-button--selected {
+    -fx-background-color: linear-gradient(to bottom, #4a6a9a 0%, #3a5a8a 50%, #2a4a7a 100%);
+    -fx-text-fill: #00ffff;
+    -fx-border-color: #00ffff;
+    -fx-border-width: 2px;
+    -fx-padding: 11 27; /* Adjusted to compensate for thicker border (12-1=11, 28-1=27) */
+    -fx-font-size: 18px; /* Maintain same font size as nav-button */
+    -fx-effect: dropshadow(gaussian, rgba(0,255,255,0.5), 15, 0, 0, 0),
+                innershadow(gaussian, rgba(0,255,255,0.2), 10, 0, 0, 0);
+}
+
+/* ========== PANEL STYLES ========== */
+.panel-widget {
+    -fx-background-color: linear-gradient(to bottom, rgba(30,30,50,0.95) 0%, rgba(20,20,40,0.95) 100%);
+    -fx-background-radius: 12;
+    -fx-border-color: #3a3a5a;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 2, 2);
+}
+
+.panel-next-piece {
+    -fx-background-color: linear-gradient(to bottom, #2a2a4a 0%, #1a1a3a 100%);
+    -fx-border-color: linear-gradient(to bottom, #5a5a8a 0%, #3a3a6a 100%);
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.5), 5, 0, 2, 2);
+}
+
+.panel-score {
+    -fx-background-color: linear-gradient(to bottom, rgba(40,40,60,0.9) 0%, rgba(25,25,45,0.9) 100%);
+    -fx-background-radius: 8;
+    -fx-border-color: #4a4a6a;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.panel-hold {
+    -fx-background-color: linear-gradient(to bottom, rgba(35,35,55,0.9) 0%, rgba(20,20,40,0.9) 100%);
+    -fx-background-radius: 8;
+    -fx-border-color: #3a3a5a;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+/* ========== TEXT COLOR STYLES ========== */
+.text-primary {
+    -fx-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.3), 2, 0, 0, 0);
+}
+
+.text-secondary {
+    -fx-fill: #a0a0c0;
+}
+
+.text-gold {
+    -fx-fill: linear-gradient(to bottom, #ffd700 0%, #ffaa00 100%);
+    -fx-effect: dropshadow(gaussian, rgba(255,215,0,0.5), 5, 0, 0, 0);
+}
+
+.text-yellow {
+    -fx-fill: #ffff00;
+    -fx-effect: dropshadow(gaussian, rgba(255,255,0,0.4), 3, 0, 0, 0);
+}
+
+.text-white {
+    -fx-fill: white;
+}
+
+.text-lightgray {
+    -fx-fill: #c0c0d0;
+}
+
+.text-red {
+    -fx-fill: #ff4444;
+    -fx-effect: dropshadow(gaussian, rgba(255,68,68,0.5), 4, 0, 0, 0);
+}
+
+.text-orange {
+    -fx-fill: #ff8844;
+    -fx-effect: dropshadow(gaussian, rgba(255,136,68,0.4), 3, 0, 0, 0);
+}
+
+/* Difficulty colors */
+.text-easy {
+    -fx-fill: #44ff88;
+    -fx-effect: dropshadow(gaussian, rgba(68,255,136,0.4), 3, 0, 0, 0);
+}
+
+.text-normal {
+    -fx-fill: #ffdd44;
+    -fx-effect: dropshadow(gaussian, rgba(255,221,68,0.4), 3, 0, 0, 0);
+}
+
+.text-hard {
+    -fx-fill: #ff6644;
+    -fx-effect: dropshadow(gaussian, rgba(255,102,68,0.5), 4, 0, 0, 0);
+}
+
+/* ========== TEXT SIZE STYLES - MEDIUM (base, scale 1.0) ========== */
+.text-title-large {
+    -fx-font-family: "Segoe UI Black", "Arial Black", "Arial";
+    -fx-font-size: 52px;
+    -fx-font-weight: bold;
+}
+
+.text-title-medium {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+
+.text-title-small {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.text-body-large {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 20px;
+}
+
+.text-body-medium {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 16px;
+}
+
+.text-body-small {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 14px;
+}
+
+.text-body-message {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 15px;
+}
+
+.text-body-detail {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 13px;
+}
+
+.text-caption {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 12px;
+}
+
+/* Button font sizes - MEDIUM (base) */
+.nav-button {
+    -fx-font-size: 18px;
+}
+
+/* ========== SMALL SCREEN (scale 0.85) ========== */
+.screen-small .text-title-large {
+    -fx-font-size: 44px;
+}
+
+.screen-small .text-title-medium {
+    -fx-font-size: 27px;
+}
+
+.screen-small .text-title-small {
+    -fx-font-size: 22px;
+}
+
+.screen-small .text-body-large {
+    -fx-font-size: 17px;
+}
+
+.screen-small .text-body-medium {
+    -fx-font-size: 13.5px;
+}
+
+.screen-small .text-body-small {
+    -fx-font-size: 12px;
+}
+
+.screen-small .text-body-message {
+    -fx-font-size: 13px;
+}
+
+.screen-small .text-body-detail {
+    -fx-font-size: 11px;
+}
+
+.screen-small .text-caption {
+    -fx-font-size: 10px;
+}
+
+.screen-small .nav-button {
+    -fx-font-size: 15px;
+    -fx-padding: 9 22;
+}
+
+.screen-small .nav-button--selected {
+    -fx-padding: 8 21; /* Adjusted for thicker border (9-1=8, 22-1=21) */
+    -fx-font-size: 15px; /* Maintain same font size as screen-small nav-button */
+}
+
+/* ========== LARGE SCREEN (scale 1.05) ========== */
+.screen-large .text-title-large {
+    -fx-font-size: 55px;
+}
+
+.screen-large .text-title-medium {
+    -fx-font-size: 34px;
+}
+
+.screen-large .text-title-small {
+    -fx-font-size: 27px;
+}
+
+.screen-large .text-body-large {
+    -fx-font-size: 21px;
+}
+
+.screen-large .text-body-medium {
+    -fx-font-size: 17px;
+}
+
+.screen-large .text-body-small {
+    -fx-font-size: 15px;
+}
+
+.screen-large .text-body-message {
+    -fx-font-size: 16px;
+}
+
+.screen-large .text-body-detail {
+    -fx-font-size: 14px;
+}
+
+.screen-large .text-caption {
+    -fx-font-size: 13px;
+}
+
+.screen-large .nav-button {
+    -fx-font-size: 19px;
+    -fx-padding: 13 30;
+}
+
+.screen-large .nav-button--selected {
+    -fx-padding: 12 29; /* Adjusted for thicker border (13-1=12, 30-1=29) */
+    -fx-font-size: 19px; /* Maintain same font size as screen-large nav-button */
+}
+
+/* ========== INPUT STYLES ========== */
+.text-input {
+    -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 100%);
+    -fx-text-fill: #1a1a2e;
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #4a4a6a;
+    -fx-border-width: 2;
+    -fx-padding: 8 12;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.2), 3, 0, 0, 1);
+}
+
+.text-input:focused {
+    -fx-border-color: #00aaff;
+    -fx-effect: dropshadow(gaussian, rgba(0,170,255,0.4), 8, 0, 0, 0),
+                innershadow(gaussian, rgba(0,0,0,0.2), 3, 0, 0, 1);
+}
+
+/* ========== KEY SETTING STYLES ========== */
+.key-setting-row {
+    -fx-background-color: linear-gradient(to right, #3a3a5c 0%, #2a2a4a 100%);
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #4a4a6a;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 4, 0, 0, 2);
+}
+
+.key-setting-row--selected {
+    -fx-background-color: linear-gradient(to right, #4a5a7a 0%, #3a4a6a 100%);
+    -fx-border-color: #00ffff;
+    -fx-border-width: 2px;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0,255,255,0.4), 10, 0, 0, 0);
+}
+
+/* ========== RADIO BUTTON STYLES ========== */
+/* 기본 라디오 버튼 (비선택, 비포커스) */
+.radio-unfocused {
+    -fx-text-fill: #606080;
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 18px;
+}
+
+/* 선택된 라디오 버튼 (비포커스) */
+.radio-selected-unfocused {
+    -fx-text-fill: #4488cc;
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+}
+
+/* 비선택 라디오 버튼 (포커스) */
+.radio-focused {
+    -fx-text-fill: #c0c0e0;
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 18px;
+}
+
+/* 선택된 라디오 버튼 (포커스) */
+.radio-selected-focused {
+    -fx-text-fill: #00ddff;
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-weight: bold;
+    -fx-underline: true;
+    -fx-font-size: 18px;
+    -fx-effect: dropshadow(gaussian, rgba(0,221,255,0.5), 5, 0, 0, 0);
+}
+
+/* Screen size overrides for radio buttons */
+.screen-small .radio-unfocused,
+.screen-small .radio-selected-unfocused,
+.screen-small .radio-focused,
+.screen-small .radio-selected-focused {
+    -fx-font-size: 15px;
+}
+
+.screen-large .radio-unfocused,
+.screen-large .radio-selected-unfocused,
+.screen-large .radio-focused,
+.screen-large .radio-selected-focused {
+    -fx-font-size: 19px;
+}
+
+/* ========== LABEL STYLES ========== */
+.label-primary {
+    -fx-text-fill: white;
+    -fx-font-family: "Segoe UI", "Arial";
+}
+
+.label-secondary {
+    -fx-text-fill: #a0a0c0;
+    -fx-font-family: "Segoe UI", "Arial";
+}
+
+.label-gold {
+    -fx-text-fill: #ffd700;
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-effect: dropshadow(gaussian, rgba(255,215,0,0.4), 3, 0, 0, 0);
+}
+
+/* ========== SPECIAL EFFECTS ========== */
+/* Title glow effect for TETRIS */
+.text-title-glow {
+    -fx-effect: dropshadow(gaussian, rgba(0,255,255,0.8), 20, 0.5, 0, 0);
+}
+
+/* Neon border effect */
+.neon-border {
+    -fx-border-color: #00ffff;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(0,255,255,0.6), 15, 0, 0, 0);
+}
+
+/* Pulse animation for selected items (requires code support) */
+.pulse-effect {
+    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.5), 10, 0, 0, 0);
+}
+
+/* ========== TETROMINO COLORS ========== */
+/* Default Color Set */
+.color-default-I { -fx-fill: #00FFFF; } /* Cyan */
+.color-default-O { -fx-fill: #FFFF00; } /* Yellow */
+.color-default-T { -fx-fill: #800080; } /* Purple */
+.color-default-S { -fx-fill: #00FF00; } /* Lime */
+.color-default-Z { -fx-fill: #FF0000; } /* Red */
+.color-default-J { -fx-fill: #0000FF; } /* Blue */
+.color-default-L { -fx-fill: #FFA500; } /* Orange */
+
+/* Protanopia Color Set (Red-Green Color Blindness) */
+.color-protanopia-I { -fx-fill: #0072B2; } /* Blue */
+.color-protanopia-O { -fx-fill: #F0E442; } /* Yellow */
+.color-protanopia-T { -fx-fill: #CC79A7; } /* Magenta */
+.color-protanopia-S { -fx-fill: #56B4E9; } /* Sky Blue */
+.color-protanopia-Z { -fx-fill: #E69F00; } /* Orange */
+.color-protanopia-J { -fx-fill: #009E73; } /* Teal */
+.color-protanopia-L { -fx-fill: #D55E00; } /* Vermillion */
+
+/* Deuteranopia Color Set (Green Color Blindness) */
+.color-deuteranopia-I { -fx-fill: #0072B2; } /* Blue */
+.color-deuteranopia-O { -fx-fill: #F0E442; } /* Yellow */
+.color-deuteranopia-T { -fx-fill: #CC79A7; } /* Magenta */
+.color-deuteranopia-S { -fx-fill: #56B4E9; } /* Sky Blue */
+.color-deuteranopia-Z { -fx-fill: #E69F00; } /* Orange */
+.color-deuteranopia-J { -fx-fill: #009E73; } /* Teal */
+.color-deuteranopia-L { -fx-fill: #D55E00; } /* Vermillion */
+
+/* Tritanopia Color Set (Blue-Yellow Color Blindness) */
+.color-tritanopia-I { -fx-fill: #D55E00; } /* Vermillion */
+.color-tritanopia-O { -fx-fill: #CC79A7; } /* Magenta */
+.color-tritanopia-T { -fx-fill: #E69F00; } /* Orange */
+.color-tritanopia-S { -fx-fill: #009E73; } /* Teal */
+.color-tritanopia-Z { -fx-fill: #F0E442; } /* Yellow */
+.color-tritanopia-J { -fx-fill: #0072B2; } /* Blue */
+.color-tritanopia-L { -fx-fill: #56B4E9; } /* Sky Blue */
+
+/* Item Block Colors */
+.color-item-line-clear { -fx-fill: #FFD700; } /* Gold */
+.color-item-column-clear { -fx-fill: #C0C0C0; } /* Silver */
+.color-item-cross-clear { -fx-fill: #FF69B4; } /* Hot Pink */
+.color-item-weight { -fx-fill: #A52A2A; } /* Brown */
+.color-item-bomb { -fx-fill: #8B0000; } /* Dark Red */
+
+/* Special Colors */
+.color-gray { -fx-fill: #808080; } /* Gray - for AdderBoard */
+.color-background { -fx-fill: #000000; } /* Black - General Background */
+.color-game-background { -fx-fill: #1a1a2e; } /* Rich Dark Blue - Game Background */

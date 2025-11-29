@@ -13,7 +13,6 @@ public class NavigableButtonSystem {
     // 기준 크기 (MEDIUM)
     private final static int BASE_BUTTON_WIDTH = 200;
     private final static int BASE_BUTTON_HEIGHT = 50;
-    private final static int BASE_FONT_SIZE = 18;
     
     // 현재 스케일 (기본값: 1.0 = MEDIUM)
     private double scale = 1.0;
@@ -312,20 +311,17 @@ public class NavigableButtonSystem {
     }
 
     private void setSelectedStyle(Button button) {
-        int fontSize = (int) (BASE_FONT_SIZE * scale);
-        button.setStyle(String.format("-fx-font-size: %dpx; " +
-                "-fx-background-color: #6a6a6a; " +
-                "-fx-text-fill: yellow; " +
-                "-fx-border-color: white; " +
-                "-fx-border-width: 2px; " +
-                "-fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.7), 10, 0, 0, 0);", fontSize));
+        button.getStyleClass().remove("nav-button");
+        if (!button.getStyleClass().contains("nav-button--selected")) {
+            button.getStyleClass().add("nav-button--selected");
+        }
     }
 
     private void setDefaultStyle(Button button) {
-        int fontSize = (int) (BASE_FONT_SIZE * scale);
-        button.setStyle(String.format("-fx-font-size: %dpx; " +
-                "-fx-background-color: #4a4a4a; " +
-                "-fx-text-fill: white;", fontSize));
+        button.getStyleClass().remove("nav-button--selected");
+        if (!button.getStyleClass().contains("nav-button")) {
+            button.getStyleClass().add("nav-button");
+        }
     }
 
     private void executeSelectedButton() {
@@ -406,7 +402,7 @@ public class NavigableButtonSystem {
     /**
      * NavigableButtonSystem에 영향을 받지 않는 독립적인 버튼을 생성합니다.
      * 선택된 스타일이 적용되며, 마우스 클릭이 비활성화됩니다.
-     * 
+     *
      * @param text 버튼에 표시할 텍스트
      * @return 스타일이 적용된 독립적인 버튼
      */
@@ -419,13 +415,8 @@ public class NavigableButtonSystem {
         button.setOnMouseClicked(event -> event.consume());
         button.setOnAction(event -> event.consume());
 
-        // 선택된 스타일 적용
-        button.setStyle("-fx-font-size: 18px; " +
-                "-fx-background-color: #6a6a6a; " +
-                "-fx-text-fill: yellow; " +
-                "-fx-border-color: white; " +
-                "-fx-border-width: 2px; " +
-                "-fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.7), 10, 0, 0, 0);");
+        // 선택된 스타일 적용 (CSS 클래스)
+        button.getStyleClass().add("nav-button--selected");
 
         return button;
     }

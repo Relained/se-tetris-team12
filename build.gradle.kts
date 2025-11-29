@@ -22,6 +22,14 @@ java {
     }
 }
 
+sourceSets {
+    main {
+        resources {
+            srcDirs("src/main/res")
+        }
+    }
+}
+
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }

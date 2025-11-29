@@ -20,15 +20,16 @@ public class NextPiecePanel extends VBox {
     private double smallCellSize = 12;
     private boolean horizontalMode = false;
     private HBox canvasContainer;
+    private double lastAppliedWidth = -1;
 
     public NextPiecePanel() {
         super(5);
         setAlignment(Pos.TOP_CENTER);
         setPadding(new Insets(10));
-        
+
         // 테두리 스타일
-        setStyle("-fx-background-color: #444; -fx-border-color: #888; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
-        
+        getStyleClass().add("panel-next-piece");
+
         this.title = new Text("Next");
         title.setFill(Color.WHITE);
         title.setFont(Font.font(16));
@@ -37,19 +38,29 @@ public class NextPiecePanel extends VBox {
         this.nextCanvases = new Canvas[5];
         this.canvasContainer = new HBox(10);
         canvasContainer.setAlignment(Pos.CENTER);
-        
+
         // 캔버스 초기화
         initializeCanvases();
-        
-        // 가로 크기 변경 감지 - 가로 크기 기준으로 비율 조정
-        widthProperty().addListener((obs, oldVal, newVal) -> {
-            double newWidth = newVal.doubleValue();
-            if (newWidth > 0) {
-                adjustCanvasSizeByWidth(newWidth);
-            }
-        });
     }
     
+    /**
+     * NextPiecePanel의 크기에 맞게 캔버스 크기를 조정합니다. (외부에서 명시적으로 호출)
+     */
+    public void updateCanvasSize() {
+        double currentWidth = getWidth();
+        if (currentWidth > 0 && Math.abs(currentWidth - lastAppliedWidth) > 2) {
+            adjustCanvasSizeByWidth(currentWidth);
+            lastAppliedWidth = currentWidth;
+        }
+    }
+
+    /**
+     * 일시정지 해제(resume) 시 반드시 updateCanvasSize()를 호출해야 함
+     */
+    public void onResume() {
+        updateCanvasSize();
+    }
+
     public void setHorizontalMode(boolean horizontal) {
         this.horizontalMode = horizontal;
         updateLayout();
