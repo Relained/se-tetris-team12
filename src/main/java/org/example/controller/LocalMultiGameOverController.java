@@ -2,6 +2,7 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 
+import org.example.model.GameMode;
 import org.example.view.LocalMultiGameOverView;
 
 /**
@@ -12,15 +13,15 @@ public class LocalMultiGameOverController extends GameOverController {
     
     private LocalMultiGameOverView localMultiGameOverView;
     private String winner;
-    private boolean isItemMode;
+    private GameMode gameMode;
     private int difficulty;
     
-    public LocalMultiGameOverController(String winner, boolean isItemMode, int difficulty) {
+    public LocalMultiGameOverController(String winner, GameMode gameMode, int difficulty) {
         super(null); // 부모 생성자 호출 (record는 사용하지 않음)
         this.localMultiGameOverView = new LocalMultiGameOverView();
         this.gameOverView = this.localMultiGameOverView; // 부모의 protected 필드도 설정
         this.winner = winner;
-        this.isItemMode = isItemMode;
+        this.gameMode = gameMode;
         this.difficulty = difficulty;
     }
 
@@ -41,7 +42,7 @@ public class LocalMultiGameOverController extends GameOverController {
      */
     @Override
     public void handlePlayAgain() {
-        setState(new LocalMultiPlayController(isItemMode, difficulty));
+        setState(new LocalMultiPlayController(gameMode, difficulty));
     }
     // handleMainMenu, handleExit, handleKeyInput은 부모 클래스에서 상속받아 사용
 }

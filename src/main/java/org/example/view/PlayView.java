@@ -89,17 +89,30 @@ public class PlayView extends BaseView {
     
     /**
      * 게임 화면을 업데이트합니다.
+     * @param remainingMillis TIME_ATTACK 모드에서 남은 시간 (밀리초), -1이면 타이머 업데이트 안함
      */
     public void updateDisplay(org.example.model.GameBoard board, 
                              TetrominoPosition currentPiece,
                              TetrominoPosition ghostPiece,
                              TetrominoPosition holdPiece,
                              java.util.List<TetrominoPosition> nextQueue,
-                             int score, int lines, int level) {
+                             int score, int lines, int level,
+                             long remainingMillis) {
         gameCanvas.updateBoard(board, currentPiece, ghostPiece);
         holdPanel.updateHoldPiece(holdPiece);
         nextPanel.updateNextPieces(nextQueue);
         scorePanel.updateStats(score, lines, level);
+        
+        if (remainingMillis >= 0) {
+            scorePanel.updateTimer(remainingMillis);
+        }
+    }
+
+    /**
+     * 타이머 표시 활성화
+     */
+    public void setShowTimer(boolean show) {
+        scorePanel.setShowTimer(show);
     }
     
     public TetrisCanvas getGameCanvas() {

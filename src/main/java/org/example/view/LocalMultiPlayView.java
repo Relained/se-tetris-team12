@@ -154,36 +154,48 @@ public class LocalMultiPlayView extends BaseView {
     
     /**
      * Player 1의 게임 화면을 업데이트합니다.
+     * @param remainingMillis TIME_ATTACK 모드에서 남은 시간 (밀리초), -1이면 타이머 업데이트 안함
      */
     public void updatePlayer1Display(org.example.model.GameBoard board,
                                      TetrominoPosition currentPiece,
                                      TetrominoPosition ghostPiece,
                                      TetrominoPosition nextPiece,
                                      org.example.model.AdderBoard adderBoard,
-                                     int score, int lines, int level) {
+                                     int score, int lines, int level,
+                                     long remainingMillis) {
         player1Canvas.updateBoard(board, currentPiece, ghostPiece);
         player1NextPanel.updateNextPiece(nextPiece);
         if (adderBoard != null) {
             player1AdderCanvas.updateBoard(adderBoard);
         }
         player1ScorePanel.updateStats(score, lines, level);
+        
+        if (remainingMillis >= 0) {
+            player1ScorePanel.updateTimer(remainingMillis);
+        }
     }
     
     /**
      * Player 2의 게임 화면을 업데이트합니다.
+     * @param remainingMillis TIME_ATTACK 모드에서 남은 시간 (밀리초), -1이면 타이머 업데이트 안함
      */
     public void updatePlayer2Display(org.example.model.GameBoard board,
                                      TetrominoPosition currentPiece,
                                      TetrominoPosition ghostPiece,
                                      TetrominoPosition nextPiece,
                                      org.example.model.AdderBoard adderBoard,
-                                     int score, int lines, int level) {
+                                     int score, int lines, int level,
+                                     long remainingMillis) {
         player2Canvas.updateBoard(board, currentPiece, ghostPiece);
         player2NextPanel.updateNextPiece(nextPiece);
         if (adderBoard != null) {
             player2AdderCanvas.updateBoard(adderBoard);
         }
         player2ScorePanel.updateStats(score, lines, level);
+        
+        if (remainingMillis >= 0) {
+            player2ScorePanel.updateTimer(remainingMillis);
+        }
     }
     
     /**
@@ -211,6 +223,14 @@ public class LocalMultiPlayView extends BaseView {
     
     public TetrisCanvas getPlayer2Canvas() {
         return player2Canvas;
+    }
+    
+    /**
+     * 타이머 표시 활성화 (양 플레이어 모두)
+     */
+    public void setShowTimer(boolean show) {
+        player1ScorePanel.setShowTimer(show);
+        player2ScorePanel.setShowTimer(show);
     }
     
     public ShortNextPiecePanel getPlayer1NextPanel() {

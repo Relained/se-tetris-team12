@@ -2,18 +2,20 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 
+import org.example.model.GameMode;
+
 /**
  * Local Multiplayer 모드의 Pause 화면 Controller
  * PauseController를 상속하여 Restart 및 Main Menu 동작만 재정의합니다.
  */
 public class LocalMultiPauseController extends PauseController {
     
-    private boolean isItemMode;
+    private GameMode gameMode;
     private int difficulty;
     
-    public LocalMultiPauseController(boolean isItemMode, int difficulty) {
+    public LocalMultiPauseController(GameMode gameMode, int difficulty) {
         super();
-        this.isItemMode = isItemMode;
+        this.gameMode = gameMode;
         this.difficulty = difficulty;
     }
 
@@ -35,7 +37,7 @@ public class LocalMultiPauseController extends PauseController {
      */
     @Override
     public void handleRestart() {
-        setState(new LocalMultiPlayController(isItemMode, difficulty));
+        setState(new LocalMultiPlayController(gameMode, difficulty));
     }
     
     /**

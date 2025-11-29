@@ -9,10 +9,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.example.model.AdderBoard;
+import org.example.model.GameMode;
 import org.example.model.KeyData;
 import org.example.service.ItemTetrisSystem;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
+import org.example.service.TimeTetrisSystem;
 import org.example.view.LocalMultiPlayView;
 
 /**
@@ -42,27 +44,31 @@ public class LocalMultiPlayController extends BaseController {
     private final Set<KeyCode> player2JustPressedKeys = new HashSet<>();
     
     // 게임 모드 정보
-    private final boolean isItemMode;
+    private final GameMode gameMode;
     private final int difficulty;
 
-    public LocalMultiPlayController(boolean isItemMode, int difficulty) {
-        this.isItemMode = isItemMode;
+    public LocalMultiPlayController(GameMode gameMode, int difficulty) {
+        this.gameMode = gameMode;
         this.difficulty = difficulty;
+        
         // Player 1 시스템 초기화
-        if (isItemMode) {
+        if (gameMode == GameMode.ITEM) {
             player1System = new ItemTetrisSystem();
+        } else if (gameMode == GameMode.TIME_ATTACK) {
+            player1System = new TimeTetrisSystem();
         } else {
             player1System = new TetrisSystem();
         }
         player1System.setDifficulty(difficulty);
         
         // Player 2 시스템 초기화
-        if (isItemMode) {
+        if (gameMode == GameMode.ITEM) {
             player2System = new ItemTetrisSystem();
+        } else if (gameMode == GameMode.TIME_ATTACK) {
+            player2System = new TimeTetrisSystem();
         } else {
             player2System = new TetrisSystem();
         }
-        player2System.setDifficulty(difficulty);
 
         this.localMultiPlayView = new LocalMultiPlayView();
         this.lastDropTime1 = System.currentTimeMillis();
@@ -124,6 +130,11 @@ public class LocalMultiPlayController extends BaseController {
         // 초기 캔버스 크기 설정
         localMultiPlayView.updateCanvasSize(scene);
 
+        // TIME_ATTACK 모드일 경우 타이머 표시 활성화
+        if (gameMode == GameMode.TIME_ATTACK) {
+            localMultiPlayView.setShowTimer(true);
+        }
+
         // 키 릴리즈 핸들 따로 추가
         scene.setOnKeyReleased(event -> handleKeyReleased(event.getCode()));
 
@@ -134,6 +145,13 @@ public class LocalMultiPlayController extends BaseController {
     @Override
     protected void exit() {
         gameTimer.stop();
+        // TIME_ATTACK 모드: 타이머 일시정지
+        if (player1System instanceof TimeTetrisSystem) {
+            ((TimeTetrisSystem) player1System).pauseTimer();
+        }
+        if (player2System instanceof TimeTetrisSystem) {
+            ((TimeTetrisSystem) player2System).pauseTimer();
+        }
     }
 
     @Override
@@ -144,6 +162,14 @@ public class LocalMultiPlayController extends BaseController {
         player2PressedKeys.clear();
         player2JustPressedKeys.clear();
         
+        // TIME_ATTACK 모드: 타이머 재개
+        if (player1System instanceof TimeTetrisSystem) {
+            ((TimeTetrisSystem) player1System).resumeTimer();
+        }
+        if (player2System instanceof TimeTetrisSystem) {
+            ((TimeTetrisSystem) player2System).resumeTimer();
+        }
+        
         gameTimer.start();
     }
 
@@ -152,6 +178,15 @@ public class LocalMultiPlayController extends BaseController {
      */
     public void update(double deltaTime) {
         long currentTime = System.currentTimeMillis();
+        
+        // TIME_ATTACK 모드: 시간 체크 (두 플레이어 중 하나만 체크 - 동기화됨)
+        if (player1System instanceof TimeTetrisSystem) {
+            TimeTetrisSystem timeSystem = (TimeTetrisSystem) player1System;
+            if (timeSystem.isTimeUp()) {
+                handleTimeAttackEnd();
+                return;
+            }
+        }
         
         // Player 1 업데이트
         if (currentTime - lastDropTime1 >= player1System.getDropInterval()) {
@@ -180,6 +215,12 @@ public class LocalMultiPlayController extends BaseController {
      * 화면 업데이트
      */
     private void updateDisplay() {
+        // TIME_ATTACK 모드일 경우 남은 시간 전달, 아니면 -1
+        long remainingMillis = -1;
+        if (player1System instanceof TimeTetrisSystem) {
+            remainingMillis = ((TimeTetrisSystem) player1System).getRemainingTime();
+        }
+
         // Player 1 화면 업데이트
         var ghostPiece1 = player1System.getCurrentPiece() != null
                 ? SuperRotationSystem.hardDrop(player1System.getCurrentPiece(), player1System.getBoard())
@@ -197,7 +238,8 @@ public class LocalMultiPlayController extends BaseController {
                 player1AdderBoard,
                 player1System.getScore(),
                 player1System.getLines(),
-                player1System.getLevel());
+                player1System.getLevel(),
+                remainingMillis);
 
         // Player 2 화면 업데이트
         var ghostPiece2 = player2System.getCurrentPiece() != null
@@ -216,7 +258,8 @@ public class LocalMultiPlayController extends BaseController {
                 player2AdderBoard,
                 player2System.getScore(),
                 player2System.getLines(),
-                player2System.getLevel());
+                player2System.getLevel(),
+                remainingMillis);
     }
 
     @Override
@@ -372,7 +415,29 @@ public class LocalMultiPlayController extends BaseController {
      * 일시정지 처리
      */
     public void handlePause() {
-        stackState(new LocalMultiPauseController(isItemMode, difficulty));
+        stackState(new LocalMultiPauseController(gameMode, difficulty));
+    }
+
+    /**
+     * TIME_ATTACK 모드 시간 종료 처리
+     */
+    private void handleTimeAttackEnd() {
+        gameTimer.stop();
+        
+        // 점수 비교로 승자 결정
+        String winner;
+        int score1 = player1System.getScore();
+        int score2 = player2System.getScore();
+        
+        if (score1 > score2) {
+            winner = "Player 1";
+        } else if (score2 > score1) {
+            winner = "Player 2";
+        } else {
+            winner = "Draw";
+        }
+        
+        setState(new LocalMultiGameOverController(winner, gameMode, difficulty));
     }
 
     /**
@@ -394,7 +459,7 @@ public class LocalMultiPlayController extends BaseController {
     private void handleGameOver(String winner) {
         gameTimer.stop();
         // GameOver 화면으로 전환 (승자 표시)
-        setState(new LocalMultiGameOverController(winner, isItemMode, difficulty));
+        setState(new LocalMultiGameOverController(winner, gameMode, difficulty));
     }
 
     /**

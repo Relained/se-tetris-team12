@@ -23,7 +23,6 @@ public class LocalMultiSetupController extends GameSetupController {
     public void handleStart() {
         GameMode selectedMode = view.getSelectedGameMode();
         int selectedDifficulty = view.getSelectedDifficulty();
-        boolean isItemMode = selectedMode == GameMode.ITEM;
-        setState(new LocalMultiPlayController(isItemMode, selectedDifficulty));
+        setState(new LocalMultiPlayController(selectedMode, selectedDifficulty));
     }
 }
