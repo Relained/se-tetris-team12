@@ -2,20 +2,17 @@ package org.example.service;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.example.model.GameBoard;
-import org.example.model.GameMode;
 
 import javafx.application.Platform;
 
@@ -28,8 +25,10 @@ public class InGameNetworkManager {
     private final Socket tcpSocket;
     private DatagramSocket udpSocket;
 
-    private Thread receiveThread;
-    private Thread sendThread;
+    private Thread boardSyncSendThread;
+    private Thread boardSyncReceiveThread;
+    private Thread gameDataSendThread;
+    private Thread gameDataReceiveThread;
     private Runnable onDisconnect;
     private Consumer<int[][]> onDataReceived;
     private Supplier<int[][]> dataProvider;
@@ -64,7 +63,7 @@ public class InGameNetworkManager {
         try {
             udpSocket = new DatagramSocket(tcpSocket.getLocalSocketAddress());
             udpSocket.setSoTimeout(TICK_TIME);
-            startBoardSyncing();
+            startNetworking();
         } catch (IOException e) {
             System.err.println("[Error while creating UDP socket]");
             System.err.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
@@ -72,23 +71,41 @@ public class InGameNetworkManager {
         }
     }
 
-    private void startBoardSyncing() {
-        sendThread = new Thread(this::boardSyncSendLoop);
-        sendThread.setDaemon(true);
-        sendThread.start();
-        receiveThread = new Thread(this::boardSyncReceiveLoop);
-        receiveThread.setDaemon(true);
-        receiveThread.start();
+    private void startNetworking() {
+        boardSyncSendThread = new Thread(this::boardSyncSendLoop);
+        boardSyncSendThread.setDaemon(true);
+        boardSyncSendThread.start();
+        boardSyncReceiveThread = new Thread(this::boardSyncReceiveLoop);
+        boardSyncReceiveThread.setDaemon(true);
+        boardSyncReceiveThread.start();
+        gameDataSendThread = Thread.startVirtualThread(this::gameDataSendLoop);
+        gameDataReceiveThread = Thread.startVirtualThread(this::gameDataReceiveLoop);
     }
 
-    public void sendGameModeChange(GameMode mode) {
-        try {
-            byte[] message = new byte[1];
-            message[0] = 0x03;
-            sendQueue.put(message);
-        } catch (InterruptedException e) {
-            System.err.println("[Failed to queue game mode change]");
+    public void sendAdderBoard(int[][] adderBoard) {
+        int height = adderBoard.length;
+        int width = GameBoard.WIDTH;
+        int dataLen = height * width * 4;
+        ByteBuffer buffer = ByteBuffer.allocate(1 + dataLen);
+        buffer.put((byte) 0x01); // type
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                buffer.putInt(adderBoard[i][j]);
+            }
         }
+        sendQueue.offer(buffer.array());
+    }
+
+    public void sendGoWaitingRoom() {
+        byte[] msg = new byte[1];
+        msg[0] = (byte) 0x02; // type
+        sendQueue.offer(msg);
+    }
+
+    public void sendGameOver() {
+        byte[] msg = new byte[1];
+        msg[0] = (byte) 0x03; // type
+        sendQueue.offer(msg);
     }
 
     // 보드 동기화를 제외한 기타 게임 데이터 송신 루프
@@ -116,7 +133,8 @@ public class InGameNetworkManager {
         }
     }
 
-    private void receiveLoop() {
+    // 보드 동기화를 제외한 기타 게임 데이터 수신 루프
+    private void gameDataReceiveLoop() {
         DataInputStream inputStream;
         try {
             inputStream = new DataInputStream(tcpSocket.getInputStream());
@@ -272,10 +290,14 @@ public class InGameNetworkManager {
         if (remoteDisconnected) {
             Platform.runLater(onDisconnect);
         }
-        if (receiveThread != null)
-            receiveThread.interrupt();
-        if (sendThread != null)
-            sendThread.interrupt();
+        if (boardSyncSendThread != null)
+            boardSyncSendThread.interrupt();
+        if (boardSyncReceiveThread != null)
+            boardSyncReceiveThread.interrupt();
+        if (gameDataSendThread != null)
+            gameDataSendThread.interrupt();
+        if (gameDataReceiveThread != null)
+            gameDataReceiveThread.interrupt();
         try {
             tcpSocket.close();
             udpSocket.close();
@@ -286,5 +308,9 @@ public class InGameNetworkManager {
 
     public void disconnect() {
         releaseResources(false);
+    }
+
+    public Socket getSocket() {
+        return tcpSocket;
     }
 }

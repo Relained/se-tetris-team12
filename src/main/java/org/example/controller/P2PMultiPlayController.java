@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.util.Pair;
 
 import java.net.Socket;
 import java.util.HashSet;
@@ -37,7 +38,6 @@ public class P2PMultiPlayController extends BaseController {
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
 
     public P2PMultiPlayController(Socket socket, boolean isServer, GameMode gameMode, int difficulty) {
-        // 내 게임 시스템 초기화
         if (gameMode == GameMode.ITEM) {
             myTetrisSystem = new ItemTetrisSystem();
         } else {
@@ -51,7 +51,7 @@ public class P2PMultiPlayController extends BaseController {
             isServer,
             this::handleDisconnect,
             multiPlayView::updateOpponentDisplay,
-            () -> myTetrisSystem.getCompressedBoardData(true)
+            myTetrisSystem::getCompressedBoardData
         );
         this.isServer = isServer;
         this.gameMode = gameMode;
@@ -215,7 +215,7 @@ public class P2PMultiPlayController extends BaseController {
      * 일시정지 처리
      */
     public void handlePause() {
-        stackState(new PauseController(() -> myTetrisSystem.reset()));
+        stackState(new P2PPauseController(null, null));
     }
 
     public void handleDisconnect() {
@@ -227,28 +227,24 @@ public class P2PMultiPlayController extends BaseController {
         popState();
     }
 
-    /**
-     * 게임 오버 처리
-     */
+    // 그냥 disconnect 하는게 아니라, tcpSocket은 살려야됨
+    // udp는 끊고, 스레드는 전부 종료
     public void handleGameOver() {
-        // ScoreRecord record = new ScoreRecord(
-        //     myTetrisSystem.getScore(), 
-        //     myTetrisSystem.getLines(),
-        //     myTetrisSystem.getLevel(), 
-        //     myTetrisSystem.getDifficulty(), 
-        //     gameMode, 
-        //     ScoreManager.getInstance().isScoreEligibleForSaving(myTetrisSystem.getScore())
-        // );
-
-        // // 점수가 상위 10개에 드는지에 따라 다른 Controller로 전환
-        // if (record.isNewAndEligible()) {
-        //     setState(new ScoreInputController(record));
-        // } else {
-        //     setState(new ScoreNotEligibleController(record));
-        // }
         netManager.disconnect();
         gameTimer.stop();
         popState();
+    }
+
+    // 얘도 마찬가지
+    public Pair<Socket, Boolean> onGoWaitingRoom() {
+        netManager.disconnect();
+        gameTimer.stop();
+        return new Pair<>(netManager.getSocket(), isServer);
+    }
+
+    public void onGoMainMenu() {
+        netManager.disconnect();
+        gameTimer.stop();
     }
 
     public TetrisSystem getMyGameLogic() {

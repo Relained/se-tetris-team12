@@ -2,7 +2,6 @@ package org.example.service;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -71,57 +70,41 @@ public class WaitingRoomNetworkManager {
      * 게임 모드 변경을 상대에게 전송
      */
     public void sendGameModeChange(GameMode mode) {
-        try {
-            byte[] modeData = mode.name().getBytes(StandardCharsets.UTF_8);
-            ByteBuffer buffer = ByteBuffer.allocate(1 + modeData.length);
-            buffer.put((byte) 0x01); // 게임 모드 변경 메시지 타입
-            buffer.put(modeData);
-            sendQueue.put(buffer.array());
-        } catch (InterruptedException e) {
-            System.err.println("[Failed to queue game mode change]");
-        }
+        byte[] modeData = mode.name().getBytes(StandardCharsets.UTF_8);
+        ByteBuffer buffer = ByteBuffer.allocate(1 + modeData.length);
+        buffer.put((byte) 0x01); // 게임 모드 변경 메시지 타입
+        buffer.put(modeData);
+        sendQueue.offer(buffer.array());
     }
 
     /**
      * Ready 상태를 상대에게 전송
      */
     public void sendReadyState(boolean ready) {
-        try {
-            byte[] message = new byte[2];
-            message[0] = 0x02; // Ready 상태 메시지 타입
-            message[1] = (byte) (ready ? 1 : 0);
-            sendQueue.put(message);
-        } catch (InterruptedException e) {
-            System.err.println("[Failed to queue ready state]");
-        }
+        byte[] message = new byte[2];
+        message[0] = 0x02; // Ready 상태 메시지 타입
+        message[1] = (byte) (ready ? 1 : 0);
+        sendQueue.offer(message);
     }
 
     /**
      * 게임 시작 신호 전송
      */
     public void sendGameStart() {
-        try {
-            byte[] message = new byte[1];
-            message[0] = 0x03; // 게임 시작 메시지 타입
-            sendQueue.put(message);
-        } catch (InterruptedException e) {
-            System.err.println("[Failed to queue game start]");
-        }
+        byte[] message = new byte[1];
+        message[0] = 0x03; // 게임 시작 메시지 타입
+        sendQueue.offer(message);
     }
 
     /**
      * 채팅 메시지를 상대에게 전송
      */
     public void sendChatMessage(String chatMessage) {
-        try {
-            byte[] messageData = chatMessage.getBytes(StandardCharsets.UTF_8);
-            ByteBuffer buffer = ByteBuffer.allocate(1 + messageData.length);
-            buffer.put((byte) 0x05); // 채팅 메시지 타입
-            buffer.put(messageData);
-            sendQueue.put(buffer.array());
-        } catch (InterruptedException e) {
-            System.err.println("[Failed to queue chat message]");
-        }
+        byte[] messageData = chatMessage.getBytes(StandardCharsets.UTF_8);
+        ByteBuffer buffer = ByteBuffer.allocate(1 + messageData.length);
+        buffer.put((byte) 0x05); // 채팅 메시지 타입
+        buffer.put(messageData);
+        sendQueue.offer(buffer.array());
     }
 
     /**
@@ -142,7 +125,7 @@ public class WaitingRoomNetworkManager {
                 // Heartbeat 전송
                 byte[] message = new byte[1];
                 message[0] = 0x04; // Heartbeat 메시지 타입
-                sendQueue.put(message);
+                sendQueue.offer(message);
             }
         } catch (InterruptedException e) {
             System.err.println("(WaitingRoom)[Heartbeat thread interrupted - graceful shutdown]");
