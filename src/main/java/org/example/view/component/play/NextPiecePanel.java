@@ -1,7 +1,10 @@
 package org.example.view.component.play;
 
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -11,34 +14,113 @@ import org.example.model.TetrominoPosition;
 import java.util.List;
 
 public class NextPiecePanel extends VBox {
-    private static final int CELL_SIZE = 20;
-    private static final int SMALL_CELL_SIZE = 12;
-    private final Canvas[] nextCanvases;
+    private Canvas[] nextCanvases;
+    private Text title;
+    private double largeCellSize = 20;
+    private double smallCellSize = 12;
+    private boolean horizontalMode = false;
+    private HBox canvasContainer;
 
     public NextPiecePanel() {
-        super(10);
-        this.nextCanvases = new Canvas[5];
-
-        Text title = new Text("Next");
+        super(5);
+        setAlignment(Pos.TOP_CENTER);
+        setPadding(new Insets(10));
+        
+        // 테두리 스타일
+        setStyle("-fx-background-color: #444; -fx-border-color: #888; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
+        
+        this.title = new Text("Next");
         title.setFill(Color.WHITE);
         title.setFont(Font.font(16));
         getChildren().add(title);
 
-        // 첫 번째 캔버스는 크게, 나머지는 작게 생성
+        this.nextCanvases = new Canvas[5];
+        this.canvasContainer = new HBox(10);
+        canvasContainer.setAlignment(Pos.CENTER);
+        
+        // 캔버스 초기화
+        initializeCanvases();
+        
+        // 가로 크기 변경 감지 - 가로 크기 기준으로 비율 조정
+        widthProperty().addListener((obs, oldVal, newVal) -> {
+            double newWidth = newVal.doubleValue();
+            if (newWidth > 0) {
+                adjustCanvasSizeByWidth(newWidth);
+            }
+        });
+    }
+    
+    public void setHorizontalMode(boolean horizontal) {
+        this.horizontalMode = horizontal;
+        updateLayout();
+    }
+    
+    private void initializeCanvases() {
         for (int i = 0; i < 5; i++) {
             if (i == 0) {
-                // 첫 번째 피스는 크기 그대로 + 창틀 효과를 위해 약간 더 크게
-                nextCanvases[i] = new Canvas(4 * CELL_SIZE + 8, 4 * CELL_SIZE + 8);
-                nextCanvases[i].setStyle("-fx-effect: dropshadow(gaussian, rgba(255,255,255,0.3), 3, 0.5, 0, 0); " +
-                                       "-fx-background-color: #444; -fx-background-radius: 5;");
+                nextCanvases[i] = new Canvas(4 * largeCellSize + 8, 4 * largeCellSize + 8);
             } else {
-                // 나머지 피스들은 작게, 하지만 충분히 크게 설정하여 짤리지 않도록
-                nextCanvases[i] = new Canvas(4 * SMALL_CELL_SIZE + 4, 4 * SMALL_CELL_SIZE + 4);
+                nextCanvases[i] = new Canvas(4 * smallCellSize + 4, 4 * smallCellSize + 4);
             }
-            getChildren().add(nextCanvases[i]);
         }
-
-        setStyle("-fx-background-color: #333; -fx-padding: 10;");
+        updateLayout();
+    }
+    
+    private void updateLayout() {
+        getChildren().clear();
+        getChildren().add(title);
+        
+        if (horizontalMode) {
+            // 수평 모드: 모든 캔버스를 HBox에 추가
+            canvasContainer.getChildren().clear();
+            for (Canvas canvas : nextCanvases) {
+                canvasContainer.getChildren().add(canvas);
+            }
+            getChildren().add(canvasContainer);
+        } else {
+            // 수직 모드: 캔버스를 직접 추가
+            for (Canvas canvas : nextCanvases) {
+                getChildren().add(canvas);
+            }
+        }
+    }
+    
+    /**
+     * 가로 크기를 기준으로 캔버스 크기를 조정합니다.
+     */
+    private void adjustCanvasSizeByWidth(double containerWidth) {
+        double padding = 24; // 좌우 패딩 + 테두리
+        double availableWidth = containerWidth - padding;
+        
+        if (availableWidth <= 0) return;
+        
+        double largeCanvasSize;
+        double smallCanvasSize;
+        
+        if (horizontalMode) {
+            // 수평 모드: 너비를 5개의 캔버스로 나눔
+            largeCanvasSize = Math.max(50, (availableWidth / 5) - 10);
+            smallCanvasSize = largeCanvasSize; // 수평 모드에서는 모두 같은 크기
+        } else {
+            // 수직 모드: 가로 크기의 80%로 제한하여 늘어남 방지
+            largeCanvasSize = Math.max(60, Math.min(availableWidth * 0.85, 150));
+            smallCanvasSize = Math.max(40, largeCanvasSize * 0.55);
+        }
+        
+        nextCanvases[0].setWidth(largeCanvasSize);
+        nextCanvases[0].setHeight(largeCanvasSize);
+        largeCellSize = (largeCanvasSize - 8) / 4;
+        
+        smallCellSize = (smallCanvasSize - 4) / 4;
+        
+        for (int i = 1; i < 5; i++) {
+            nextCanvases[i].setWidth(smallCanvasSize);
+            nextCanvases[i].setHeight(smallCanvasSize);
+        }
+        
+        // 폰트 크기도 비례하여 조정
+        double fontSize = Math.max(10, Math.min(18, largeCanvasSize / 4));
+        title.setFont(Font.font(fontSize));
     }
 
     public void updateNextPieces(List<TetrominoPosition> nextPieces) {
@@ -60,13 +142,11 @@ public class NextPiecePanel extends VBox {
             gc.strokeRoundRect(1, 1, canvas.getWidth() - 2, canvas.getHeight() - 2, 5, 5);
         }
 
-        // getCurrentShape()를 사용하여 customShape도 반영
         int[][] shape = piece.getCurrentShape();
-        // getDisplayColor()를 사용하여 customColor도 반영
         Color color = piece.getDisplayColor(org.example.service.ColorManager.getInstance());
 
         // 인덱스에 따라 다른 셀 크기 사용
-        double cellSize = (index == 0) ? CELL_SIZE : SMALL_CELL_SIZE;
+        double cellSize = (index == 0) ? largeCellSize : smallCellSize;
         
         // Center the piece in the canvas
         double offsetX = (canvas.getWidth() - shape[0].length * cellSize) / 2;

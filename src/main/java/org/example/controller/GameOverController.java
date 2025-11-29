@@ -11,7 +11,7 @@ import org.example.view.GameOverView;
  */
 public class GameOverController extends BaseController {
     
-    private GameOverView gameOverView;
+    protected GameOverView gameOverView;
     private ScoreRecord record;
     
     public GameOverController(ScoreRecord record) {

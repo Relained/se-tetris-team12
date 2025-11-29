@@ -13,18 +13,18 @@ import org.example.model.KeyData;
 import org.example.service.ItemTetrisSystem;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
-import org.example.service.TimeTetrisSystem;
 import org.example.service.ScoreManager;
-import org.example.view.PlayView;
+import org.example.view.MultiPlayView;
 import org.example.model.ScoreRecord;
 
 /**
- * PlayState의 게임 로직과 입력을 처리하는 Controller
+ * MultiPlayState의 게임 로직과 입력을 처리하는 Controller
+ * 멀티플레이어 게임을 관리하며, 내 게임과 상대방 게임을 모두 처리합니다.
  */
-public class PlayController extends BaseController {
+public class MultiPlayController extends BaseController {
 
-    private PlayView playView;
-    private TetrisSystem tetrisSystem;
+    private MultiPlayView multiPlayView;
+    private TetrisSystem myTetrisSystem;
     private GameMode gameMode;
     private AnimationTimer gameTimer;
 
@@ -32,17 +32,16 @@ public class PlayController extends BaseController {
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
 
-    public PlayController(GameMode gameMode, int difficulty) {
+    public MultiPlayController(GameMode gameMode, int difficulty) {
+        // 내 게임 시스템 초기화
         if (gameMode == GameMode.ITEM) {
-            tetrisSystem = new ItemTetrisSystem();
-        } else if (gameMode == GameMode.TIME_ATTACK) {
-            tetrisSystem = new TimeTetrisSystem();
+            myTetrisSystem = new ItemTetrisSystem();
         } else {
-            tetrisSystem = new TetrisSystem();
+            myTetrisSystem = new TetrisSystem();
         }
-        tetrisSystem.setDifficulty(difficulty);
+        myTetrisSystem.setDifficulty(difficulty);
 
-        this.playView = new PlayView();
+        this.multiPlayView = new MultiPlayView();
         this.gameMode = gameMode;
         this.lastDropTime = System.currentTimeMillis();
 
@@ -56,25 +55,23 @@ public class PlayController extends BaseController {
 
     @Override
     protected Scene createScene() {
-        var root = playView.createView(
+        // 멀티플레이 모드 활성화
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
+        
+        var root = multiPlayView.createView(
             gameMode.toString(),
-            getDifficultyString(tetrisSystem.getDifficulty())
+            getDifficultyString(myTetrisSystem.getDifficulty())
         );
         createDefaultScene(root);
 
         // 높이와 너비 변경 시 캔버스 크기 비율에 맞게 자동 조정
-        scene.heightProperty().addListener((_, _, _) -> playView.updateCanvasSize(scene));
-        scene.widthProperty().addListener((_, _, _) -> playView.updateCanvasSize(scene));
+        scene.heightProperty().addListener((_, _, _) -> multiPlayView.updateCanvasSize(scene));
+        scene.widthProperty().addListener((_, _, _) -> multiPlayView.updateCanvasSize(scene));
         
         // 초기 캔버스 크기 설정
-        playView.updateCanvasSize(scene);
+        multiPlayView.updateCanvasSize(scene);
 
-        // TIME_ATTACK 모드일 경우 타이머 표시 활성화
-        if (gameMode == GameMode.TIME_ATTACK) {
-            playView.setShowTimer(true);
-        }
-
-        //키 릴리즈 핸들 따로 추가
+        // 키 릴리즈 핸들 따로 추가
         scene.setOnKeyReleased(event -> handleKeyReleased(event.getCode()));
 
         gameTimer.start();
@@ -84,18 +81,12 @@ public class PlayController extends BaseController {
     @Override
     protected void exit() {
         gameTimer.stop();
-        // TIME_ATTACK 모드: 타이머 일시정지
-        if (tetrisSystem instanceof TimeTetrisSystem) {
-            ((TimeTetrisSystem) tetrisSystem).pauseTimer();
-        }
+        // exit()는 Pause 시에도 호출되므로 여기서 멀티플레이 모드를 비활성화하지 않음
+        // 비활성화는 Main Menu나 Exit 시에만 수행
     }
 
     @Override
     protected void resume() {
-        // TIME_ATTACK 모드: 타이머 재개
-        if (tetrisSystem instanceof TimeTetrisSystem) {
-            ((TimeTetrisSystem) tetrisSystem).resumeTimer();
-        }
         gameTimer.start();
     }
 
@@ -117,29 +108,19 @@ public class PlayController extends BaseController {
      */
     public void update(double deltaTime) {
         long currentTime = System.currentTimeMillis();
-        
-        // TIME_ATTACK 모드: 시간 체크
-        if (tetrisSystem instanceof TimeTetrisSystem) {
-            TimeTetrisSystem timeSystem = (TimeTetrisSystem) tetrisSystem;
-            if (timeSystem.isTimeUp()) {
-                handleGameOver();
-                return;
-            }
-        }
-        
-        if (currentTime - lastDropTime >= tetrisSystem.getDropInterval()) {
-            tetrisSystem.update();
+        if (currentTime - lastDropTime >= myTetrisSystem.getDropInterval()) {
+            myTetrisSystem.update();
             lastDropTime = currentTime;
         }
 
         // Apply any pending board clears (after effect delay)
-        tetrisSystem.getBoard().processPendingClearsIfDue();
+        myTetrisSystem.getBoard().processPendingClearsIfDue();
 
         // Update UI through View
         updateDisplay();
 
         // Check game over
-        if (tetrisSystem.isGameOver()) {
+        if (myTetrisSystem.isGameOver()) {
             handleGameOver();
         }
     }
@@ -148,26 +129,19 @@ public class PlayController extends BaseController {
      * 화면 업데이트
      */
     private void updateDisplay() {
-        var ghostPiece = tetrisSystem.getCurrentPiece() != null
-                ? SuperRotationSystem.hardDrop(tetrisSystem.getCurrentPiece(), tetrisSystem.getBoard())
+        var ghostPiece = myTetrisSystem.getCurrentPiece() != null
+                ? SuperRotationSystem.hardDrop(myTetrisSystem.getCurrentPiece(), myTetrisSystem.getBoard())
                 : null;
 
-        // TIME_ATTACK 모드일 경우 남은 시간 전달, 아니면 -1
-        long remainingMillis = -1;
-        if (tetrisSystem instanceof TimeTetrisSystem) {
-            remainingMillis = ((TimeTetrisSystem) tetrisSystem).getRemainingTime();
-        }
-
-        playView.updateDisplay(
-                tetrisSystem.getBoard(),
-                tetrisSystem.getCurrentPiece(),
+        multiPlayView.updateDisplay(
+                myTetrisSystem.getBoard(),
+                myTetrisSystem.getCurrentPiece(),
                 ghostPiece,
-                tetrisSystem.getHoldPiece(),
-                tetrisSystem.getNextQueue(),
-                tetrisSystem.getScore(),
-                tetrisSystem.getLines(),
-                tetrisSystem.getLevel(),
-                remainingMillis);
+                myTetrisSystem.getHoldPiece(),
+                myTetrisSystem.getNextQueue(),
+                myTetrisSystem.getScore(),
+                myTetrisSystem.getLines(),
+                myTetrisSystem.getLevel());
     }
 
     @Override
@@ -198,7 +172,7 @@ public class PlayController extends BaseController {
      * 입력에 따른 게임 로직 실행
      */
     private void handleInputs() {
-        if (tetrisSystem == null || tetrisSystem.isGameOver())
+        if (myTetrisSystem == null || myTetrisSystem.isGameOver())
             return;
 
         // SettingManager를 통해 최신 키 설정 가져오기
@@ -207,13 +181,13 @@ public class PlayController extends BaseController {
         // 한 번만 실행되는 입력 처리
         for (KeyCode key : justPressedKeys) {
             if (key == data.hardDrop) {
-                tetrisSystem.hardDrop();
+                myTetrisSystem.hardDrop();
             } else if (key == data.rotateCounterClockwise) {
-                tetrisSystem.rotateCounterClockwise();
+                myTetrisSystem.rotateCounterClockwise();
             } else if (key == data.rotateClockwise) {
-                tetrisSystem.rotateClockwise();
+                myTetrisSystem.rotateClockwise();
             } else if (key == data.hold) {
-                tetrisSystem.hold();
+                myTetrisSystem.hold();
             } else if (key == data.pause) {
                 handlePause();
             }
@@ -222,11 +196,11 @@ public class PlayController extends BaseController {
         // 연속 실행되는 입력 처리
         for (KeyCode key : pressedKeys) {
             if (key == data.moveLeft) {
-                tetrisSystem.moveLeft();
+                myTetrisSystem.moveLeft();
             } else if (key == data.moveRight) {
-                tetrisSystem.moveRight();
+                myTetrisSystem.moveRight();
             } else if (key == data.softDrop) {
-                tetrisSystem.moveDown();
+                myTetrisSystem.moveDown();
             }
         }
     }
@@ -235,20 +209,23 @@ public class PlayController extends BaseController {
      * 일시정지 처리
      */
     public void handlePause() {
-        stackState(new PauseController(tetrisSystem::reset));
+        
     }
 
     /**
      * 게임 오버 처리
      */
     public void handleGameOver() {
+        // 멀티플레이 모드 비활성화
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
+        
         ScoreRecord record = new ScoreRecord(
-            tetrisSystem.getScore(), 
-            tetrisSystem.getLines(),
-            tetrisSystem.getLevel(), 
-            tetrisSystem.getDifficulty(), 
+            myTetrisSystem.getScore(), 
+            myTetrisSystem.getLines(),
+            myTetrisSystem.getLevel(), 
+            myTetrisSystem.getDifficulty(), 
             gameMode, 
-            ScoreManager.getInstance().isScoreEligibleForSaving(tetrisSystem.getScore())
+            ScoreManager.getInstance().isScoreEligibleForSaving(myTetrisSystem.getScore())
         );
 
         // 점수가 상위 10개에 드는지에 따라 다른 Controller로 전환
@@ -260,10 +237,33 @@ public class PlayController extends BaseController {
     }
 
     /**
-     * 게임 로직 반환
+     * 상대방을 추가합니다.
+     * 네트워크나 AI 상대방이 연결될 때 호출됩니다.
      */
-    public TetrisSystem getGameLogic() {
-        return tetrisSystem;
+    public void addOpponent() {
+        multiPlayView.addOpponentCanvas(scene);
+    }
+
+    /**
+     * 특정 상대방의 게임 화면을 업데이트합니다.
+     * 
+     * @param opponentIndex 상대방 인덱스
+     * @param board 상대방의 게임 보드
+     * @param currentPiece 상대방의 현재 테트로미노
+     * @param ghostPiece 상대방의 고스트 테트로미노
+     */
+    public void updateOpponentDisplay(int opponentIndex,
+                                     org.example.model.GameBoard board,
+                                     org.example.model.TetrominoPosition currentPiece,
+                                     org.example.model.TetrominoPosition ghostPiece) {
+        multiPlayView.updateOpponentDisplay(opponentIndex, board, currentPiece, ghostPiece);
+    }
+
+    /**
+     * 내 게임 로직 반환
+     */
+    public TetrisSystem getMyGameLogic() {
+        return myTetrisSystem;
     }
 
     public GameMode getGameMode() {

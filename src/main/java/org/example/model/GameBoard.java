@@ -152,6 +152,12 @@ public class GameBoard {
         }
         return 0;
     }
+    
+    public void setCellColor(int row, int col, int color) {
+        if (row >= 0 && row < HEIGHT + BUFFER_ZONE && col >= 0 && col < WIDTH) {
+            board[row][col] = color;
+        }
+    }
 
     public boolean isGameOver() {
         // Check if any blocks exist in the buffer zone (invisible top area)
@@ -175,12 +181,15 @@ public class GameBoard {
 
     /**
      * 보드의 특정 위치에 있는 아이템 정보를 반환합니다.
-     * 
+     *
      * @param row 행 (절대 좌표)
      * @param col 열 (절대 좌표)
      * @return 해당 위치의 아이템 (없으면 ItemBlock.NONE)
      */
     public ItemBlock getItemAt(int row, int col) {
+        if (row >= 0 && row < HEIGHT + BUFFER_ZONE && col >= 0 && col < WIDTH) {
+            return ItemBlock.fromSymbol(board[row][col]);
+        }
         return ItemBlock.NONE;
     }
 }

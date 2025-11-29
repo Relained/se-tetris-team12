@@ -46,10 +46,10 @@ public class SettingController extends BaseController {
     
     /**
      * Controls 버튼 클릭 시 처리
-     * 키 설정 화면으로 이동
+     * 키 설정 선택 화면으로 이동 (싱글/멀티플레이 키 설정 선택)
      */
     public void handleControls() {
-        stackState(new KeySettingController());
+        stackState(new KeySettingSelectController());
     }
     
     /**

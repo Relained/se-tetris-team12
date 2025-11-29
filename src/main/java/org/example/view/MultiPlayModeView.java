@@ -9,26 +9,30 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class GameModeView extends BaseView {
+/**
+ * MultiPlay Mode 선택 화면의 UI를 담당하는 View 클래스
+ * 로컬 또는 온라인 멀티플레이 방식을 선택합니다.
+ */
+public class MultiPlayModeView extends BaseView {
 
-    public GameModeView() {
+    public MultiPlayModeView() {
         super(true);
     }
 
-    public VBox createView(Runnable onNormal, Runnable onItem, Runnable onGoBack) {
+    public VBox createView(Runnable onLocal, Runnable onOnline, Runnable onGoBack) {
         VBox root = new VBox(40);
         root.setAlignment(Pos.CENTER);
         root.setBackground(new Background(
             new BackgroundFill(colorManager.getBackgroundColor(), null, null)
         ));
 
-        Text title = new Text("Select Game Mode");
+        Text title = new Text("Select MultiPlay Mode");
         title.setFill(colorManager.getPrimaryTextColor());
         title.setFont(Font.font("Arial", 36));
 
         var created = buttonSystem.createNavigableButtonFromList(
-            List.of("Normal", "Item", "Go Back"),
-            List.of(onNormal, onItem, onGoBack)
+            List.of("Local MultiPlay", "Online MultiPlay", "Go Back"),
+            List.of(onLocal, onOnline, onGoBack)
         );
 
         root.getChildren().add(title);

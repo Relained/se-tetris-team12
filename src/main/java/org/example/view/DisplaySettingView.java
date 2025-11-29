@@ -3,7 +3,6 @@ package org.example.view;
 import java.util.List;
 
 import org.example.model.SettingData.ScreenSize;
-import org.example.service.DisplayManager;
 
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
@@ -19,11 +18,9 @@ import javafx.scene.text.Text;
 public class DisplaySettingView extends BaseView {
     
     private Text title;
-    private DisplayManager displayManager;
     
     public DisplaySettingView() {
         super(true); // NavigableButtonSystem 사용
-        this.displayManager = DisplayManager.getInstance();
     }
     
     /**
@@ -48,19 +45,11 @@ public class DisplaySettingView extends BaseView {
         title.setFill(Color.WHITE);
         title.setFont(Font.font("Arial", 36));
 
-        // DisplayManager를 활용하여 각 크기의 실제 해상도 표시
-        int smallW = displayManager.getWidth(ScreenSize.SMALL);
-        int smallH = displayManager.getHeight(ScreenSize.SMALL);
-        int mediumW = displayManager.getWidth(ScreenSize.MEDIUM);
-        int mediumH = displayManager.getHeight(ScreenSize.MEDIUM);
-        int largeW = displayManager.getWidth(ScreenSize.LARGE);
-        int largeH = displayManager.getHeight(ScreenSize.LARGE);
-
         var created = buttonSystem.createNavigableButtonFromList(
             List.of(
-                String.format("Small (%dx%d)", smallW, smallH),
-                String.format("Medium (%dx%d)", mediumW, mediumH),
-                String.format("Large (%dx%d)", largeW, largeH),
+                String.format("Small"),
+                String.format("Medium"),
+                String.format("Large"),
                 "Go Back"
             ),
             List.of(onSmall, onMedium, onLarge, onGoBack)
