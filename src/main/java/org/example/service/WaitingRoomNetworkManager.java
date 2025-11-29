@@ -243,9 +243,6 @@ public class WaitingRoomNetworkManager {
                     Platform.runLater(() -> onChatMessageReceived.accept(chatMessage));
                 }
             }
-        } catch (EOFException e) {
-            System.err.println("[Remote disconnected - graceful shutdown]");
-            releaseResources(true);
         }
         catch (IOException e) {
             if (Thread.currentThread().isInterrupted()) {

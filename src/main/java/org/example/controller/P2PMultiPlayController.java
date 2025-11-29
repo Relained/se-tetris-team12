@@ -32,10 +32,11 @@ public class P2PMultiPlayController extends BaseController {
     private InGameNetworkManager netManager;
 
     private long lastDropTime;
+    private final boolean isServer;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
 
-    public P2PMultiPlayController(Socket socket, GameMode gameMode, int difficulty) {
+    public P2PMultiPlayController(Socket socket, boolean isServer, GameMode gameMode, int difficulty) {
         // 내 게임 시스템 초기화
         if (gameMode == GameMode.ITEM) {
             myTetrisSystem = new ItemTetrisSystem();
@@ -47,10 +48,12 @@ public class P2PMultiPlayController extends BaseController {
         this.multiPlayView = new P2PMultiPlayView();
         this.netManager = new InGameNetworkManager(
             socket, 
+            isServer,
             this::handleDisconnect,
             multiPlayView::updateOpponentDisplay,
             () -> myTetrisSystem.getCompressedBoardData(true)
         );
+        this.isServer = isServer;
         this.gameMode = gameMode;
         this.lastDropTime = System.currentTimeMillis();
 

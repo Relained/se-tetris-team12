@@ -1,16 +1,22 @@
 package org.example.service;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.example.model.GameBoard;
+import org.example.model.GameMode;
+
 import javafx.application.Platform;
 
 /**
@@ -27,12 +33,13 @@ public class InGameNetworkManager {
     private Runnable onDisconnect;
     private Consumer<int[][]> onDataReceived;
     private Supplier<int[][]> dataProvider;
+    private final boolean isServer;
 
     // ----------- 수신 관련 -----------
     
 
     // ----------- 송신 관련 -----------
-    private final BlockingQueue<int[][]> sendQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<byte[]> sendQueue = new LinkedBlockingQueue<>();
 
     // ----------- 상수 -----------
     private static final int TICK_TIME = 40;
@@ -41,13 +48,15 @@ public class InGameNetworkManager {
     private static final int MAX_PACKET_SIZE = 1024; // 1KB
 
     public InGameNetworkManager(
-        Socket socket, 
+        Socket socket,
+        boolean isServer,
         Runnable onDisconnect, 
         Consumer<int[][]> onDataReceived, 
         Supplier<int[][]> dataProvider
     )
     {
         this.tcpSocket = socket;
+        this.isServer = isServer;
         this.onDisconnect = onDisconnect;
         this.onDataReceived = onDataReceived;
         this.dataProvider = dataProvider;
@@ -55,8 +64,7 @@ public class InGameNetworkManager {
         try {
             udpSocket = new DatagramSocket(tcpSocket.getLocalSocketAddress());
             udpSocket.setSoTimeout(TICK_TIME);
-            startSending();
-            startReceiving();
+            startBoardSyncing();
         } catch (IOException e) {
             System.err.println("[Error while creating UDP socket]");
             System.err.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
@@ -64,27 +72,92 @@ public class InGameNetworkManager {
         }
     }
 
-    private void startSending() {
-        sendThread = new Thread(this::sendLoop);
+    private void startBoardSyncing() {
+        sendThread = new Thread(this::boardSyncSendLoop);
         sendThread.setDaemon(true);
         sendThread.start();
-    }
-
-    private void startReceiving() {
-        receiveThread = new Thread(this::receiveLoop);
+        receiveThread = new Thread(this::boardSyncReceiveLoop);
         receiveThread.setDaemon(true);
         receiveThread.start();
     }
 
-    // public void sendBoardData(int[][] board) {
-    //     sendQueue.add(board);
-    // }
+    public void sendGameModeChange(GameMode mode) {
+        try {
+            byte[] message = new byte[1];
+            message[0] = 0x03;
+            sendQueue.put(message);
+        } catch (InterruptedException e) {
+            System.err.println("[Failed to queue game mode change]");
+        }
+    }
 
-    private void sendLoop() {
+    // 보드 동기화를 제외한 기타 게임 데이터 송신 루프
+    private void gameDataSendLoop() {
+        DataOutputStream outputStream;
+        try {
+            outputStream = new DataOutputStream(tcpSocket.getOutputStream());
+        } catch (IOException e) {
+            System.err.println("[Failed to initialize output stream]");
+            releaseResources(true);
+            return;
+        }
+        try {
+            while (true) {
+                byte[] message = sendQueue.take(); // blocking - 메시지 올 때까지 대기
+                outputStream.writeInt(message.length);
+                outputStream.write(message);
+                outputStream.flush();
+            }
+        } catch (InterruptedException e) {
+            System.err.println("(InGame)[Send thread interrupted - graceful shutdown]");
+        } catch (IOException e) {
+            System.err.println("[Send failed - connection lost]");
+            releaseResources(true);
+        }
+    }
+
+    private void receiveLoop() {
+        DataInputStream inputStream;
+        try {
+            inputStream = new DataInputStream(tcpSocket.getInputStream());
+        } catch (IOException e) {
+            System.err.println("[Failed to initialize input stream]");
+            releaseResources(true);
+            return;
+        }
+        try {
+            while (true) {
+                int length = inputStream.readInt(); // blocking - 데이터 올 때까지 대기
+                byte type = inputStream.readByte();
+                byte[] data = inputStream.readNBytes(length - 1);
+
+                if (type == 0x01) { 
+                   
+                } 
+                else if (type == 0x02) { 
+
+                }
+                else if (type == 0x03) {
+
+                }
+            }
+        }
+        catch (IOException e) {
+            if (Thread.currentThread().isInterrupted()) {
+                System.err.println("(InGame)[Receive thread interrupted - graceful shutdown]");
+            } else {
+                System.err.println("[Receive failed - connection lost]");
+                releaseResources(true);
+            }
+        }
+    }
+
+    //UDP 보드 동기화 송신 루프
+    private void boardSyncSendLoop() {
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
-            System.err.println("[Send thread interrupted - graceful shutdown]");
+            System.err.println("(BoardSync)[Send thread interrupted - graceful shutdown]");
             return;
         }
 
@@ -114,18 +187,18 @@ public class InGameNetworkManager {
             try {
                 Thread.sleep(TICK_TIME);
             } catch (InterruptedException e) {
-                System.err.println("[Send thread interrupted - graceful shutdown]");
+                System.err.println("(BoardSync)[Send thread interrupted - graceful shutdown]");
                 return;
             }
         }
     }
 
-    // 데이터 수신 루프
-    private void receiveLoop() {
+    // UDP 보드 동기화 수신 루프
+    private void boardSyncReceiveLoop() {
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
-            System.err.println("[Receive thread interrupted - graceful shutdown]");
+            System.err.println("(BoardSync)[Receive thread interrupted - graceful shutdown]");
             return;
         }
 
@@ -173,7 +246,7 @@ public class InGameNetworkManager {
                 // 타임아웃이면 다음 tick으로
             } catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {
-                    System.err.println("[Receive thread interrupted - graceful shutdown]");
+                    System.err.println("(BoardSync)[Receive thread interrupted - graceful shutdown]");
                     return;
                 }
                 System.err.println("[Error while reading data]");
@@ -189,7 +262,7 @@ public class InGameNetworkManager {
             try {
                 Thread.sleep(sleep);
             } catch (InterruptedException e) {
-                System.err.println("[Receive thread interrupted - graceful shutdown]");
+                System.err.println("(BoardSync)[Receive thread interrupted - graceful shutdown]");
                 break;
             }
         }
