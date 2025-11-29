@@ -7,8 +7,8 @@ import org.example.model.GameBoard;
 
 public class DummyTetrisCanvas extends TetrisCanvas {
     // Magic Number (TetrisSystem과 같아야함)
-    private static final int WEIGHT_MARK = 200;
-    private static final int BOMB_MARK = 201;
+    private static final int WEIGHT_MARK = 'W';
+    private static final int BOMB_MARK = 'B';
     private static final int GHOST_MARK = -2;
 
     int[][] compressedBoard;

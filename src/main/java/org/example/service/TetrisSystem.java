@@ -352,8 +352,8 @@ public class TetrisSystem {
      */
     public int[][] getCompressedBoardData() {
         // Magic Number
-        final int WEIGHT_MARK = 200;
-        final int BOMB_MARK = 201;
+        final int WEIGHT_MARK = 'W';
+        final int BOMB_MARK = 'B';
         final int GHOST_MARK = -2;
 
         // 비트마스킹: 상위 16비트(symbol), 하위 8비트(color)

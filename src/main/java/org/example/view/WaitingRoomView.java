@@ -11,13 +11,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+
+import org.example.model.GameMode;
 import org.example.service.FontManager;
 
 import java.util.function.Consumer;
 
 public class WaitingRoomView extends BaseView {
 
-    private static final String[] MODE_NAMES = {"Normal", "Item", "Time-Limited"};
     private static final int MODE_COUNT = 3;
     private static final int READY_BUTTON_INDEX = 0;
     
@@ -84,12 +85,13 @@ public class WaitingRoomView extends BaseView {
         label.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
 
         gameModeButtons = new Button[MODE_COUNT];
+        var modes = GameMode.values();
         for (int i = 0; i < MODE_COUNT; i++) {
-            gameModeButtons[i] = createGameModeButton(MODE_NAMES[i]);
+            gameModeButtons[i] = createGameModeButton(modes[i].toString());
             int index = i;
             gameModeButtons[i].setOnMouseClicked(event -> event.consume());
             gameModeButtons[i].setOnAction(event -> {
-                onGameModeChange.accept(MODE_NAMES[index]);
+                onGameModeChange.accept(modes[index].toString());
                 selectGameMode(index);
             });
         }
@@ -110,7 +112,7 @@ public class WaitingRoomView extends BaseView {
         label.setFill(colorManager.getPrimaryTextColor());
         label.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
 
-        gameModeText = new Text(MODE_NAMES[0]);
+        gameModeText = new Text(GameMode.NORMAL.toString());
         gameModeText.setFill(colorManager.getPrimaryTextColor());
         gameModeText.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
 

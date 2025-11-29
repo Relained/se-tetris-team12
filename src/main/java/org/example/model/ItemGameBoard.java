@@ -295,24 +295,6 @@ public class ItemGameBoard extends GameBoard {
         pendingClearDueMs = 0L;
     }
 
-    @Override
-    public int[][] getCompressedBoard() {
-        int[][] compressed = super.getCompressedBoard();
-        for (var entry : itemBoard.entrySet()) {
-            int key = entry.getKey();
-            int row = key / WIDTH - BUFFER_ZONE;
-            int col = key % WIDTH;
-
-            if (row < 0) continue;
-
-            ItemBlock item = entry.getValue();
-            if (!item.isItem()) continue;
-
-            compressed[row][col] |= (item.getSymbol() << 16);
-        }
-        return compressed;
-    }
-
     public void setItemBlock(int row, int col, ItemBlock item) {
         if (row >= 0 && row < HEIGHT + BUFFER_ZONE && col >= 0 && col < WIDTH) {
             if (item == ItemBlock.NONE) {

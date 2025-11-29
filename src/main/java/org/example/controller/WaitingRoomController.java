@@ -58,7 +58,7 @@ public class WaitingRoomController extends BaseController {
     private void handleGameModeChange(String newMode) {
         GameMode newGameMode = switch (newMode) {
             case "Item" -> GameMode.ITEM;
-            case "Time-Limited" -> GameMode.TIME_LIMITED;
+            case "Time Attack" -> GameMode.TIME_ATTACK;
             default -> GameMode.NORMAL;
         };
         if (selectedGameMode == newGameMode) {
