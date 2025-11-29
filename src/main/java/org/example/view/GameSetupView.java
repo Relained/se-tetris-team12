@@ -17,7 +17,7 @@ import org.example.view.component.RadioButtonGroupSystem.RadioButtonGroupWrapper
 
 /**
  * 게임 모드와 난이도를 함께 선택하는 통합 View
- * 1. 게임 모드 라디오 그룹 (Normal / Item)
+ * 1. 게임 모드 라디오 그룹 (Normal / Item / Time Attack)
  * 2. 난이도 라디오 그룹 (Easy / Medium / Hard)
  * 3. Start 버튼
  * 4. Go Back 버튼
@@ -97,7 +97,7 @@ public class GameSetupView extends BaseView {
         label.setFont(Font.font("Arial", 20));
         
         // 라디오 버튼 그룹 생성
-        List<GameMode> modes = List.of(GameMode.NORMAL, GameMode.ITEM);
+        List<GameMode> modes = List.of(GameMode.NORMAL, GameMode.ITEM, GameMode.TIME_ATTACK);
         gameModeRadio = radioButtonSystem.createRadioButtonGroup(
             modes, 
             0, // 기본값: NORMAL
