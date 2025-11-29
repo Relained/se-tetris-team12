@@ -55,6 +55,8 @@ public class MultiPlayController extends BaseController {
 
     @Override
     protected Scene createScene() {
+        // 멀티플레이 모드 활성화
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
         
         var root = multiPlayView.createView(
             gameMode.toString(),
@@ -79,8 +81,8 @@ public class MultiPlayController extends BaseController {
     @Override
     protected void exit() {
         gameTimer.stop();
-        // 멀티플레이 모드 비활성화
-        org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
+        // exit()는 Pause 시에도 호출되므로 여기서 멀티플레이 모드를 비활성화하지 않음
+        // 비활성화는 Main Menu나 Exit 시에만 수행
     }
 
     @Override
@@ -207,13 +209,16 @@ public class MultiPlayController extends BaseController {
      * 일시정지 처리
      */
     public void handlePause() {
-        stackState(new PauseController(() -> myTetrisSystem.reset()));
+        
     }
 
     /**
      * 게임 오버 처리
      */
     public void handleGameOver() {
+        // 멀티플레이 모드 비활성화
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
+        
         ScoreRecord record = new ScoreRecord(
             myTetrisSystem.getScore(), 
             myTetrisSystem.getLines(),

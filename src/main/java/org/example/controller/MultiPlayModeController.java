@@ -15,7 +15,6 @@ public class MultiPlayModeController extends BaseController {
 
     public MultiPlayModeController() {
         this.view = new MultiPlayModeView();
-        org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
     }
 
     @Override

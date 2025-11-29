@@ -21,15 +21,12 @@ public class LocalMultiPauseController extends PauseController {
 
     @Override
     protected Scene createScene() {
-        // Pause 화면도 멀티플레이 크기(2배)로 유지
-        org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
         return super.createScene();
     }
     
     @Override
     protected void resume() {
-        // Resume 시 멀티플레이 모드 복원
-        org.example.service.DisplayManager.getInstance().setMultiplayerMode(true);
+        // Resume 시 특별한 처리 없음 (부모 클래스의 resume 사용)
     }
     
     /**
@@ -42,11 +39,21 @@ public class LocalMultiPauseController extends PauseController {
     
     /**
      * Main Menu 버튼 클릭 시 처리 - 메인 메뉴로 이동
+     * 멀티플레이 모드를 비활성화합니다.
      */
     @Override
     public void handleMainMenu() {
-        // 멀티플레이 모드 종료
         org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
         setState(new StartController());
+    }
+    
+    /**
+     * Exit Game 버튼 클릭 시 처리 - 게임 종료
+     * 멀티플레이 모드를 비활성화합니다.
+     */
+    @Override
+    public void handleExit() {
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
+        System.exit(0);
     }
 }

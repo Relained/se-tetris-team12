@@ -226,6 +226,8 @@ public class LocalMultiPlayController extends BaseController {
                 ? SuperRotationSystem.hardDrop(player1System.getCurrentPiece(), player1System.getBoard())
                 : null;
         
+        var holdPiece1 = player1System.getHoldPiece();
+        
         var nextPiece1 = !player1System.getNextQueue().isEmpty() 
                 ? player1System.getNextQueue().get(0) 
                 : null;
@@ -234,6 +236,7 @@ public class LocalMultiPlayController extends BaseController {
                 player1System.getBoard(),
                 player1System.getCurrentPiece(),
                 ghostPiece1,
+                holdPiece1,
                 nextPiece1,
                 player1AdderBoard,
                 player1System.getScore(),
@@ -246,6 +249,8 @@ public class LocalMultiPlayController extends BaseController {
                 ? SuperRotationSystem.hardDrop(player2System.getCurrentPiece(), player2System.getBoard())
                 : null;
         
+        var holdPiece2 = player2System.getHoldPiece();
+        
         var nextPiece2 = !player2System.getNextQueue().isEmpty() 
                 ? player2System.getNextQueue().get(0) 
                 : null;
@@ -254,6 +259,7 @@ public class LocalMultiPlayController extends BaseController {
                 player2System.getBoard(),
                 player2System.getCurrentPiece(),
                 ghostPiece2,
+                holdPiece2,
                 nextPiece2,
                 player2AdderBoard,
                 player2System.getScore(),

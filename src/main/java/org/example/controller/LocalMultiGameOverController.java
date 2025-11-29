@@ -44,5 +44,25 @@ public class LocalMultiGameOverController extends GameOverController {
     public void handlePlayAgain() {
         setState(new LocalMultiPlayController(gameMode, difficulty));
     }
-    // handleMainMenu, handleExit, handleKeyInput은 부모 클래스에서 상속받아 사용
+    
+    /**
+     * Main Menu 버튼 클릭 시 처리 - 시작 화면으로 이동
+     * 멀티플레이 모드를 비활성화합니다.
+     */
+    @Override
+    public void handleMainMenu() {
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
+        setState(new StartController());
+    }
+    
+    /**
+     * Exit Game 버튼 클릭 시 처리 - 게임 종료
+     * 멀티플레이 모드를 비활성화합니다.
+     */
+    @Override
+    public void handleExit() {
+        org.example.service.DisplayManager.getInstance().setMultiplayerMode(false);
+        System.exit(0);
+    }
+    // handleKeyInput은 부모 클래스에서 상속받아 사용
 }
