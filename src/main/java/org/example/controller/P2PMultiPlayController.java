@@ -60,8 +60,6 @@ public class P2PMultiPlayController extends BaseController {
                 update(now / 1_000_000_000.0);
             }
         };
-        netManager.startSending();
-        netManager.startReceiving();
     }
 
     @Override

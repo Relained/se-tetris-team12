@@ -39,12 +39,15 @@ public class WaitingRoomNetworkManager {
     private static final long HEARTBEAT_INTERVAL = 2000;
     private static final long HEARTBEAT_TIMEOUT = 3500;
 
-    public WaitingRoomNetworkManager(Socket socket, boolean isServer, 
-                                    Runnable onDisconnect, 
-                                    Runnable onGameStart, 
-                                    Consumer<GameMode> onGameModeChange, 
-                                    Consumer<Boolean> onOpponentReadyChanged,
-                                    Consumer<String> onChatMessageReceived) 
+    public WaitingRoomNetworkManager(
+        Socket socket, 
+        boolean isServer, 
+        Runnable onDisconnect, 
+        Runnable onGameStart, 
+        Consumer<GameMode> onGameModeChange, 
+        Consumer<Boolean> onOpponentReadyChanged,
+        Consumer<String> onChatMessageReceived
+    )
     {
         this.socket = socket;
         this.isServer = isServer;
