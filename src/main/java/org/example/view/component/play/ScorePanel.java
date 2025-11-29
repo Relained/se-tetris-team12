@@ -16,6 +16,7 @@ public class ScorePanel extends VBox {
     private final HBox linesLevelRow;
     private final Text modeText;
     private final Text difficultyText;
+    private final HBox modeDifficultyRow;
     private final Text timerText;
     
     private double baseFontSize = 14;
@@ -47,20 +48,31 @@ public class ScorePanel extends VBox {
         linesLevelRow.setAlignment(Pos.CENTER);
         linesLevelRow.getChildren().addAll(linesText, levelText);
 
-        modeText = new Text("Mode: " + mode);
-        modeText.setFill(Color.WHITE);
+        modeText = new Text(mode);
+        modeText.setFill(Color.LIGHTBLUE);
         modeText.setFont(Font.font(14));
 
         difficultyText = new Text(difficulty);
-        difficultyText.setFill(Color.WHITE);
+        // 난이도별 색상 설정
+        Color difficultyColor = switch (difficulty) {
+            case "Easy" -> Color.LIGHTGREEN;
+            case "Normal" -> Color.YELLOW;
+            case "Hard" -> Color.ORANGERED;
+            default -> Color.WHITE;
+        };
+        difficultyText.setFill(difficultyColor);
         difficultyText.setFont(Font.font(14));
+        
+        modeDifficultyRow = new HBox(10);
+        modeDifficultyRow.setAlignment(Pos.CENTER);
+        modeDifficultyRow.getChildren().addAll(modeText, difficultyText);
 
         timerText = new Text("Time: 2:00");
         timerText.setFill(Color.YELLOW);
         timerText.setFont(Font.font(14));
         timerText.setVisible(false);
 
-        getChildren().addAll(title, scoreText, linesLevelRow, modeText, difficultyText, timerText);
+        getChildren().addAll(title, scoreText, linesLevelRow, modeDifficultyRow, timerText);
         setStyle("-fx-background-color: #333;");
         
         // 가로 크기 변경 감지 - 가로 크기 기준으로 폰트 조정
@@ -76,7 +88,7 @@ public class ScorePanel extends VBox {
      * 가로 크기를 기준으로 폰트 크기를 조정합니다.
      */
     private void adjustFontSizeByWidth(double containerWidth) {
-        double padding = 20; // 좌우 패딩
+        double padding = 10; // 좌우 패딩
         double availableWidth = containerWidth - padding;
         
         if (availableWidth <= 0) return;
