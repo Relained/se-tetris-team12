@@ -231,12 +231,6 @@ public class LocalMultiPlayController extends BaseController {
      * 화면 업데이트
      */
     private void updateDisplay() {
-        // TIME_ATTACK 모드일 경우 남은 시간 전달, 아니면 -1
-        long remainingMillis = -1;
-        if (player1System instanceof TimeTetrisSystem) {
-            remainingMillis = ((TimeTetrisSystem) player1System).getRemainingTime();
-        }
-
         // Player 1 화면 업데이트
         var ghostPiece1 = player1System.getCurrentPiece() != null
                 ? SuperRotationSystem.hardDrop(player1System.getCurrentPiece(), player1System.getBoard())
@@ -258,7 +252,7 @@ public class LocalMultiPlayController extends BaseController {
                 player1System.getScore(),
                 player1System.getLines(),
                 player1System.getLevel(),
-                remainingMillis);
+                player1System.getRemainingTime());
 
         // Player 2 화면 업데이트
         var ghostPiece2 = player2System.getCurrentPiece() != null
@@ -281,7 +275,7 @@ public class LocalMultiPlayController extends BaseController {
                 player2System.getScore(),
                 player2System.getLines(),
                 player2System.getLevel(),
-                remainingMillis);
+                player1System.getRemainingTime());
     }
 
     @Override

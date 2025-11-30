@@ -1,6 +1,5 @@
 package org.example.controller;
 
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.input.KeyEvent;
@@ -111,12 +110,12 @@ public class WaitingRoomController extends BaseController {
 
     private void handleGameStart() {
         System.out.println("[Game starting...]");
-        swapState(new P2PMultiPlayController(netManager.getSocket(), isServer, selectedGameMode, 2));
+        setState(new P2PMultiPlayController(netManager.getSocket(), isServer, selectedGameMode, 2));
     }
 
     private void handleGoBack() {
         netManager.disconnect();
-        popState();
+        setState(new StartController());
     }
 
     private void handleDisconnect() {
@@ -125,7 +124,7 @@ public class WaitingRoomController extends BaseController {
         alert.setHeaderText("Connection Lost");
         alert.setContentText("The other person's connection has been lost");
         alert.showAndWait();
-        Platform.runLater(BaseController::popState);
+        setState(new StartController());
     }
 
     private void setGameModeText(GameMode mode) {

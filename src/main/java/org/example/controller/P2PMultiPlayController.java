@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.example.model.AdderBoardSync;
 import org.example.model.GameMode;
 import org.example.model.KeyData;
 import org.example.service.DisplayManager;
@@ -26,11 +27,12 @@ import org.example.view.P2PMultiPlayView;
  */
 public class P2PMultiPlayController extends BaseController {
 
-    private P2PMultiPlayView multiPlayView;
-    private TetrisSystem myTetrisSystem;
+    private P2PMultiPlayView view;
+    private TetrisSystem tetrisSystem;
     private GameMode gameMode;
     private AnimationTimer gameTimer;
     private InGameNetworkManager netManager;
+    private AdderBoardSync adderBoard;
 
     private long lastDropTime;
     private final boolean isServer;
@@ -39,23 +41,37 @@ public class P2PMultiPlayController extends BaseController {
 
     public P2PMultiPlayController(Socket socket, boolean isServer, GameMode gameMode, int difficulty) {
         if (gameMode == GameMode.ITEM) {
-            myTetrisSystem = new ItemTetrisSystem();
+            tetrisSystem = new ItemTetrisSystem();
         } else {
-            myTetrisSystem = new TetrisSystem();
+            tetrisSystem = new TetrisSystem();
         }
-        myTetrisSystem.setDifficulty(difficulty);
+        tetrisSystem.setDifficulty(difficulty);
 
-        this.multiPlayView = new P2PMultiPlayView();
+        this.view = new P2PMultiPlayView();
         this.netManager = new InGameNetworkManager(
             socket, 
-            isServer,
             this::handleDisconnect,
-            multiPlayView::updateOpponentDisplay,
-            myTetrisSystem::getCompressedBoardData
+            this::handleOpponentGoWaitingRoom,
+            this::handleOpponentGameOver,
+            this::handleAdderBoardReceived,
+            view::updateOpponentDisplay,
+            tetrisSystem::getCompressedBoardData
         );
         this.isServer = isServer;
         this.gameMode = gameMode;
         this.lastDropTime = System.currentTimeMillis();
+        this.adderBoard = new AdderBoardSync(tetrisSystem.getBoard());
+
+        tetrisSystem.setOnPieceLocked(() -> {
+            var completedLines = tetrisSystem.getCompletedLineIndices();
+            if (completedLines.size() >= 2 && tetrisSystem.getPreviousSnapshot() != null) {
+                int[][] lines = tetrisSystem.getPreviousSnapshot().getLines(completedLines);
+                netManager.sendAdderBoard(lines);
+            }
+            if (!adderBoard.isEmpty()) {
+                adderBoard.applyToBoard();
+            }
+        });
 
         gameTimer = new AnimationTimer() {
             @Override
@@ -68,18 +84,18 @@ public class P2PMultiPlayController extends BaseController {
     @Override
     protected Scene createScene() {
         DisplayManager.getInstance().setMultiplayerMode(true);
-        var root = multiPlayView.createView(
+        var root = view.createView(
             gameMode.toString(),
-            getDifficultyString(myTetrisSystem.getDifficulty())
+            getDifficultyString(tetrisSystem.getDifficulty())
         );
         createDefaultScene(root);
 
         // 높이와 너비 변경 시 캔버스 크기 비율에 맞게 자동 조정
-        scene.heightProperty().addListener((_, _, _) -> multiPlayView.updateCanvasSize(scene));
-        scene.widthProperty().addListener((_, _, _) -> multiPlayView.updateCanvasSize(scene));
+        scene.heightProperty().addListener((_, _, _) -> view.updateCanvasSize(scene));
+        scene.widthProperty().addListener((_, _, _) -> view.updateCanvasSize(scene));
         
         // 초기 캔버스 크기 설정
-        multiPlayView.updateCanvasSize(scene);
+        view.updateCanvasSize(scene);
 
         // 키 릴리즈 핸들 따로 추가
         scene.setOnKeyReleased(event -> handleKeyReleased(event.getCode()));
@@ -114,19 +130,19 @@ public class P2PMultiPlayController extends BaseController {
     /**
      * 게임 업데이트 로직
      */
-    public void update(double deltaTime) {
+    private void update(double deltaTime) {
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastDropTime >= myTetrisSystem.getDropInterval()) {
-            myTetrisSystem.update();
+        if (currentTime - lastDropTime >= tetrisSystem.getDropInterval()) {
+            tetrisSystem.update();
             lastDropTime = currentTime;
         }
-        myTetrisSystem.getBoard().processPendingClearsIfDue();
+        tetrisSystem.getBoard().processPendingClearsIfDue();
 
         // Update UI through View
         updateDisplay();
 
         // Check game over
-        if (myTetrisSystem.isGameOver()) {
+        if (tetrisSystem.isGameOver()) {
             handleGameOver();
         }
     }
@@ -135,19 +151,25 @@ public class P2PMultiPlayController extends BaseController {
      * 화면 업데이트
      */
     private void updateDisplay() {
-        var ghostPiece = myTetrisSystem.getCurrentPiece() != null
-                ? SuperRotationSystem.hardDrop(myTetrisSystem.getCurrentPiece(), myTetrisSystem.getBoard())
+        var ghostPiece = tetrisSystem.getCurrentPiece() != null
+                ? SuperRotationSystem.hardDrop(tetrisSystem.getCurrentPiece(), tetrisSystem.getBoard())
                 : null;
 
-        multiPlayView.updateDisplay(
-                myTetrisSystem.getBoard(),
-                myTetrisSystem.getCurrentPiece(),
+        var nextPiece = !tetrisSystem.getNextQueue().isEmpty() 
+                ? tetrisSystem.getNextQueue().get(0) 
+                : null;
+        
+        view.updateDisplay(
+                tetrisSystem.getBoard(),
+                tetrisSystem.getCurrentPiece(),
                 ghostPiece,
-                myTetrisSystem.getHoldPiece(),
-                myTetrisSystem.getNextQueue(),
-                myTetrisSystem.getScore(),
-                myTetrisSystem.getLines(),
-                myTetrisSystem.getLevel());
+                tetrisSystem.getHoldPiece(),
+                nextPiece,
+                adderBoard,
+                tetrisSystem.getScore(),
+                tetrisSystem.getLines(),
+                tetrisSystem.getLevel(),
+                tetrisSystem.getRemainingTime());
     }
 
     @Override
@@ -178,7 +200,7 @@ public class P2PMultiPlayController extends BaseController {
      * 입력에 따른 게임 로직 실행
      */
     private void handleInputs() {
-        if (myTetrisSystem == null || myTetrisSystem.isGameOver())
+        if (tetrisSystem == null || tetrisSystem.isGameOver())
             return;
 
         // SettingManager를 통해 최신 키 설정 가져오기
@@ -187,13 +209,13 @@ public class P2PMultiPlayController extends BaseController {
         // 한 번만 실행되는 입력 처리
         for (KeyCode key : justPressedKeys) {
             if (key == data.hardDrop) {
-                myTetrisSystem.hardDrop();
+                tetrisSystem.hardDrop();
             } else if (key == data.rotateCounterClockwise) {
-                myTetrisSystem.rotateCounterClockwise();
+                tetrisSystem.rotateCounterClockwise();
             } else if (key == data.rotateClockwise) {
-                myTetrisSystem.rotateClockwise();
+                tetrisSystem.rotateClockwise();
             } else if (key == data.hold) {
-                myTetrisSystem.hold();
+                tetrisSystem.hold();
             } else if (key == data.pause) {
                 handlePause();
             }
@@ -202,60 +224,56 @@ public class P2PMultiPlayController extends BaseController {
         // 연속 실행되는 입력 처리
         for (KeyCode key : pressedKeys) {
             if (key == data.moveLeft) {
-                myTetrisSystem.moveLeft();
+                tetrisSystem.moveLeft();
             } else if (key == data.moveRight) {
-                myTetrisSystem.moveRight();
+                tetrisSystem.moveRight();
             } else if (key == data.softDrop) {
-                myTetrisSystem.moveDown();
+                tetrisSystem.moveDown();
             }
         }
     }
 
-    /**
-     * 일시정지 처리
-     */
-    public void handlePause() {
-        stackState(new P2PPauseController(null, null));
-    }
-
-    public void handleDisconnect() {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Connection Lost");
-        alert.setHeaderText(null);
-        alert.setContentText("Disconnected from opponent.");
-        alert.showAndWait();
-        popState();
-    }
-
-    // 그냥 disconnect 하는게 아니라, tcpSocket은 살려야됨
-    // udp는 끊고, 스레드는 전부 종료
-    public void handleGameOver() {
-        netManager.disconnect();
+    private void handleOpponentGameOver() {
         gameTimer.stop();
-        popState();
+        setState(new P2PGameOverController("You Win!", netManager.getSocket(), isServer, gameMode, tetrisSystem.getDifficulty()));
     }
 
-    // 얘도 마찬가지
-    public Pair<Socket, Boolean> onGoWaitingRoom() {
-        netManager.disconnect();
+    private void handleOpponentGoWaitingRoom() {
+        gameTimer.stop();
+        setState(new WaitingRoomController(netManager.getSocket(), isServer));
+    }
+
+    private void handleAdderBoardReceived(int[][] addedLines) {
+        adderBoard.addLines(addedLines);
+    }
+
+    private void handleDisconnect() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText("Connection Lost");
+        alert.setContentText("The other person's connection has been lost");
+        alert.showAndWait();
+        setState(new StartController());
+    }
+    
+    private void handlePause() {
+        stackState(new P2PPauseController(this::handleGoWaitingRoom, this::handleGoMainMenu, isServer));
+    }
+
+    private void handleGameOver() {
+        netManager.sendGameOverAndShutDown();
+        gameTimer.stop();
+        setState(new P2PGameOverController("You Lose!", netManager.getSocket(), isServer, gameMode, tetrisSystem.getDifficulty()));
+    }
+
+    private Pair<Socket, Boolean> handleGoWaitingRoom() {
+        netManager.sendGoWaitingRoomAndShutDown();
         gameTimer.stop();
         return new Pair<>(netManager.getSocket(), isServer);
     }
 
-    public void onGoMainMenu() {
+    private void handleGoMainMenu() {
         netManager.disconnect();
         gameTimer.stop();
-    }
-
-    public TetrisSystem getMyGameLogic() {
-        return myTetrisSystem;
-    }
-
-    public GameMode getGameMode() {
-        return gameMode;
-    }
-
-    public void resetLastDropTime() {
-        this.lastDropTime = System.currentTimeMillis();
     }
 }

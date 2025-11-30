@@ -62,6 +62,7 @@ public class TimeTetrisSystem extends TetrisSystem {
     /**
      * 남은 시간 반환 (밀리초)
      */
+    @Override
     public long getRemainingTime() {
         if (isPaused) {
             return pausedRemainingTime;

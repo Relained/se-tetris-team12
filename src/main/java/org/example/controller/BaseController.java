@@ -81,13 +81,4 @@ public abstract class BaseController {
         }
         stackState(newState);
     }
-
-    //현재 스테이트를 새로운 스테이트로 교체할 때 사용 (이전 스테이트는 남겨놓음)
-    public static void swapState(BaseController newState) {
-        if (!stateStack.empty()) {
-            stateStack.pop().exit();
-        }
-        DisplayManager.getInstance().popView();
-        stackState(newState);
-    }
 }

@@ -118,7 +118,7 @@ public class ClientConnectionController extends BaseController {
                     connectionHistory.add(ipAddress);
                 }
                 Platform.runLater(() -> {
-                    swapState(new WaitingRoomController(socket, false));
+                    setState(new WaitingRoomController(socket, false));
                 });
             }
             catch (IOException e) {

@@ -41,14 +41,6 @@ public class ShortNextPiecePanel extends VBox {
         getChildren().add(nextCanvas);
         
         setStyle("-fx-background-color: #333;");
-        
-        // 가로 크기 변경 감지 - 가로 크기 기준으로 비율 조정
-        widthProperty().addListener((obs, oldVal, newVal) -> {
-            double newWidth = newVal.doubleValue();
-            if (newWidth > 0) {
-                adjustCanvasSizeByWidth(newWidth);
-            }
-        });
     }
     
     /**

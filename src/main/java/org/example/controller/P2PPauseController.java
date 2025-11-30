@@ -7,7 +7,7 @@ import javafx.util.Pair;
 import java.net.Socket;
 import java.util.function.Supplier;
 
-import org.example.view.PauseView;
+import org.example.view.P2PPauseView;
 
 /**
  * Local Multiplayer 모드의 Pause 화면 Controller
@@ -15,24 +15,27 @@ import org.example.view.PauseView;
  */
 public class P2PPauseController extends BaseController {
     
-    private PauseView pauseView;
+    private P2PPauseView pauseView;
     private Supplier<Pair<Socket, Boolean>> onGoWaitingRoom;
     private Runnable onGoMainMenu;
+    private boolean isServer;
     
-    public P2PPauseController(Supplier<Pair<Socket, Boolean>> onGoWaitingRoom, Runnable onGoMainMenu) {
-        this.pauseView = new PauseView();
+    public P2PPauseController(Supplier<Pair<Socket, Boolean>> onGoWaitingRoom, Runnable onGoMainMenu, boolean isServer) {
+        this.pauseView = new P2PPauseView();
         this.onGoWaitingRoom = onGoWaitingRoom;
         this.onGoMainMenu = onGoMainMenu;
+        this.isServer = isServer;
     }
 
     @Override
     protected Scene createScene() {        
         var root = pauseView.createView(
-            this::handleResume,      // Resume 버튼
-            this::handleGoWaitingRoom,   // 대기실로 돌아가기 버튼
-            this::handleSettings,    // Settings 버튼
-            this::handleMainMenu,    // Main Menu 버튼
-            this::handleExit         // Exit 버튼
+            this::handleResume,
+            this::handleGoWaitingRoom,
+            this::handleSettings,
+            this::handleMainMenu,
+            this::handleExit,
+            isServer
         );
         createDefaultScene(root);
         return scene;
@@ -44,7 +47,7 @@ public class P2PPauseController extends BaseController {
     
     public void handleGoWaitingRoom() {
         Pair<Socket, Boolean> playerData = onGoWaitingRoom.get();
-        swapState(new WaitingRoomController(playerData.getKey(), playerData.getValue()));
+        setState(new WaitingRoomController(playerData.getKey(), playerData.getValue()));
     }
 
     public void handleSettings() {

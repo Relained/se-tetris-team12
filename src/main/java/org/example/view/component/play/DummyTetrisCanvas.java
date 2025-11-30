@@ -57,7 +57,7 @@ public class DummyTetrisCanvas extends TetrisCanvas {
                     drawCell(gc, col, row, color);
                     drawItemMark(gc, col, row, symbol);
                 }
-                else if (value >= 1 && value <= 7) {
+                else if (1 <= value && value <= 8) {
                     Color color = colorManager.getColorFromIndex(value);
                     drawCell(gc, col, row, color);
                 }

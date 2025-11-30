@@ -9,12 +9,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import org.example.model.AdderBoardSync;
 import org.example.model.TetrominoPosition;
 import org.example.view.component.play.AdderCanvas;
 import org.example.view.component.play.DummyTetrisCanvas;
 import org.example.view.component.play.HoldPanel;
-import org.example.view.component.play.NextPiecePanel;
 import org.example.view.component.play.ScorePanel;
+import org.example.view.component.play.ShortNextPiecePanel;
 import org.example.view.component.play.TetrisCanvas;
 
 
@@ -22,14 +23,14 @@ import org.example.view.component.play.TetrisCanvas;
  * P2P MultiPlay 화면의 UI를 담당하는 View 클래스
  */
 public class P2PMultiPlayView extends BaseView{
-
     private TetrisCanvas myGameCanvas;
     private DummyTetrisCanvas opGameCanvas;
+    private ShortNextPiecePanel nextPanel;
     private HoldPanel holdPanel;
-    private NextPiecePanel nextPanel;
-    //private AdderCanvas adderCanvas;
+    private AdderCanvas adderCanvas;
     private ScorePanel scorePanel;
-    private HBox root; // HBox 참조 저장
+    private HBox root;
+    private VBox widgetsContainer;
 
     public P2PMultiPlayView() {
         super(false); // NavigableButtonSystem 사용하지 않음
@@ -42,7 +43,6 @@ public class P2PMultiPlayView extends BaseView{
      * @return 구성된 HBox root
      */
     public HBox createView(String mode, String difficulty) {
-        // 메인 컨테이너 (상대 | 내 게임 캔버스 | 우측 패널)
         root = new HBox(20);
         root.setBackground(new Background(
             new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)
@@ -51,34 +51,38 @@ public class P2PMultiPlayView extends BaseView{
 
         opGameCanvas = new DummyTetrisCanvas();
         myGameCanvas = new TetrisCanvas();
+        HBox.setHgrow(opGameCanvas, Priority.NEVER);
         HBox.setHgrow(myGameCanvas, Priority.NEVER);
+        widgetsContainer = createPlayerWidgets(mode, difficulty);
 
-        // 우측: VBox로 상하 분할
-        VBox rightContainer = new VBox(10);
-        rightContainer.setAlignment(Pos.TOP_CENTER);
-
-        // 상단 영역: Hold와 Next
-        VBox topContainer = new VBox(10);
-        topContainer.setAlignment(Pos.TOP_CENTER);
-
-        holdPanel = new HoldPanel();
-        nextPanel = new NextPiecePanel();
-        nextPanel.setHorizontalMode(false); // 수직 모드
-        // adderCanvas = new AdderCanvas(); // 에더캔버스 10 x 10으로 수정 및 크기를 컨테이너 따라가도록 수정 필요
-
-        topContainer.getChildren().addAll(holdPanel, nextPanel); 
-        VBox.setVgrow(topContainer, Priority.ALWAYS);
-
-        // 하단 영역: Score
-        scorePanel = new ScorePanel(mode, difficulty);
-
-        rightContainer.getChildren().addAll(topContainer, scorePanel);
-
-        HBox.setHgrow(rightContainer, Priority.ALWAYS);
-        
-        root.getChildren().addAll(opGameCanvas, myGameCanvas, rightContainer);
+        root.getChildren().addAll(opGameCanvas, myGameCanvas, widgetsContainer);
 
         return root;
+    }
+
+    private VBox createPlayerWidgets(String mode, String difficulty) {
+        VBox container = new VBox(10);
+        container.setAlignment(Pos.TOP_CENTER);
+        container.setPadding(new Insets(10));
+        container.setStyle("-fx-background-color: #333;");
+        container.setMinWidth(150);
+        container.setPrefWidth(150);
+
+        nextPanel = new ShortNextPiecePanel();
+        holdPanel = new HoldPanel();
+        adderCanvas = new AdderCanvas();
+        VBox spacer = new VBox();
+        scorePanel = new ScorePanel(mode, difficulty);
+
+        container.getChildren().addAll(nextPanel, holdPanel, adderCanvas, spacer, scorePanel);
+        VBox.setVgrow(nextPanel, Priority.NEVER);
+        VBox.setVgrow(holdPanel, Priority.NEVER);
+        VBox.setVgrow(adderCanvas, Priority.NEVER);
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+        VBox.setVgrow(scorePanel, Priority.NEVER);
+        HBox.setHgrow(container, Priority.NEVER);
+
+        return container;
     }
 
     /**
@@ -87,6 +91,10 @@ public class P2PMultiPlayView extends BaseView{
      */
     public void updateCanvasSize(Scene scene) {
         if (myGameCanvas == null || scene == null) return;
+
+        double sceneWidth = scene.getWidth();
+        double padding = 40;
+        double spacing = 20;
         
         // 사용 가능한 높이 전체를 캔버스에 할당
         double availableHeight = scene.getHeight() - 40; // 상하 패딩
@@ -94,7 +102,22 @@ public class P2PMultiPlayView extends BaseView{
         
         myGameCanvas.setCanvasSize(canvasWidth, availableHeight);
         opGameCanvas.setCanvasSize(canvasWidth, availableHeight);
-        // adderCanvas.setCanvasSize(canvasWidth, availableHeight * 0.2);
+
+        double totalCanvasWidth = canvasWidth * 2;
+        double availableWidgetWidth = (sceneWidth - totalCanvasWidth - padding - spacing * 3) / 2;
+        double widgetWidth = Math.max(100, Math.min(180, availableWidgetWidth));
+        
+        if (widgetsContainer != null) {
+            widgetsContainer.setPrefWidth(widgetWidth);
+            widgetsContainer.setMinWidth(widgetWidth);
+            widgetsContainer.setMaxWidth(widgetWidth);
+        }
+        
+        double adderSize = widgetWidth - 20; // 패딩 고려
+        adderCanvas.setCanvasSize(adderSize, adderSize);
+        
+        double nextPanelSize = Math.max(60, adderSize * 0.8);
+        nextPanel.setPreferredCanvasSize(nextPanelSize);
     }
 
     /**
@@ -104,12 +127,16 @@ public class P2PMultiPlayView extends BaseView{
                              TetrominoPosition currentPiece,
                              TetrominoPosition ghostPiece,
                              TetrominoPosition holdPiece,
-                             java.util.List<TetrominoPosition> nextQueue,
-                             int score, int lines, int level) {
+                             TetrominoPosition nextPiece,
+                             AdderBoardSync adderBoard,
+                             int score, int lines, int level,
+                            long remainingMillis) {
         myGameCanvas.updateBoard(board, currentPiece, ghostPiece);
         holdPanel.updateHoldPiece(holdPiece);
-        nextPanel.updateNextPieces(nextQueue);
+        nextPanel.updateNextPiece(nextPiece);
+        adderCanvas.updateBoard(adderBoard.getDrawBuffer());
         scorePanel.updateStats(score, lines, level);
+        scorePanel.updateTimer(remainingMillis);
     }
 
     // 상대방 화면 업데이트

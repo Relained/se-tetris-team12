@@ -30,9 +30,11 @@ public class InGameNetworkManager {
     private Thread gameDataSendThread;
     private Thread gameDataReceiveThread;
     private Runnable onDisconnect;
-    private Consumer<int[][]> onDataReceived;
-    private Supplier<int[][]> dataProvider;
-    private final boolean isServer;
+    private Runnable onGoWaitingRoom;
+    private Runnable onGameOver;
+    private Consumer<int[][]> onAdderBoardReceived;
+    private Consumer<int[][]> onBoardDataReceived;
+    private Supplier<int[][]> boardDataProvider;
 
     // ----------- 수신 관련 -----------
     
@@ -48,30 +50,41 @@ public class InGameNetworkManager {
 
     public InGameNetworkManager(
         Socket socket,
-        boolean isServer,
-        Runnable onDisconnect, 
-        Consumer<int[][]> onDataReceived, 
-        Supplier<int[][]> dataProvider
+        Runnable onDisconnect,
+        Runnable onGoWaitingRoom,
+        Runnable onGameOver,
+        Consumer<int[][]> onAdderBoardReceived,
+        Consumer<int[][]> onBoardDataReceived, 
+        Supplier<int[][]> boardDataProvider
     )
     {
         this.tcpSocket = socket;
-        this.isServer = isServer;
         this.onDisconnect = onDisconnect;
-        this.onDataReceived = onDataReceived;
-        this.dataProvider = dataProvider;
+        this.onGoWaitingRoom = onGoWaitingRoom;
+        this.onGameOver = onGameOver;
+        this.onAdderBoardReceived = onAdderBoardReceived;
+        this.onBoardDataReceived = onBoardDataReceived;
+        this.boardDataProvider = boardDataProvider;
 
         try {
             udpSocket = new DatagramSocket(tcpSocket.getLocalSocketAddress());
             udpSocket.setSoTimeout(TICK_TIME);
-            startNetworking();
+            Thread.startVirtualThread(this::startNetworking);
         } catch (IOException e) {
             System.err.println("[Error while creating UDP socket]");
             System.err.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
+            releaseResources(true);
             udpSocket = null;
         }
     }
-
+    
     private void startNetworking() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            System.err.println("(InGame)[Networking start interrupted - graceful shutdown]");
+            return;
+        }
         boardSyncSendThread = new Thread(this::boardSyncSendLoop);
         boardSyncSendThread.setDaemon(true);
         boardSyncSendThread.start();
@@ -80,6 +93,7 @@ public class InGameNetworkManager {
         boardSyncReceiveThread.start();
         gameDataSendThread = Thread.startVirtualThread(this::gameDataSendLoop);
         gameDataReceiveThread = Thread.startVirtualThread(this::gameDataReceiveLoop);
+        System.err.println("-----------------In Game Network manager initialized------------------");
     }
 
     public void sendAdderBoard(int[][] adderBoard) {
@@ -87,7 +101,7 @@ public class InGameNetworkManager {
         int width = GameBoard.WIDTH;
         int dataLen = height * width * 4;
         ByteBuffer buffer = ByteBuffer.allocate(1 + dataLen);
-        buffer.put((byte) 0x01); // type
+        buffer.put((byte) 0x01);
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 buffer.putInt(adderBoard[i][j]);
@@ -96,16 +110,25 @@ public class InGameNetworkManager {
         sendQueue.offer(buffer.array());
     }
 
-    public void sendGoWaitingRoom() {
+    public void sendGoWaitingRoomAndShutDown() {
         byte[] msg = new byte[1];
-        msg[0] = (byte) 0x02; // type
+        msg[0] = (byte) 0x02;
         sendQueue.offer(msg);
+        stopUDPthread();
     }
 
-    public void sendGameOver() {
+    public void sendGameOverAndShutDown() {
         byte[] msg = new byte[1];
-        msg[0] = (byte) 0x03; // type
+        msg[0] = (byte) 0x03;
         sendQueue.offer(msg);
+        stopUDPthread();
+    }
+
+    private void sendEndingMsgAndShutDown() {
+        byte[] msg = new byte[1];
+        msg[0] = (byte) 0x04;
+        sendQueue.offer(msg);
+        stopUDPthread();
     }
 
     // 보드 동기화를 제외한 기타 게임 데이터 송신 루프
@@ -124,6 +147,10 @@ public class InGameNetworkManager {
                 outputStream.writeInt(message.length);
                 outputStream.write(message);
                 outputStream.flush();
+                if (0x02 <= message[0] && message[0] <= 0x04) {
+                    System.err.println("(InGame)[Send thread stopped after sending ending message]");
+                    return ;
+                }
             }
         } catch (InterruptedException e) {
             System.err.println("(InGame)[Send thread interrupted - graceful shutdown]");
@@ -149,14 +176,32 @@ public class InGameNetworkManager {
                 byte type = inputStream.readByte();
                 byte[] data = inputStream.readNBytes(length - 1);
 
-                if (type == 0x01) { 
-                   
-                } 
-                else if (type == 0x02) { 
-
+                if (type == 0x01) { //Adder Board
+                    int height = data.length / (4 * GameBoard.WIDTH);
+                    ByteBuffer buffer = ByteBuffer.wrap(data);
+                    int[][] adderBoard = new int[height][GameBoard.WIDTH];
+                    for (int i = 0; i < height; i++) {
+                        for (int j = 0; j < GameBoard.WIDTH; j++) {
+                            adderBoard[i][j] = buffer.getInt();
+                        }
+                    }
+                    onAdderBoardReceived.accept(adderBoard);
                 }
-                else if (type == 0x03) {
-
+                else if (type == 0x02) { // Go Waiting Room
+                    sendEndingMsgAndShutDown();
+                    Platform.runLater(onGoWaitingRoom);
+                    System.err.println("(InGame)[shutdown receive thread by remote go waiting room]");
+                    return ;
+                }
+                else if (type == 0x03) { // Game Over
+                    sendEndingMsgAndShutDown();
+                    Platform.runLater(onGameOver);
+                    System.err.println("(InGame)[shutdown receive thread by remote game over]");
+                    return ;
+                }
+                else if (type == 0x04) { // stop receive data
+                    System.err.println("(InGame)[shutdown receive thread by remote request]");
+                    return ;
                 }
             }
         }
@@ -172,20 +217,13 @@ public class InGameNetworkManager {
 
     //UDP 보드 동기화 송신 루프
     private void boardSyncSendLoop() {
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            System.err.println("(BoardSync)[Send thread interrupted - graceful shutdown]");
-            return;
-        }
-
         int[][] data;
         int sendTick = 0;
         final ByteBuffer sendDataBuffer = ByteBuffer.allocate(MAX_PACKET_SIZE);
         final DatagramPacket packet = new DatagramPacket(sendDataBuffer.array(), 0, tcpSocket.getRemoteSocketAddress());
 
         while (true) {
-            data = dataProvider.get();
+            data = boardDataProvider.get();
             sendDataBuffer.clear();
             sendDataBuffer.putInt(sendTick++);
             for (int i = 0; i < GameBoard.HEIGHT; i++) {
@@ -213,13 +251,6 @@ public class InGameNetworkManager {
 
     // UDP 보드 동기화 수신 루프
     private void boardSyncReceiveLoop() {
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            System.err.println("(BoardSync)[Receive thread interrupted - graceful shutdown]");
-            return;
-        }
-
         int lastReceivedTick = -1;
         int expectedLength = GameBoard.HEIGHT * GameBoard.WIDTH * 4 + 4;
         long lastPacketTime = System.currentTimeMillis();
@@ -258,7 +289,7 @@ public class InGameNetworkManager {
                         decodeBuffer[i][j] = receiveByteBuffer.getInt();
                     }
                 }
-                onDataReceived.accept(decodeBuffer);
+                onBoardDataReceived.accept(decodeBuffer);
 
             } catch (SocketTimeoutException e) {
                 // 타임아웃이면 다음 tick으로
@@ -304,6 +335,18 @@ public class InGameNetworkManager {
         } catch (IOException e) {
             System.err.println("[Error while closing socket]");
         }
+    }
+
+    private void stopUDPthread() {
+        try {
+            udpSocket.close();
+        } catch (Exception e) {
+            System.err.println("[Error while closing UDP socket]");
+        }
+        if (boardSyncSendThread != null)
+            boardSyncSendThread.interrupt();
+        if (boardSyncReceiveThread != null)
+            boardSyncReceiveThread.interrupt();
     }
 
     public void disconnect() {

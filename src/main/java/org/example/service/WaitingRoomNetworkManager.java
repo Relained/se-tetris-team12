@@ -60,6 +60,7 @@ public class WaitingRoomNetworkManager {
         receiveThread = Thread.startVirtualThread(this::receiveLoop);
         sendThread = Thread.startVirtualThread(this::sendLoop);
         heartbeatThread = Thread.startVirtualThread(this::heartbeatLoop);
+        System.err.println("-----------------Waiting Room Network manager initialized------------------");
     }
 
     public String getRemoteIPAddress() {
@@ -136,6 +137,12 @@ public class WaitingRoomNetworkManager {
      * 전송 큐에서 메시지를 가져와 전송하는 루프
      */
     private void sendLoop() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            System.err.println("(WaitingRoom)[Send thread interrupted - graceful shutdown]");
+            return;
+        }
         DataOutputStream outputStream;
         try {
             outputStream = new DataOutputStream(socket.getOutputStream());
@@ -167,6 +174,12 @@ public class WaitingRoomNetworkManager {
      * 게임 모드 변경 메시지를 수신하는 루프
      */
     private void receiveLoop() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            System.err.println("(WaitingRoom)[Receive thread interrupted - graceful shutdown]");
+            return;
+        }
         DataInputStream inputStream;
         try {
             inputStream = new DataInputStream(socket.getInputStream());

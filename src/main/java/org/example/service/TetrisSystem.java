@@ -301,6 +301,7 @@ public class TetrisSystem {
     public int getLevel() { return level; }
     public boolean isGameOver() { return gameOver; }
     public int getDifficulty() { return difficulty; }
+    public long getRemainingTime() { return -1; }
 
     public void reset() {
         board.clear();
