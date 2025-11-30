@@ -2,9 +2,11 @@ package org.example.view;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
@@ -19,16 +21,20 @@ import java.util.function.Consumer;
 
 public class WaitingRoomView extends BaseView {
 
-    private static final int MODE_COUNT = 3;
     private static final int READY_BUTTON_INDEX = 0;
-    
+
     private final boolean isServer;
     private Button readyButton;
-    private Button[] gameModeButtons;
+    private ToggleGroup gameModeGroup;
+    private ToggleGroup difficultyGroup;
+    private RadioButton[] gameModeRadios;
+    private RadioButton[] difficultyRadios;
     private Button[] navigableButtons;
-    private Text gameModeText;
+    private Text gameModeClientText;
+    private Text difficultyClientText;
     private int currentFocusIndex = READY_BUTTON_INDEX;
     private int selectedModeIndex = 0;
+    private int selectedDifficultyIndex = 1; // Default: Normal (Medium)
     private VBox chatMessagesBox;
     private ScrollPane chatScrollPane;
     private TextField chatInputField;
@@ -38,9 +44,18 @@ public class WaitingRoomView extends BaseView {
         this.isServer = isServer;
     }
 
-    public VBox createView(String ipAddress, 
-                        Consumer<String> onGameModeChange, 
-                        Runnable onReadyToggle, 
+    public VBox createView(String ipAddress,
+                        Consumer<String> onGameModeChange,
+                        Runnable onReadyToggle,
+                        Consumer<String> onChatSubmit,
+                        Runnable onLeave) {
+        return createView(ipAddress, onGameModeChange, null, onReadyToggle, onChatSubmit, onLeave);
+    }
+
+    public VBox createView(String ipAddress,
+                        Consumer<String> onGameModeChange,
+                        Consumer<Integer> onDifficultyChange,
+                        Runnable onReadyToggle,
                         Consumer<String> onChatSubmit,
                         Runnable onLeave) {
         VBox root = new VBox(50);
@@ -50,6 +65,7 @@ public class WaitingRoomView extends BaseView {
         root.getChildren().addAll(
             createConnectionText(ipAddress),
             isServer ? createGameModeSelection(onGameModeChange) : createGameModeDisplay(),
+            isServer ? createDifficultySelection(onDifficultyChange) : new VBox(),
             createReadyButton(onReadyToggle),
             createChatSection(onChatSubmit),
             createLeaveButton(onLeave)
@@ -61,7 +77,7 @@ public class WaitingRoomView extends BaseView {
 
     private void initNavigableButtons() {
         if (isServer) {
-            navigableButtons = new Button[]{readyButton, gameModeButtons[0], gameModeButtons[1], gameModeButtons[2]};
+            navigableButtons = new Button[]{readyButton};
         } else {
             navigableButtons = new Button[]{readyButton};
         }
@@ -77,30 +93,37 @@ public class WaitingRoomView extends BaseView {
     }
 
     private VBox createGameModeSelection(Consumer<String> onGameModeChange) {
-        VBox container = new VBox(20);
+        VBox container = new VBox(15);
         container.setAlignment(Pos.CENTER);
 
-        Text label = new Text("GameMode:");
-        label.setFill(colorManager.getPrimaryTextColor());
-        label.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
+        gameModeGroup = new ToggleGroup();
+        gameModeRadios = new RadioButton[GameMode.values().length];
+        HBox radioBox = new HBox(20);
+        radioBox.setAlignment(Pos.CENTER);
 
-        gameModeButtons = new Button[MODE_COUNT];
-        var modes = GameMode.values();
-        for (int i = 0; i < MODE_COUNT; i++) {
-            gameModeButtons[i] = createGameModeButton(modes[i].toString());
+        GameMode[] modes = GameMode.values();
+        for (int i = 0; i < modes.length; i++) {
+            gameModeRadios[i] = new RadioButton(modes[i].toString());
+            gameModeRadios[i].setToggleGroup(gameModeGroup);
+            gameModeRadios[i].setFocusTraversable(false);
+            gameModeRadios[i].setOnMouseClicked(event -> event.consume());
+
             int index = i;
-            gameModeButtons[i].setOnMouseClicked(event -> event.consume());
-            gameModeButtons[i].setOnAction(event -> {
-                onGameModeChange.accept(modes[index].toString());
-                selectGameMode(index);
+            gameModeRadios[i].selectedProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal) {
+                    selectedModeIndex = index;
+                    onGameModeChange.accept(modes[index].toString());
+                    updateGameModeRadioStyles();
+                }
             });
+
+            radioBox.getChildren().add(gameModeRadios[i]);
         }
 
-        HBox buttonBox = new HBox(20);
-        buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.getChildren().addAll(gameModeButtons);
+        gameModeRadios[0].setSelected(true);
+        updateGameModeRadioStyles();
 
-        container.getChildren().addAll(label, buttonBox);
+        container.getChildren().add(radioBox);
         return container;
     }
 
@@ -108,15 +131,85 @@ public class WaitingRoomView extends BaseView {
         VBox container = new VBox(10);
         container.setAlignment(Pos.CENTER);
 
-        Text label = new Text("GameMode:");
-        label.setFill(colorManager.getPrimaryTextColor());
-        label.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
+        // Create HBox to display mode and difficulty with centered separator
+        HBox displayBox = new HBox();
+        displayBox.setAlignment(Pos.CENTER);
+        displayBox.setPrefWidth(400);
+        displayBox.setMinWidth(400);
 
-        gameModeText = new Text(GameMode.NORMAL.toString());
-        gameModeText.setFill(colorManager.getPrimaryTextColor());
-        gameModeText.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
+        // Left side: GameMode (with right alignment in its region)
+        HBox leftBox = new HBox();
+        leftBox.setAlignment(Pos.CENTER_RIGHT);
+        leftBox.setPrefWidth(150);
+        leftBox.setMinWidth(150);
 
-        container.getChildren().addAll(label, gameModeText);
+        gameModeClientText = new Text(GameMode.NORMAL.toString());
+        gameModeClientText.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
+        gameModeClientText.setFill(Color.web("#FF6B6B")); // Default: Normal color (Red)
+        leftBox.getChildren().add(gameModeClientText);
+
+        // Center: Separator (always in center)
+        HBox centerBox = new HBox();
+        centerBox.setAlignment(Pos.CENTER);
+        centerBox.setPrefWidth(100);
+        centerBox.setMinWidth(100);
+
+        Text separator = new Text("|");
+        separator.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
+        separator.setFill(colorManager.getPrimaryTextColor());
+        centerBox.getChildren().add(separator);
+
+        // Right side: Difficulty (with left alignment in its region)
+        HBox rightBox = new HBox();
+        rightBox.setAlignment(Pos.CENTER_LEFT);
+        rightBox.setPrefWidth(150);
+        rightBox.setMinWidth(150);
+
+        difficultyClientText = new Text("Easy");
+        difficultyClientText.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
+        difficultyClientText.setFill(Color.web("#4CAF50")); // Default: Easy color (Green)
+        rightBox.getChildren().add(difficultyClientText);
+
+        displayBox.getChildren().addAll(leftBox, centerBox, rightBox);
+        container.getChildren().add(displayBox);
+
+        return container;
+    }
+
+    private VBox createDifficultySelection(Consumer<Integer> onDifficultyChange) {
+        VBox container = new VBox(15);
+        container.setAlignment(Pos.CENTER);
+
+        difficultyGroup = new ToggleGroup();
+        difficultyRadios = new RadioButton[3];
+        String[] difficultyNames = {"Easy", "Normal", "Hard"};
+        HBox radioBox = new HBox(20);
+        radioBox.setAlignment(Pos.CENTER);
+
+        for (int i = 0; i < 3; i++) {
+            difficultyRadios[i] = new RadioButton(difficultyNames[i]);
+            difficultyRadios[i].setToggleGroup(difficultyGroup);
+            difficultyRadios[i].setFocusTraversable(false);
+            difficultyRadios[i].setOnMouseClicked(event -> event.consume());
+
+            int index = i;
+            difficultyRadios[i].selectedProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal) {
+                    selectedDifficultyIndex = index;
+                    updateDifficultyRadioStyles();
+                    if (onDifficultyChange != null) {
+                        onDifficultyChange.accept(index);
+                    }
+                }
+            });
+
+            radioBox.getChildren().add(difficultyRadios[i]);
+        }
+
+        difficultyRadios[1].setSelected(true); // Default: Normal
+        updateDifficultyRadioStyles();
+
+        container.getChildren().add(radioBox);
         return container;
     }
 
@@ -201,43 +294,39 @@ public class WaitingRoomView extends BaseView {
         leaveButton.setOnAction(event -> onLeave.run());
         return leaveButton;
     }
-    
-    private Button createGameModeButton(String text) {
-        Button button = new Button(text);
-        button.setFont(FontManager.getInstance().getFont(FontManager.SIZE_BODY_MEDIUM));
-        button.setPrefWidth(150);
-        button.setPrefHeight(40);
-        button.setFocusTraversable(false);
-        return button;
-    }
 
-    private void selectGameMode(int index) {
-        selectedModeIndex = index;
-        for (int i = 0; i < gameModeButtons.length; i++) {
-            updateButtonStyle(gameModeButtons[i], i == index, i + 1 == currentFocusIndex);
+    private void updateGameModeRadioStyles() {
+        if (gameModeRadios == null) return;
+
+        String[] colors = {"#FF6B6B", "#4ECDC4", "#FFE66D"}; // Red, Teal, Yellow for Normal, Item, Time Attack
+
+        for (int i = 0; i < gameModeRadios.length; i++) {
+            RadioButton radio = gameModeRadios[i];
+            String textColor = radio.isSelected() ? colors[i] : "#888888";
+            String fontWeight = radio.isSelected() ? "bold" : "normal";
+
+            radio.setStyle(String.format(
+                "-fx-text-fill: %s; -fx-font-weight: %s; -fx-font-size: 16px;",
+                textColor, fontWeight
+            ));
         }
     }
 
-    private void updateButtonStyle(Button button, boolean isSelected, boolean isFocused) {
-        String bgColor = isSelected ? "#2196F3" : "#424242";
-        String textColor = isSelected ? "white" : "#BDBDBD";
-        String borderColor = isFocused ? "yellow" : (isSelected ? "#1976D2" : "#616161");
-        String borderWidth = isFocused ? "3" : (isSelected ? "2" : "1");
-        String fontWeight = isSelected ? "bold" : "normal";
-        
-        button.setStyle(
-            "-fx-background-color: " + bgColor + ";" +
-            "-fx-text-fill: " + textColor + ";" +
-            "-fx-font-weight: " + fontWeight + ";" +
-            "-fx-font-size: " + FontManager.SIZE_BODY_MEDIUM + "px;" +
-            "-fx-background-radius: 5;" +
-            "-fx-border-color: " + borderColor + ";" +
-            "-fx-border-width: " + borderWidth + ";" +
-            "-fx-border-radius: 5;" +
-            "-fx-background-insets: 0;" +
-            "-fx-focus-color: transparent;" +
-            "-fx-faint-focus-color: transparent;"
-        );
+    private void updateDifficultyRadioStyles() {
+        if (difficultyRadios == null) return;
+
+        String[] colors = {"#4CAF50", "#2196F3", "#F44336"}; // Green, Blue, Red for Easy, Normal, Hard
+
+        for (int i = 0; i < difficultyRadios.length; i++) {
+            RadioButton radio = difficultyRadios[i];
+            String textColor = radio.isSelected() ? colors[i] : "#888888";
+            String fontWeight = radio.isSelected() ? "bold" : "normal";
+
+            radio.setStyle(String.format(
+                "-fx-text-fill: %s; -fx-font-weight: %s; -fx-font-size: 16px;",
+                textColor, fontWeight
+            ));
+        }
     }
 
     public void updateToggleButtonStyle(boolean isSelected) {
@@ -279,33 +368,80 @@ public class WaitingRoomView extends BaseView {
         }
     }
 
-    public void setGameModeText(String mode) {
-        if (gameModeText != null) {
-            gameModeText.setText(mode);
-        }
-    }
-
     private void updateFocusVisual() {
         if (isServer) {
-            for (int i = 0; i < gameModeButtons.length; i++) {
-                updateButtonStyle(gameModeButtons[i], i == selectedModeIndex, i + 1 == currentFocusIndex);
-            }
+            updateGameModeRadioStyles();
+            updateDifficultyRadioStyles();
         }
         updateToggleButtonStyle(readyButton.getText().endsWith("✓"));
     }
 
     public void addChatMessage(String message) {
         if (chatMessagesBox == null) return;
-        
+
         Text messageText = new Text(message);
         messageText.setFill(Color.WHITE);
         messageText.setFont(FontManager.getInstance().getFont(FontManager.SIZE_BODY_MEDIUM));
         messageText.setWrappingWidth(460);
-        
+
         chatMessagesBox.getChildren().add(messageText);
-        
+
         // Auto-scroll to bottom
         chatScrollPane.layout();
         chatScrollPane.setVvalue(1.0);
+    }
+
+    public void setGameModeText(String mode, String difficulty) {
+        if (gameModeClientText != null) {
+            gameModeClientText.setText(mode);
+            updateGameModeClientColor(mode);
+        }
+        if (difficultyClientText != null) {
+            difficultyClientText.setText(difficulty);
+            updateDifficultyClientColor(difficulty);
+        }
+    }
+
+    public void setGameModeText(String mode) {
+        // Legacy method for compatibility
+        if (gameModeClientText != null) {
+            gameModeClientText.setText(mode);
+            updateGameModeClientColor(mode);
+        }
+    }
+
+    private void updateGameModeClientColor(String mode) {
+        if (gameModeClientText == null) return;
+        String color = switch (mode.toUpperCase()) {
+            case "NORMAL" -> "#FF6B6B";         // Red
+            case "ITEM" -> "#4ECDC4";           // Teal
+            case "TIME ATTACK" -> "#FFE66D";    // Yellow
+            default -> "#FFFFFF";
+        };
+        gameModeClientText.setFill(Color.web(color));
+    }
+
+    private void updateDifficultyClientColor(String difficulty) {
+        if (difficultyClientText == null) return;
+        String color = switch (difficulty.toUpperCase()) {
+            case "EASY" -> "#4CAF50";   // Green
+            case "NORMAL" -> "#2196F3"; // Blue
+            case "HARD" -> "#F44336";   // Red
+            default -> "#FFFFFF";
+        };
+        difficultyClientText.setFill(Color.web(color));
+    }
+
+    public int getSelectedGameModeIndex() {
+        return selectedModeIndex;
+    }
+
+    public int getSelectedDifficultyIndex() {
+        return selectedDifficultyIndex;
+    }
+
+    public String getSelectedDifficultyName() {
+        String[] names = {"Easy", "Normal", "Hard"};
+        return names[selectedDifficultyIndex];
     }
 }

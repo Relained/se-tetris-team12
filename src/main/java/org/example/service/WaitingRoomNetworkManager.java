@@ -24,6 +24,7 @@ public class WaitingRoomNetworkManager {
     public static final byte SIGNAL_GAME_START = 0x03;
     public static final byte SIGNAL_HEARTBEAT = 0x04;
     public static final byte SIGNAL_CHAT_MESSAGE = 0x05;
+    public static final byte SIGNAL_DIFFICULTY_CHANGE = 0x06;
 
     private static final long HEARTBEAT_INTERVAL = 2000;
     private static final long HEARTBEAT_TIMEOUT = 3500;
@@ -36,6 +37,7 @@ public class WaitingRoomNetworkManager {
     private Consumer<GameMode> onGameModeChange;
     private Consumer<String> onChatMessageReceived;
     private Consumer<Boolean> onOpponentReadyChanged;
+    private Consumer<Integer> onDifficultyChange;
 
     private Thread sendThread;
     private Thread receiveThread;
@@ -45,13 +47,14 @@ public class WaitingRoomNetworkManager {
     private volatile long lastHeartbeatTime;
 
     public WaitingRoomNetworkManager(
-        Socket socket, 
-        boolean isServer, 
-        Runnable onDisconnect, 
-        Runnable onGameStart, 
-        Consumer<GameMode> onGameModeChange, 
+        Socket socket,
+        boolean isServer,
+        Runnable onDisconnect,
+        Runnable onGameStart,
+        Consumer<GameMode> onGameModeChange,
         Consumer<Boolean> onOpponentReadyChanged,
-        Consumer<String> onChatMessageReceived
+        Consumer<String> onChatMessageReceived,
+        Consumer<Integer> onDifficultyChange
     )
     {
         this.socket = socket;
@@ -62,6 +65,7 @@ public class WaitingRoomNetworkManager {
         this.onGameModeChange = onGameModeChange;
         this.onOpponentReadyChanged = onOpponentReadyChanged;
         this.onChatMessageReceived = onChatMessageReceived;
+        this.onDifficultyChange = onDifficultyChange;
         this.lastHeartbeatTime = System.currentTimeMillis();
         receiveThread = Thread.startVirtualThread(this::receiveLoop);
         sendThread = Thread.startVirtualThread(this::sendLoop);
@@ -111,6 +115,16 @@ public class WaitingRoomNetworkManager {
         buffer.put(SIGNAL_CHAT_MESSAGE); // 채팅 메시지 타입
         buffer.put(messageData);
         sendQueue.offer(buffer.array());
+    }
+
+    /**
+     * 난이도 변경을 상대에게 전송
+     */
+    public void sendDifficultyChange(int difficulty) {
+        byte[] message = new byte[2];
+        message[0] = SIGNAL_DIFFICULTY_CHANGE; // 난이도 변경 메시지 타입
+        message[1] = (byte) difficulty;
+        sendQueue.offer(message);
     }
 
     /**
@@ -243,6 +257,15 @@ public class WaitingRoomNetworkManager {
                 else if (type == SIGNAL_CHAT_MESSAGE) { // 채팅 메시지 (양방향)
                     String chatMessage = new String(data, StandardCharsets.UTF_8);
                     Platform.runLater(() -> onChatMessageReceived.accept(chatMessage));
+                }
+                else if (type == SIGNAL_DIFFICULTY_CHANGE) { // 난이도 변경 (클라이언트만 수신)
+                    if (isServer) continue;
+                    int difficulty = data[0] & 0xFF; // Convert signed byte to unsigned int
+                    Platform.runLater(() -> {
+                        if (onDifficultyChange != null) {
+                            onDifficultyChange.accept(difficulty);
+                        }
+                    });
                 }
             }
         }

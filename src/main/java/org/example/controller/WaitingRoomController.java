@@ -21,6 +21,7 @@ public class WaitingRoomController extends BaseController {
     private long lastToggleTime;
     private long lastChatSubmitTime;
     private GameMode selectedGameMode;
+    private int selectedDifficulty;
     private WaitingRoomNetworkManager netManager;
     private static final long TOGGLE_COOLDOWN_MS = 1000; // 1초 쿨다운
     private static final long CHAT_COOLDOWN_MS = 500; // 500ms 쿨다운
@@ -32,12 +33,14 @@ public class WaitingRoomController extends BaseController {
         this.lastToggleTime = 0;
         this.lastChatSubmitTime = 0;
         this.selectedGameMode = GameMode.NORMAL;
-        this.netManager = new WaitingRoomNetworkManager(socket, isServer, 
-            this::handleDisconnect, 
-            this::handleGameStart, 
+        this.selectedDifficulty = 1; // Default: Normal
+        this.netManager = new WaitingRoomNetworkManager(socket, isServer,
+            this::handleDisconnect,
+            this::handleGameStart,
             this::setGameModeText,
             this::handleOpponentReadyChanged,
-            this::handleChatReceived);
+            this::handleChatReceived,
+            this::handleDifficultyReceived);
     }
 
     @Override
@@ -45,11 +48,22 @@ public class WaitingRoomController extends BaseController {
         var root = view.createView(
             netManager.getRemoteIPAddress(),
             this::handleGameModeChange,
+            this::handleDifficultyChange,
             this::handleReadyToggle,
             this::handleChatSubmit,
             this::handleGoBack
         );
         createDefaultScene(root);
+
+        // Initialize display with default values
+        if (isServer) {
+            view.setGameModeText(selectedGameMode.toString(), view.getSelectedDifficultyName());
+            // Send initial difficulty to client
+            int initialDifficulty = view.getSelectedDifficultyIndex();
+            netManager.sendDifficultyChange(initialDifficulty);
+        } else {
+            view.setGameModeText(selectedGameMode.toString(), getDifficultyName(selectedDifficulty));
+        }
 
         return scene;
     }
@@ -67,6 +81,28 @@ public class WaitingRoomController extends BaseController {
         if (isServer) {
             netManager.sendGameModeChange(selectedGameMode);
         }
+    }
+
+    private void handleDifficultyChange(int newDifficulty) {
+        selectedDifficulty = newDifficulty;
+        if (isServer) {
+            netManager.sendDifficultyChange(newDifficulty);
+            view.setGameModeText(selectedGameMode.toString(), view.getSelectedDifficultyName());
+        }
+    }
+
+    private void handleDifficultyReceived(int difficulty) {
+        selectedDifficulty = difficulty;
+        view.setGameModeText(selectedGameMode.toString(), getDifficultyName(difficulty));
+    }
+
+    private String getDifficultyName(int difficulty) {
+        return switch (difficulty) {
+            case 0 -> "Easy";
+            case 1 -> "Normal";
+            case 2 -> "Hard";
+            default -> "Normal";
+        };
     }
 
     private void handleReadyToggle() {
@@ -110,7 +146,7 @@ public class WaitingRoomController extends BaseController {
 
     private void handleGameStart() {
         System.out.println("[Game starting...]");
-        setState(new P2PMultiPlayController(netManager.getSocket(), isServer, selectedGameMode, 2));
+        setState(new P2PMultiPlayController(netManager.getSocket(), isServer, selectedGameMode, selectedDifficulty + 1));
     }
 
     private void handleGoBack() {
@@ -129,7 +165,7 @@ public class WaitingRoomController extends BaseController {
 
     private void setGameModeText(GameMode mode) {
         this.selectedGameMode = mode;
-        view.setGameModeText(mode.toString());
+        view.setGameModeText(mode.toString(), view.getSelectedDifficultyName());
     }
 
     @Override
