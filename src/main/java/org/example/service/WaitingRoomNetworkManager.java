@@ -19,6 +19,16 @@ import javafx.application.Platform;
  */
 public class WaitingRoomNetworkManager {
 
+    public static final byte SIGNAL_GAME_MODE_CHANGE = 0x01;
+    public static final byte SIGNAL_READY_STATE = 0x02;
+    public static final byte SIGNAL_GAME_START = 0x03;
+    public static final byte SIGNAL_HEARTBEAT = 0x04;
+    public static final byte SIGNAL_CHAT_MESSAGE = 0x05;
+
+    private static final long HEARTBEAT_INTERVAL = 2000;
+    private static final long HEARTBEAT_TIMEOUT = 3500;
+
+    private final boolean isServer;
     private final Socket socket;
     private final BlockingQueue<byte[]> sendQueue;
     private Runnable onDisconnect;
@@ -29,14 +39,10 @@ public class WaitingRoomNetworkManager {
 
     private Thread sendThread;
     private Thread receiveThread;
+    private Thread heartbeatThread;
     private volatile boolean clientReady = false;
     private volatile boolean serverReady = false;
-    private final boolean isServer;
-
-    private Thread heartbeatThread;
     private volatile long lastHeartbeatTime;
-    private static final long HEARTBEAT_INTERVAL = 2000;
-    private static final long HEARTBEAT_TIMEOUT = 3500;
 
     public WaitingRoomNetworkManager(
         Socket socket, 
@@ -60,7 +66,6 @@ public class WaitingRoomNetworkManager {
         receiveThread = Thread.startVirtualThread(this::receiveLoop);
         sendThread = Thread.startVirtualThread(this::sendLoop);
         heartbeatThread = Thread.startVirtualThread(this::heartbeatLoop);
-        System.err.println("-----------------Waiting Room Network manager initialized------------------");
     }
 
     public String getRemoteIPAddress() {
@@ -73,7 +78,7 @@ public class WaitingRoomNetworkManager {
     public void sendGameModeChange(GameMode mode) {
         byte[] modeData = mode.name().getBytes(StandardCharsets.UTF_8);
         ByteBuffer buffer = ByteBuffer.allocate(1 + modeData.length);
-        buffer.put((byte) 0x01); // 게임 모드 변경 메시지 타입
+        buffer.put(SIGNAL_GAME_MODE_CHANGE); // 게임 모드 변경 메시지 타입
         buffer.put(modeData);
         sendQueue.offer(buffer.array());
     }
@@ -83,7 +88,7 @@ public class WaitingRoomNetworkManager {
      */
     public void sendReadyState(boolean ready) {
         byte[] message = new byte[2];
-        message[0] = 0x02; // Ready 상태 메시지 타입
+        message[0] = SIGNAL_READY_STATE; // Ready 상태 메시지 타입
         message[1] = (byte) (ready ? 1 : 0);
         sendQueue.offer(message);
     }
@@ -93,7 +98,7 @@ public class WaitingRoomNetworkManager {
      */
     public void sendGameStart() {
         byte[] message = new byte[1];
-        message[0] = 0x03; // 게임 시작 메시지 타입
+        message[0] = SIGNAL_GAME_START; // 게임 시작 메시지 타입
         sendQueue.offer(message);
     }
 
@@ -103,7 +108,7 @@ public class WaitingRoomNetworkManager {
     public void sendChatMessage(String chatMessage) {
         byte[] messageData = chatMessage.getBytes(StandardCharsets.UTF_8);
         ByteBuffer buffer = ByteBuffer.allocate(1 + messageData.length);
-        buffer.put((byte) 0x05); // 채팅 메시지 타입
+        buffer.put(SIGNAL_CHAT_MESSAGE); // 채팅 메시지 타입
         buffer.put(messageData);
         sendQueue.offer(buffer.array());
     }
@@ -125,7 +130,7 @@ public class WaitingRoomNetworkManager {
 
                 // Heartbeat 전송
                 byte[] message = new byte[1];
-                message[0] = 0x04; // Heartbeat 메시지 타입
+                message[0] = SIGNAL_HEARTBEAT; // Heartbeat 메시지 타입
                 sendQueue.offer(message);
             }
         } catch (InterruptedException e) {
@@ -139,6 +144,7 @@ public class WaitingRoomNetworkManager {
     private void sendLoop() {
         try {
             Thread.sleep(100);
+            System.err.println("-----------------Waiting Room Network manager initialized------------------");
         } catch (InterruptedException e) {
             System.err.println("(WaitingRoom)[Send thread interrupted - graceful shutdown]");
             return;
@@ -157,7 +163,7 @@ public class WaitingRoomNetworkManager {
                 outputStream.writeInt(message.length);
                 outputStream.write(message);
                 outputStream.flush();
-                if (message[0] == 0x03) { // 게임 시작 메시지 전송 후 종료
+                if (message[0] == SIGNAL_GAME_START) { // 게임 시작 메시지 전송 후 종료
                     System.err.println("(WaitingRoom)[Game start message sent - send loop shutdown]");
                     return;
                 }
@@ -194,12 +200,12 @@ public class WaitingRoomNetworkManager {
                 byte type = inputStream.readByte();
                 byte[] data = inputStream.readNBytes(length - 1);
 
-                if (type == 0x01) { // 게임 모드 변경 (클라이언트만 수신)
+                if (type == SIGNAL_GAME_MODE_CHANGE) { // 게임 모드 변경 (클라이언트만 수신)
                     if (isServer) continue;
                     GameMode mode = GameMode.valueOf(new String(data));
                     Platform.runLater(() -> onGameModeChange.accept(mode));
                 } 
-                else if (type == 0x02) { // Ready 상태 변경
+                else if (type == SIGNAL_READY_STATE) { // Ready 상태 변경
                     boolean ready = data[0] == 1;
                     Platform.runLater(() -> onOpponentReadyChanged.accept(ready));
                     if (isServer) {
@@ -211,7 +217,7 @@ public class WaitingRoomNetworkManager {
                         }
                     }
                 }
-                else if (type == 0x03) { // 게임 시작
+                else if (type == SIGNAL_GAME_START) { // 게임 시작
                     // 서버는 ready 조건을 파악하고 게임 시작 신호만 보냄
                     // 신호를 보내는 동시에 heartbeatThread 종료시킴
                     // 게임 시작 신호가 보내지면 sendThread도 종료됨
@@ -231,10 +237,10 @@ public class WaitingRoomNetworkManager {
                     System.err.println("(WaitingRoom)[Game start signal received - receive loop shutdown]");
                     return;
                 }
-                else if (type == 0x04) { // Heartbeat (양방향)
+                else if (type == SIGNAL_HEARTBEAT) { // Heartbeat (양방향)
                     lastHeartbeatTime = System.currentTimeMillis();
                 }
-                else if (type == 0x05) { // 채팅 메시지 (양방향)
+                else if (type == SIGNAL_CHAT_MESSAGE) { // 채팅 메시지 (양방향)
                     String chatMessage = new String(data, StandardCharsets.UTF_8);
                     Platform.runLater(() -> onChatMessageReceived.accept(chatMessage));
                 }

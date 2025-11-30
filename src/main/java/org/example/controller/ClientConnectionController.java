@@ -163,7 +163,7 @@ public class ClientConnectionController extends BaseController {
                     sendData, 
                     sendData.length, 
                     broadcastAddress, 
-                    54777
+                    54652
                 );
                 socket.send(sendPacket);
                 System.out.println("Broadcast sent to: " + broadcastAddress.getHostAddress());

@@ -59,7 +59,7 @@ public class ServerConnectionController extends BaseController {
 
     public void startUDPResponder() {
         broadcastThread = Thread.startVirtualThread(() -> {
-            try (DatagramSocket socket = new DatagramSocket(54777)) {
+            try (DatagramSocket socket = new DatagramSocket(54652)) {
                 byte[] buf = new byte[512];
                 while (true) {
                     DatagramPacket packet = new DatagramPacket(buf, buf.length);

@@ -1,10 +1,15 @@
 package org.example.controller;
 
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 
 import org.example.model.GameMode;
 import org.example.view.P2PGameOverView;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.net.Socket;
 
 /**
@@ -13,12 +18,16 @@ import java.net.Socket;
  */
 public class P2PGameOverController extends BaseController {
 
+    private static final byte SIGNAL_PLAY_AGAIN = 0x01;
+    private static final byte SIGNAL_GO_WAITING_ROOM = 0x02;
+
     private P2PGameOverView p2pGameOverView;
     private String winnerText;
     private Socket socket;
     private boolean isServer;
     private GameMode gameMode;
     private int difficulty;
+    private Thread receiveThread;
 
     /**
      * @param winnerText 화면에 표시할 승자 텍스트
@@ -34,12 +43,17 @@ public class P2PGameOverController extends BaseController {
         this.isServer = isServer;
         this.gameMode = gameMode;
         this.difficulty = difficulty;
+        if (isServer)
+            receiveThread = null;
+        else
+            startReceiveThread();
     }
 
     @Override
     protected Scene createScene() {
         var root = p2pGameOverView.createView(
             winnerText,
+            isServer,
             this::handlePlayAgain,
             this::handleGoWaitingRoom,
             this::handleMainMenu,
@@ -49,16 +63,61 @@ public class P2PGameOverController extends BaseController {
         return scene;
     }
 
+    private void startReceiveThread() {
+        receiveThread = Thread.startVirtualThread(() -> {
+            try {
+                Thread.sleep(100);
+                DataInputStream in = new DataInputStream(socket.getInputStream());
+                byte signal = in.readByte();
+                
+                switch (signal) {
+                    case SIGNAL_PLAY_AGAIN -> Platform.runLater(this::handlePlayAgain);
+                    case SIGNAL_GO_WAITING_ROOM -> Platform.runLater(this::handleGoWaitingRoom);
+                }
+                
+            }
+            catch (EOFException | InterruptedException e) {
+                System.err.println("Receive thread terminated");
+            } catch (Exception e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    System.err.println("Receive thread interrupted - graceful shutdown");
+                    return;
+                }
+                System.err.println("Failed to receive signal: " + e.getMessage());
+            }
+        });
+    }
+
+    private void sendSignal(byte signal) {
+        if (isServer) {
+            try {
+                DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                out.writeByte(signal);
+                out.flush();
+            } catch (Exception e) {
+                System.err.println("Failed to send signal: " + e.getMessage());
+            }
+        }
+    }
+
     public void handlePlayAgain() {
+        if (isServer) {
+            sendSignal(SIGNAL_PLAY_AGAIN);
+        }
         setState(new P2PMultiPlayController(socket, isServer, gameMode, difficulty));
     }
 
     public void handleGoWaitingRoom() {
-        // 수정필요
+        if (isServer) {
+            sendSignal(SIGNAL_GO_WAITING_ROOM);
+        }
         setState(new WaitingRoomController(socket, isServer));
     }
 
     public void handleMainMenu() {
+        if (receiveThread != null) {
+            receiveThread.interrupt();
+        }
         try {
             socket.close();
         } catch (Exception e) {}

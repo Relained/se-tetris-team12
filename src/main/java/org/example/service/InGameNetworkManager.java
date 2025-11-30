@@ -22,6 +22,11 @@ import javafx.application.Platform;
 
 public class InGameNetworkManager {
 
+    public static final byte SIGNAL_ADDER_BOARD = 0x01;
+    public static final byte SIGNAL_GO_WAITING_ROOM = 0x02;
+    public static final byte SIGNAL_GAME_OVER = 0x03;
+    public static final byte SIGNAL_ENDING = 0x04;
+
     private final Socket tcpSocket;
     private DatagramSocket udpSocket;
 
@@ -35,11 +40,6 @@ public class InGameNetworkManager {
     private Consumer<int[][]> onAdderBoardReceived;
     private Consumer<int[][]> onBoardDataReceived;
     private Supplier<int[][]> boardDataProvider;
-
-    // ----------- 수신 관련 -----------
-    
-
-    // ----------- 송신 관련 -----------
     private final BlockingQueue<byte[]> sendQueue = new LinkedBlockingQueue<>();
 
     // ----------- 상수 -----------
@@ -101,7 +101,7 @@ public class InGameNetworkManager {
         int width = GameBoard.WIDTH;
         int dataLen = height * width * 4;
         ByteBuffer buffer = ByteBuffer.allocate(1 + dataLen);
-        buffer.put((byte) 0x01);
+        buffer.put(SIGNAL_ADDER_BOARD);
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 buffer.putInt(adderBoard[i][j]);
@@ -112,21 +112,21 @@ public class InGameNetworkManager {
 
     public void sendGoWaitingRoomAndShutDown() {
         byte[] msg = new byte[1];
-        msg[0] = (byte) 0x02;
+        msg[0] = SIGNAL_GO_WAITING_ROOM;
         sendQueue.offer(msg);
         stopUDPthread();
     }
 
     public void sendGameOverAndShutDown() {
         byte[] msg = new byte[1];
-        msg[0] = (byte) 0x03;
+        msg[0] = SIGNAL_GAME_OVER;
         sendQueue.offer(msg);
         stopUDPthread();
     }
 
     private void sendEndingMsgAndShutDown() {
         byte[] msg = new byte[1];
-        msg[0] = (byte) 0x04;
+        msg[0] = SIGNAL_ENDING;
         sendQueue.offer(msg);
         stopUDPthread();
     }
@@ -147,7 +147,7 @@ public class InGameNetworkManager {
                 outputStream.writeInt(message.length);
                 outputStream.write(message);
                 outputStream.flush();
-                if (0x02 <= message[0] && message[0] <= 0x04) {
+                if (SIGNAL_GO_WAITING_ROOM <= message[0] && message[0] <= SIGNAL_ENDING) {
                     System.err.println("(InGame)[Send thread stopped after sending ending message]");
                     return ;
                 }
@@ -176,7 +176,7 @@ public class InGameNetworkManager {
                 byte type = inputStream.readByte();
                 byte[] data = inputStream.readNBytes(length - 1);
 
-                if (type == 0x01) { //Adder Board
+                if (type == SIGNAL_ADDER_BOARD) { //Adder Board
                     int height = data.length / (4 * GameBoard.WIDTH);
                     ByteBuffer buffer = ByteBuffer.wrap(data);
                     int[][] adderBoard = new int[height][GameBoard.WIDTH];
@@ -187,19 +187,19 @@ public class InGameNetworkManager {
                     }
                     onAdderBoardReceived.accept(adderBoard);
                 }
-                else if (type == 0x02) { // Go Waiting Room
+                else if (type == SIGNAL_GO_WAITING_ROOM) { // Go Waiting Room
                     sendEndingMsgAndShutDown();
                     Platform.runLater(onGoWaitingRoom);
                     System.err.println("(InGame)[shutdown receive thread by remote go waiting room]");
                     return ;
                 }
-                else if (type == 0x03) { // Game Over
+                else if (type == SIGNAL_GAME_OVER) { // Game Over
                     sendEndingMsgAndShutDown();
                     Platform.runLater(onGameOver);
                     System.err.println("(InGame)[shutdown receive thread by remote game over]");
                     return ;
                 }
-                else if (type == 0x04) { // stop receive data
+                else if (type == SIGNAL_ENDING) { // stop receive data
                     System.err.println("(InGame)[shutdown receive thread by remote request]");
                     return ;
                 }
@@ -235,6 +235,10 @@ public class InGameNetworkManager {
             try {
                 udpSocket.send(packet);
             } catch (IOException e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    System.err.println("(BoardSync)[Send thread interrupted - graceful shutdown]");
+                    return;
+                }
                 System.err.println("[Error while sending board data]");
                 releaseResources(true);
                 return;
@@ -338,15 +342,15 @@ public class InGameNetworkManager {
     }
 
     private void stopUDPthread() {
+        if (boardSyncSendThread != null)
+            boardSyncSendThread.interrupt();
+        if (boardSyncReceiveThread != null)
+            boardSyncReceiveThread.interrupt();
         try {
             udpSocket.close();
         } catch (Exception e) {
             System.err.println("[Error while closing UDP socket]");
         }
-        if (boardSyncSendThread != null)
-            boardSyncSendThread.interrupt();
-        if (boardSyncReceiveThread != null)
-            boardSyncReceiveThread.interrupt();
     }
 
     public void disconnect() {

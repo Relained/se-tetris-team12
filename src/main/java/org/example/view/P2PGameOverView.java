@@ -1,6 +1,6 @@
 package org.example.view;
 
-import java.util.List;
+
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.layout.Background;
@@ -22,6 +22,7 @@ public class P2PGameOverView extends GameOverView {
     /**
      * P2P Game Over 화면의 UI를 구성하고 반환합니다.
      * @param winnerText 화면에 표시할 텍스트
+     * @param isServer 서버 여부 (true일 경우 Play Again, Go Waiting Room 버튼 표시)
      * @param onPlayAgain Play Again 버튼 클릭 시 실행될 콜백
      * @param onGoWaitingRoom Go Waiting Room 버튼 클릭 시 실행될 콜백
      * @param onMainMenu Main Menu 버튼 클릭 시 실행될 콜백
@@ -29,6 +30,7 @@ public class P2PGameOverView extends GameOverView {
      * @return 구성된 VBox root
      */
     public Parent createView(String winnerText,
+                            boolean isServer,
                             Runnable onPlayAgain,
                             Runnable onGoWaitingRoom,
                             Runnable onMainMenu,
@@ -41,13 +43,19 @@ public class P2PGameOverView extends GameOverView {
         winnerDisplay.setFill(Color.GOLD);
         winnerDisplay.setFont(Font.font("Arial", 48));
 
-        var created = buttonSystem.createNavigableButtonFromList(
-            List.of("Play Again", "Go Waiting Room", "Main Menu", "Exit Game"),
-            List.of(onPlayAgain, onGoWaitingRoom, onMainMenu, onExit)
-        );
-
         root.getChildren().add(winnerDisplay);
-        root.getChildren().addAll(created);
+
+        if (isServer) {
+            root.getChildren().addAll(
+                buttonSystem.createNavigableButton("Play Again", onPlayAgain),
+                buttonSystem.createNavigableButton("Go Waiting Room", onGoWaitingRoom)
+            );
+        }
+        
+        root.getChildren().addAll(
+            buttonSystem.createNavigableButton("Main Menu", onMainMenu),
+            buttonSystem.createNavigableButton("Exit Game", onExit)
+        );
 
         return root;
     }

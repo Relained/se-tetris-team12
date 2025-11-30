@@ -5,7 +5,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 import org.example.service.ColorManager;
-import org.example.model.AdderBoard;
 
 /**
  * AdderBoard의 내용을 표시하는 캔버스 컴포넌트입니다.

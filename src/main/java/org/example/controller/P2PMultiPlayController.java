@@ -137,7 +137,7 @@ public class P2PMultiPlayController extends BaseController {
             lastDropTime = currentTime;
         }
         tetrisSystem.getBoard().processPendingClearsIfDue();
-
+        adderBoard.consumeIfExists();
         // Update UI through View
         updateDisplay();
 
@@ -244,7 +244,7 @@ public class P2PMultiPlayController extends BaseController {
     }
 
     private void handleAdderBoardReceived(int[][] addedLines) {
-        adderBoard.addLines(addedLines);
+        adderBoard.enqueueLines(addedLines);
     }
 
     private void handleDisconnect() {
