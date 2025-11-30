@@ -46,14 +46,6 @@ public class WaitingRoomView extends BaseView {
 
     public VBox createView(String ipAddress,
                         Consumer<String> onGameModeChange,
-                        Runnable onReadyToggle,
-                        Consumer<String> onChatSubmit,
-                        Runnable onLeave) {
-        return createView(ipAddress, onGameModeChange, null, onReadyToggle, onChatSubmit, onLeave);
-    }
-
-    public VBox createView(String ipAddress,
-                        Consumer<String> onGameModeChange,
                         Consumer<Integer> onDifficultyChange,
                         Runnable onReadyToggle,
                         Consumer<String> onChatSubmit,
