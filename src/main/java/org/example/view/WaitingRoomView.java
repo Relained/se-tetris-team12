@@ -33,8 +33,6 @@ public class WaitingRoomView extends BaseView {
     private Text gameModeClientText;
     private Text difficultyClientText;
     private int currentFocusIndex = READY_BUTTON_INDEX;
-    private int selectedModeIndex = 0;
-    private int selectedDifficultyIndex = 1; // Default: Normal (Medium)
     private VBox chatMessagesBox;
     private ScrollPane chatScrollPane;
     private TextField chatInputField;
@@ -103,7 +101,6 @@ public class WaitingRoomView extends BaseView {
             int index = i;
             gameModeRadios[i].selectedProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal) {
-                    selectedModeIndex = index;
                     onGameModeChange.accept(modes[index].toString());
                     updateGameModeRadioStyles();
                 }
@@ -184,13 +181,12 @@ public class WaitingRoomView extends BaseView {
             difficultyRadios[i].setFocusTraversable(false);
             difficultyRadios[i].setOnMouseClicked(event -> event.consume());
 
-            int index = i;
+            int index = i + 1;
             difficultyRadios[i].selectedProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal) {
-                    selectedDifficultyIndex = index;
                     updateDifficultyRadioStyles();
                     if (onDifficultyChange != null) {
-                        onDifficultyChange.accept(index);
+                        onDifficultyChange.accept(index); // 1=Easy, 2=Normal, 3=Hard
                     }
                 }
             });
@@ -198,7 +194,7 @@ public class WaitingRoomView extends BaseView {
             radioBox.getChildren().add(difficultyRadios[i]);
         }
 
-        difficultyRadios[1].setSelected(true); // Default: Normal
+        difficultyRadios[0].setSelected(true); // Default: Easy
         updateDifficultyRadioStyles();
 
         container.getChildren().add(radioBox);
@@ -394,14 +390,6 @@ public class WaitingRoomView extends BaseView {
         }
     }
 
-    public void setGameModeText(String mode) {
-        // Legacy method for compatibility
-        if (gameModeClientText != null) {
-            gameModeClientText.setText(mode);
-            updateGameModeClientColor(mode);
-        }
-    }
-
     private void updateGameModeClientColor(String mode) {
         if (gameModeClientText == null) return;
         String color = switch (mode.toUpperCase()) {
@@ -424,16 +412,4 @@ public class WaitingRoomView extends BaseView {
         difficultyClientText.setFill(Color.web(color));
     }
 
-    public int getSelectedGameModeIndex() {
-        return selectedModeIndex;
-    }
-
-    public int getSelectedDifficultyIndex() {
-        return selectedDifficultyIndex;
-    }
-
-    public String getSelectedDifficultyName() {
-        String[] names = {"Easy", "Normal", "Hard"};
-        return names[selectedDifficultyIndex];
-    }
 }

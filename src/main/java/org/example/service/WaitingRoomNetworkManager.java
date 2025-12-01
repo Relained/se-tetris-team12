@@ -261,11 +261,7 @@ public class WaitingRoomNetworkManager {
                 else if (type == SIGNAL_DIFFICULTY_CHANGE) { // 난이도 변경 (클라이언트만 수신)
                     if (isServer) continue;
                     int difficulty = data[0] & 0xFF; // Convert signed byte to unsigned int
-                    Platform.runLater(() -> {
-                        if (onDifficultyChange != null) {
-                            onDifficultyChange.accept(difficulty);
-                        }
-                    });
+                    Platform.runLater(() -> onDifficultyChange.accept(difficulty));
                 }
             }
         }
