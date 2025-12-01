@@ -14,11 +14,13 @@ import java.util.Set;
 import org.example.model.AdderBoardSync;
 import org.example.model.GameMode;
 import org.example.model.KeyData;
+import org.example.model.P2PGameResult;
 import org.example.service.DisplayManager;
 import org.example.service.InGameNetworkManager;
 import org.example.service.ItemTetrisSystem;
 import org.example.service.SuperRotationSystem;
 import org.example.service.TetrisSystem;
+import org.example.service.TimeTetrisSystem;
 import org.example.view.P2PMultiPlayView;
 
 /**
@@ -38,10 +40,14 @@ public class P2PMultiPlayController extends BaseController {
     private final boolean isServer;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private final Set<KeyCode> justPressedKeys = new HashSet<>();
+    private byte gameOverStatus = -1;
+    // 0: 점수비교로 판단, 1: 내가 게임오버, 2: 상대가 게임오버
 
     public P2PMultiPlayController(Socket socket, boolean isServer, GameMode gameMode, int difficulty) {
         if (gameMode == GameMode.ITEM) {
             tetrisSystem = new ItemTetrisSystem();
+        } else if (gameMode == GameMode.TIME_ATTACK && isServer) {
+            tetrisSystem = new TimeTetrisSystem();
         } else {
             tetrisSystem = new TetrisSystem();
         }
@@ -49,13 +55,14 @@ public class P2PMultiPlayController extends BaseController {
 
         this.view = new P2PMultiPlayView();
         this.netManager = new InGameNetworkManager(
-            socket, 
+            socket,
             this::handleDisconnect,
             this::handleOpponentGoWaitingRoom,
             this::handleOpponentGameOver,
             this::handleAdderBoardReceived,
             view::updateOpponentDisplay,
-            tetrisSystem::getCompressedBoardData
+            tetrisSystem::getCompressedBoardData,
+            tetrisSystem::getScore
         );
         this.isServer = isServer;
         this.gameMode = gameMode;
@@ -100,6 +107,9 @@ public class P2PMultiPlayController extends BaseController {
         // 키 릴리즈 핸들 따로 추가
         scene.setOnKeyReleased(event -> handleKeyReleased(event.getCode()));
 
+        if (gameMode == GameMode.TIME_ATTACK) {
+            view.setShowTimer(true);
+        }
         gameTimer.start();
         return scene;
     }
@@ -141,8 +151,13 @@ public class P2PMultiPlayController extends BaseController {
         // Update UI through View
         updateDisplay();
 
-        // Check game over
-        if (tetrisSystem.isGameOver()) {
+        if (isServer && tetrisSystem.getRemainingTime() == 0) {
+            //getRemainingTime 최솟값이 0이어서 == 0으로 체크해도 됨. -1은 TimeAttack 모드가 아닐 때 반환하는 값
+            gameOverStatus = 0; // 점수 비교로 판단
+            handleGameOver();
+        }
+        else if (tetrisSystem.isGameOver()) {
+            gameOverStatus = 1; // 내가 게임오버
             handleGameOver();
         }
     }
@@ -233,9 +248,20 @@ public class P2PMultiPlayController extends BaseController {
         }
     }
 
-    private void handleOpponentGameOver() {
+    private void handleOpponentGameOver(int opponentScore, boolean timeover) {
         gameTimer.stop();
-        setState(new P2PGameOverController("You Win!", netManager.getSocket(), isServer, gameMode, tetrisSystem.getDifficulty()));
+        int myScore = tetrisSystem.getScore();
+        if (gameOverStatus == -1) { // -1이면 상대가 최초로 신호를 보냈다는 뜻
+            if (timeover)
+                gameOverStatus = 0; // 시간초과로 점수비교
+            else
+                gameOverStatus = 2; // 상대가 게임오버
+        }
+        P2PGameResult result = new P2PGameResult(
+            myScore, opponentScore, gameOverStatus,
+            netManager.getSocket(), isServer, gameMode, tetrisSystem.getDifficulty()
+        );
+        setState(new P2PGameOverController(result));
     }
 
     private void handleOpponentGoWaitingRoom() {
@@ -261,9 +287,9 @@ public class P2PMultiPlayController extends BaseController {
     }
 
     private void handleGameOver() {
-        netManager.sendGameOverAndShutDown();
+        netManager.sendGameOverAndShutDown(tetrisSystem.getScore(), gameOverStatus == 0);
         gameTimer.stop();
-        setState(new P2PGameOverController("You Lose!", netManager.getSocket(), isServer, gameMode, tetrisSystem.getDifficulty()));
+        // 일단 게임오버 메시지를 보내고 상대 스코어까지 받으면 그때 handleOpponentGameOver에서 처리
     }
 
     private Pair<Socket, Boolean> handleGoWaitingRoom() {

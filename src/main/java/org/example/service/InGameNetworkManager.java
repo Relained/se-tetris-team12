@@ -8,7 +8,9 @@ import java.net.DatagramSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -36,10 +38,11 @@ public class InGameNetworkManager {
     private Thread gameDataReceiveThread;
     private Runnable onDisconnect;
     private Runnable onGoWaitingRoom;
-    private Runnable onGameOver;
+    private BiConsumer<Integer, Boolean> onGameOver;
     private Consumer<int[][]> onAdderBoardReceived;
     private Consumer<int[][]> onBoardDataReceived;
     private Supplier<int[][]> boardDataProvider;
+    private IntSupplier scoreProvider;
     private final BlockingQueue<byte[]> sendQueue = new LinkedBlockingQueue<>();
 
     // ----------- 상수 -----------
@@ -52,10 +55,11 @@ public class InGameNetworkManager {
         Socket socket,
         Runnable onDisconnect,
         Runnable onGoWaitingRoom,
-        Runnable onGameOver,
+        BiConsumer<Integer, Boolean> onGameOver,
         Consumer<int[][]> onAdderBoardReceived,
         Consumer<int[][]> onBoardDataReceived, 
-        Supplier<int[][]> boardDataProvider
+        Supplier<int[][]> boardDataProvider,
+        IntSupplier scoreProvider
     )
     {
         this.tcpSocket = socket;
@@ -65,6 +69,7 @@ public class InGameNetworkManager {
         this.onAdderBoardReceived = onAdderBoardReceived;
         this.onBoardDataReceived = onBoardDataReceived;
         this.boardDataProvider = boardDataProvider;
+        this.scoreProvider = scoreProvider;
 
         try {
             udpSocket = new DatagramSocket(tcpSocket.getLocalSocketAddress());
@@ -117,17 +122,20 @@ public class InGameNetworkManager {
         stopUDPthread();
     }
 
-    public void sendGameOverAndShutDown() {
-        byte[] msg = new byte[1];
-        msg[0] = SIGNAL_GAME_OVER;
-        sendQueue.offer(msg);
+    public void sendGameOverAndShutDown(int score, boolean timeover) {
+        ByteBuffer buffer = ByteBuffer.allocate(6);
+        buffer.put(SIGNAL_GAME_OVER);
+        buffer.putInt(score);
+        buffer.put((byte)(timeover ? 1 : 0));
+        sendQueue.offer(buffer.array());
         stopUDPthread();
     }
 
-    private void sendEndingMsgAndShutDown() {
-        byte[] msg = new byte[1];
-        msg[0] = SIGNAL_ENDING;
-        sendQueue.offer(msg);
+    private void sendEndingMsgAndShutDown(int score) {
+        ByteBuffer buffer = ByteBuffer.allocate(5);
+        buffer.put(SIGNAL_ENDING);
+        buffer.putInt(score);
+        sendQueue.offer(buffer.array());
         stopUDPthread();
     }
 
@@ -188,18 +196,26 @@ public class InGameNetworkManager {
                     onAdderBoardReceived.accept(adderBoard);
                 }
                 else if (type == SIGNAL_GO_WAITING_ROOM) { // Go Waiting Room
-                    sendEndingMsgAndShutDown();
-                    Platform.runLater(onGoWaitingRoom);
+                    sendEndingMsgAndShutDown(-1); // WaitingRoom 표시
+                    Platform.runLater(onGoWaitingRoom); 
                     System.err.println("(InGame)[shutdown receive thread by remote go waiting room]");
                     return ;
                 }
                 else if (type == SIGNAL_GAME_OVER) { // Game Over
-                    sendEndingMsgAndShutDown();
-                    Platform.runLater(onGameOver);
+                    ByteBuffer scoreBuffer = ByteBuffer.wrap(data);
+                    int opponentScore = scoreBuffer.getInt();
+                    boolean timeover = scoreBuffer.get() == 1;
+                    sendEndingMsgAndShutDown(scoreProvider.getAsInt());
+                    Platform.runLater(() -> onGameOver.accept(opponentScore, timeover));
                     System.err.println("(InGame)[shutdown receive thread by remote game over]");
                     return ;
                 }
                 else if (type == SIGNAL_ENDING) { // stop receive data
+                    ByteBuffer scoreBuffer = ByteBuffer.wrap(data);
+                    int opponentScore = scoreBuffer.getInt();
+                    if (opponentScore != -1) {
+                        Platform.runLater(() -> onGameOver.accept(opponentScore, false));
+                    }
                     System.err.println("(InGame)[shutdown receive thread by remote request]");
                     return ;
                 }

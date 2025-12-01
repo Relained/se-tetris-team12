@@ -85,16 +85,16 @@ public class PlayController extends BaseController {
     protected void exit() {
         gameTimer.stop();
         // TIME_ATTACK 모드: 타이머 일시정지
-        if (tetrisSystem instanceof TimeTetrisSystem) {
-            ((TimeTetrisSystem) tetrisSystem).pauseTimer();
+        if (tetrisSystem instanceof TimeTetrisSystem timeSystem) {
+            timeSystem.pauseTimer();
         }
     }
 
     @Override
     protected void resume() {
         // TIME_ATTACK 모드: 타이머 재개
-        if (tetrisSystem instanceof TimeTetrisSystem) {
-            ((TimeTetrisSystem) tetrisSystem).resumeTimer();
+        if (tetrisSystem instanceof TimeTetrisSystem timeSystem) {
+            timeSystem.resumeTimer();
         }
         gameTimer.start();
     }
@@ -119,12 +119,9 @@ public class PlayController extends BaseController {
         long currentTime = System.currentTimeMillis();
         
         // TIME_ATTACK 모드: 시간 체크
-        if (tetrisSystem instanceof TimeTetrisSystem) {
-            TimeTetrisSystem timeSystem = (TimeTetrisSystem) tetrisSystem;
-            if (timeSystem.isTimeUp()) {
-                handleGameOver();
-                return;
-            }
+        if (tetrisSystem instanceof TimeTetrisSystem timeSystem && timeSystem.isTimeUp()) {
+            handleGameOver();
+            return;
         }
         
         if (currentTime - lastDropTime >= tetrisSystem.getDropInterval()) {
@@ -152,12 +149,6 @@ public class PlayController extends BaseController {
                 ? SuperRotationSystem.hardDrop(tetrisSystem.getCurrentPiece(), tetrisSystem.getBoard())
                 : null;
 
-        // TIME_ATTACK 모드일 경우 남은 시간 전달, 아니면 -1
-        long remainingMillis = -1;
-        if (tetrisSystem instanceof TimeTetrisSystem) {
-            remainingMillis = ((TimeTetrisSystem) tetrisSystem).getRemainingTime();
-        }
-
         playView.updateDisplay(
                 tetrisSystem.getBoard(),
                 tetrisSystem.getCurrentPiece(),
@@ -167,7 +158,7 @@ public class PlayController extends BaseController {
                 tetrisSystem.getScore(),
                 tetrisSystem.getLines(),
                 tetrisSystem.getLevel(),
-                remainingMillis);
+                tetrisSystem.getRemainingTime());
     }
 
     @Override

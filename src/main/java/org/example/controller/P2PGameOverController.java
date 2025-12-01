@@ -4,17 +4,16 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 
-import org.example.model.GameMode;
+import org.example.model.P2PGameResult;
 import org.example.view.P2PGameOverView;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
-import java.net.Socket;
 
 /**
  * P2P 모드의 게임 오버 화면 처리를 담당하는 Controller
- * winnerText만 받아서 표시, Go Waiting Room 버튼 제공
+ * 점수를 받아서 승패 결과와 점수를 표시, Go Waiting Room 버튼 제공
  */
 public class P2PGameOverController extends BaseController {
 
@@ -22,28 +21,16 @@ public class P2PGameOverController extends BaseController {
     private static final byte SIGNAL_GO_WAITING_ROOM = 0x02;
 
     private P2PGameOverView p2pGameOverView;
-    private String winnerText;
-    private Socket socket;
-    private boolean isServer;
-    private GameMode gameMode;
-    private int difficulty;
+    private P2PGameResult gameResult;
     private Thread receiveThread;
 
     /**
-     * @param winnerText 화면에 표시할 승자 텍스트
-     * @param socket P2P 연결 소켓
-     * @param isServer 서버 여부
-     * @param gameMode 게임 모드
-     * @param difficulty 난이도
+     * @param gameResult P2P 게임 결과 데이터
      */
-    public P2PGameOverController(String winnerText, Socket socket, boolean isServer, GameMode gameMode, int difficulty) {
+    public P2PGameOverController(P2PGameResult gameResult) {
         this.p2pGameOverView = new P2PGameOverView();
-        this.winnerText = winnerText;
-        this.socket = socket;
-        this.isServer = isServer;
-        this.gameMode = gameMode;
-        this.difficulty = difficulty;
-        if (isServer)
+        this.gameResult = gameResult;
+        if (gameResult.isServer)
             receiveThread = null;
         else
             startReceiveThread();
@@ -52,8 +39,10 @@ public class P2PGameOverController extends BaseController {
     @Override
     protected Scene createScene() {
         var root = p2pGameOverView.createView(
-            winnerText,
-            isServer,
+            gameResult.myScore,
+            gameResult.opponentScore,
+            gameResult.gameOverStatus,
+            gameResult.isServer,
             this::handlePlayAgain,
             this::handleGoWaitingRoom,
             this::handleMainMenu,
@@ -67,7 +56,7 @@ public class P2PGameOverController extends BaseController {
         receiveThread = Thread.startVirtualThread(() -> {
             try {
                 Thread.sleep(100);
-                DataInputStream in = new DataInputStream(socket.getInputStream());
+                DataInputStream in = new DataInputStream(gameResult.socket.getInputStream());
                 byte signal = in.readByte();
                 
                 switch (signal) {
@@ -89,9 +78,9 @@ public class P2PGameOverController extends BaseController {
     }
 
     private void sendSignal(byte signal) {
-        if (isServer) {
+        if (gameResult.isServer) {
             try {
-                DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                DataOutputStream out = new DataOutputStream(gameResult.socket.getOutputStream());
                 out.writeByte(signal);
                 out.flush();
             } catch (Exception e) {
@@ -101,17 +90,17 @@ public class P2PGameOverController extends BaseController {
     }
 
     public void handlePlayAgain() {
-        if (isServer) {
+        if (gameResult.isServer) {
             sendSignal(SIGNAL_PLAY_AGAIN);
         }
-        setState(new P2PMultiPlayController(socket, isServer, gameMode, difficulty));
+        setState(new P2PMultiPlayController(gameResult.socket, gameResult.isServer, gameResult.gameMode, gameResult.difficulty));
     }
 
     public void handleGoWaitingRoom() {
-        if (isServer) {
+        if (gameResult.isServer) {
             sendSignal(SIGNAL_GO_WAITING_ROOM);
         }
-        setState(new WaitingRoomController(socket, isServer));
+        setState(new WaitingRoomController(gameResult.socket, gameResult.isServer));
     }
 
     public void handleMainMenu() {
@@ -119,7 +108,7 @@ public class P2PGameOverController extends BaseController {
             receiveThread.interrupt();
         }
         try {
-            socket.close();
+            gameResult.socket.close();
         } catch (Exception e) {}
         setState(new StartController());
     }

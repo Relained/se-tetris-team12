@@ -143,4 +143,8 @@ public class P2PMultiPlayView extends BaseView{
     public void updateOpponentDisplay(int[][] board) {
         opGameCanvas.updateBoard(board);
     }
+
+    public void setShowTimer(boolean show) {
+        scorePanel.setShowTimer(show);
+    }
 }
