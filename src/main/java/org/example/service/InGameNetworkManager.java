@@ -262,6 +262,8 @@ public class InGameNetworkManager {
             sendDataBuffer.flip();
             try {
                 udpChannel.write(sendDataBuffer);
+            } catch (java.net.PortUnreachableException e) {
+                // 상대방 UDP 닫힘 or NAT 문제 - 무시하고 계속 (3초 타임아웃으로 최종 판단)
             } catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.err.println("(BoardSync)[Send thread interrupted - graceful shutdown]");
@@ -347,6 +349,8 @@ public class InGameNetworkManager {
                         onBoardDataReceived.accept(decodeBuffer);
                     }
                 }
+            } catch (java.net.PortUnreachableException e) {
+                // 상대방 UDP 닫힘 or NAT 문제 - 무시하고 계속 (3초 타임아웃으로 최종 판단)
             } catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.err.println("(BoardSync)[Receive thread interrupted - graceful shutdown]");
