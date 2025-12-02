@@ -46,7 +46,7 @@ public class P2PMultiPlayController extends BaseController {
     public P2PMultiPlayController(Socket socket, boolean isServer, GameMode gameMode, int difficulty) {
         if (gameMode == GameMode.ITEM) {
             tetrisSystem = new ItemTetrisSystem();
-        } else if (gameMode == GameMode.TIME_ATTACK) {
+        } else if (gameMode == GameMode.TIME_ATTACK && isServer) {
             tetrisSystem = new TimeTetrisSystem();
         } else {
             tetrisSystem = new TetrisSystem();
@@ -62,8 +62,7 @@ public class P2PMultiPlayController extends BaseController {
             this::handleAdderBoardReceived,
             view::updateOpponentDisplay,
             tetrisSystem::getCompressedBoardData,
-            tetrisSystem::getScore, 
-            view::updateNetworkDelay
+            tetrisSystem::getScore
         );
         this.isServer = isServer;
         this.gameMode = gameMode;

@@ -3,15 +3,11 @@ package org.example.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 import org.example.model.AdderBoardSync;
 import org.example.model.TetrominoPosition;
@@ -35,8 +31,6 @@ public class P2PMultiPlayView extends BaseView{
     private ScorePanel scorePanel;
     private HBox root;
     private VBox widgetsContainer;
-    private Label networkDelayLabel;
-    private VBox networkDelayContainer;
 
     public P2PMultiPlayView() {
         super(false); // NavigableButtonSystem 사용하지 않음
@@ -80,28 +74,11 @@ public class P2PMultiPlayView extends BaseView{
         VBox spacer = new VBox();
         scorePanel = new ScorePanel(mode, difficulty);
 
-        // Network Delay 표시 영역
-        networkDelayContainer = new VBox(2);
-        networkDelayContainer.setAlignment(Pos.CENTER);
-        networkDelayContainer.setPadding(new Insets(5));
-        networkDelayContainer.setStyle("-fx-background-color: #222; -fx-background-radius: 5;");
-        
-        Label titleLabel = new Label("Network Delay");
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 10));
-        titleLabel.setTextFill(Color.LIGHTGRAY);
-        
-        networkDelayLabel = new Label("0 ms");
-        networkDelayLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-        networkDelayLabel.setTextFill(Color.LIME);
-        
-        networkDelayContainer.getChildren().addAll(titleLabel, networkDelayLabel);
-
-        container.getChildren().addAll(nextPanel, holdPanel, adderCanvas, spacer, networkDelayContainer, scorePanel);
+        container.getChildren().addAll(nextPanel, holdPanel, adderCanvas, spacer, scorePanel);
         VBox.setVgrow(nextPanel, Priority.NEVER);
         VBox.setVgrow(holdPanel, Priority.NEVER);
         VBox.setVgrow(adderCanvas, Priority.NEVER);
         VBox.setVgrow(spacer, Priority.ALWAYS);
-        VBox.setVgrow(networkDelayContainer, Priority.NEVER);
         VBox.setVgrow(scorePanel, Priority.NEVER);
         HBox.setHgrow(container, Priority.NEVER);
 
@@ -169,26 +146,5 @@ public class P2PMultiPlayView extends BaseView{
 
     public void setShowTimer(boolean show) {
         scorePanel.setShowTimer(show);
-    }
-
-    /**
-     * 네트워크 딜레이 값 업데이트
-     * @param delayMs 딜레이 (밀리초)
-     */
-    public void updateNetworkDelay(long delayMs) {
-        if (networkDelayLabel != null) {
-            networkDelayLabel.setText(delayMs + " ms");
-            
-            // 딜레이에 따른 색상 변경
-            if (delayMs < 40) {
-                networkDelayLabel.setTextFill(Color.LIME);       // 좋음
-            } else if (delayMs < 100) {
-                networkDelayLabel.setTextFill(Color.YELLOW);     // 보통
-            } else if (delayMs < 200) {
-                networkDelayLabel.setTextFill(Color.ORANGE);     // 나쁨
-            } else {
-                networkDelayLabel.setTextFill(Color.RED);        // 매우 나쁨
-            }
-        }
     }
 }

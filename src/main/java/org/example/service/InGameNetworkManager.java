@@ -3,19 +3,17 @@ package org.example.service;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.LongConsumer;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.example.model.GameBoard;
 
 import javafx.application.Platform;
@@ -32,8 +30,7 @@ public class InGameNetworkManager {
     public static final byte SIGNAL_ENDING = 0x04;
 
     private final Socket tcpSocket;
-    private DatagramChannel udpChannel;
-    private Selector selector;
+    private DatagramSocket udpSocket;
 
     private Thread boardSyncSendThread;
     private Thread boardSyncReceiveThread;
@@ -46,13 +43,12 @@ public class InGameNetworkManager {
     private Consumer<int[][]> onBoardDataReceived;
     private Supplier<int[][]> boardDataProvider;
     private IntSupplier scoreProvider;
-    private LongConsumer displayDelay;
     private final BlockingQueue<byte[]> sendQueue = new LinkedBlockingQueue<>();
-    private final AtomicBoolean released = new AtomicBoolean(false);
 
     // ----------- 상수 -----------
     private static final int TICK_TIME = 40;
     private static final int CONNECTION_LOST_TIME = 3000;
+    private static final int CONNECTION_DELAY_TIME = 500;
     private static final int MAX_PACKET_SIZE = 1024; // 1KB
 
     public InGameNetworkManager(
@@ -63,8 +59,7 @@ public class InGameNetworkManager {
         Consumer<int[][]> onAdderBoardReceived,
         Consumer<int[][]> onBoardDataReceived, 
         Supplier<int[][]> boardDataProvider,
-        IntSupplier scoreProvider,
-        LongConsumer displayDelay
+        IntSupplier scoreProvider
     )
     {
         this.tcpSocket = socket;
@@ -75,24 +70,16 @@ public class InGameNetworkManager {
         this.onBoardDataReceived = onBoardDataReceived;
         this.boardDataProvider = boardDataProvider;
         this.scoreProvider = scoreProvider;
-        this.displayDelay = displayDelay;
+
         try {
-            // NIO DatagramChannel 설정
-            udpChannel = DatagramChannel.open();
-            udpChannel.configureBlocking(false);
-            udpChannel.bind(tcpSocket.getLocalSocketAddress());
-            udpChannel.connect(tcpSocket.getRemoteSocketAddress()); // 상대방 주소 고정
-            
-            // Selector 설정 (수신 대기용)
-            selector = Selector.open();
-            udpChannel.register(selector, SelectionKey.OP_READ);
-            
+            udpSocket = new DatagramSocket(tcpSocket.getLocalSocketAddress());
+            udpSocket.setSoTimeout(TICK_TIME);
             Thread.startVirtualThread(this::startNetworking);
         } catch (IOException e) {
-            System.err.println("[Error while creating UDP channel]");
+            System.err.println("[Error while creating UDP socket]");
             System.err.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
             releaseResources(true);
-            udpChannel = null;
+            udpSocket = null;
         }
     }
     
@@ -244,11 +231,12 @@ public class InGameNetworkManager {
         }
     }
 
-    //UDP 보드 동기화 송신 루프 (NIO)
+    //UDP 보드 동기화 송신 루프
     private void boardSyncSendLoop() {
         int[][] data;
         int sendTick = 0;
         final ByteBuffer sendDataBuffer = ByteBuffer.allocate(MAX_PACKET_SIZE);
+        final DatagramPacket packet = new DatagramPacket(sendDataBuffer.array(), 0, tcpSocket.getRemoteSocketAddress());
 
         while (true) {
             data = boardDataProvider.get();
@@ -259,9 +247,9 @@ public class InGameNetworkManager {
                     sendDataBuffer.putInt(data[i][j]);
                 }
             }
-            sendDataBuffer.flip();
+            packet.setData(sendDataBuffer.array(), 0, sendDataBuffer.position());
             try {
-                udpChannel.write(sendDataBuffer);
+                udpSocket.send(packet);
             } catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.err.println("(BoardSync)[Send thread interrupted - graceful shutdown]");
@@ -281,72 +269,50 @@ public class InGameNetworkManager {
         }
     }
 
-    // UDP 보드 동기화 수신 루프 (NIO)
+    // UDP 보드 동기화 수신 루프
     private void boardSyncReceiveLoop() {
         int lastReceivedTick = -1;
         int expectedLength = GameBoard.HEIGHT * GameBoard.WIDTH * 4 + 4;
         long lastPacketTime = System.currentTimeMillis();
         final int[][] decodeBuffer = new int[GameBoard.HEIGHT][GameBoard.WIDTH];
-        final ByteBuffer receiveByteBuffer = ByteBuffer.allocate(MAX_PACKET_SIZE);
-
-        // 딜레이 평균 계산용 변수
-        long delaySum = 0;
-        int delayCount = 0;
-        long lastDelayDisplayTime = System.currentTimeMillis();
+        final byte[] receiveRawBuffer = new byte[MAX_PACKET_SIZE];
+        final ByteBuffer receiveByteBuffer = ByteBuffer.wrap(receiveRawBuffer);
+        final DatagramPacket packet = new DatagramPacket(receiveRawBuffer, receiveRawBuffer.length);
 
         while (true) {
             long loopStart = System.currentTimeMillis();
-
-            long delay = Math.max(0, loopStart - lastPacketTime - TICK_TIME);
-            delaySum += delay;
-            delayCount++;
-            
-            if (loopStart - lastDelayDisplayTime >= 1000) {
-                long avgDelay = delayCount > 0 ? delaySum / delayCount : 0;
-                Platform.runLater(() -> displayDelay.accept(avgDelay));
-                delaySum = 0;
-                delayCount = 0;
-                lastDelayDisplayTime = loopStart;
+            if (loopStart - lastPacketTime > CONNECTION_DELAY_TIME 
+                && CONNECTION_DELAY_TIME + TICK_TIME > loopStart - lastPacketTime) {
+                System.err.println("[Connection delay detected (>500ms)]");
             }
-            
-            if (delay > CONNECTION_LOST_TIME) {
+            else if (loopStart - lastPacketTime > CONNECTION_LOST_TIME) {
                 System.err.println("[Connection lost detected (>3000ms)]");
                 releaseResources(true);
                 return;
             }
 
             try {
-                int readyChannels = selector.select(TICK_TIME);
-                
-                if (readyChannels > 0) {
-                    selector.selectedKeys().clear();
-                    
-                    while (true) {
-                        receiveByteBuffer.clear();
-                        if (udpChannel.read(receiveByteBuffer) <= 0)
-                            break;
-                        receiveByteBuffer.flip();
-                        
-                        if (receiveByteBuffer.remaining() < expectedLength) {
-                            continue;
-                        }
-                        
-                        int receivedTick = receiveByteBuffer.getInt();
-                        if (receivedTick <= lastReceivedTick) {
-                            continue;
-                        }
-                        lastReceivedTick = receivedTick;
-
-                        lastPacketTime = System.currentTimeMillis();
-                        
-                        for (int i = 0; i < GameBoard.HEIGHT; i++) {
-                            for (int j = 0; j < GameBoard.WIDTH; j++) {
-                                decodeBuffer[i][j] = receiveByteBuffer.getInt();
-                            }
-                        }
-                        onBoardDataReceived.accept(decodeBuffer);
+                udpSocket.receive(packet);
+                if (packet.getLength() < expectedLength) {
+                    continue;
+                }
+                receiveByteBuffer.limit(packet.getLength());
+                receiveByteBuffer.position(0);
+                int receivedTick = receiveByteBuffer.getInt();
+                if (receivedTick <= lastReceivedTick) {
+                    continue;
+                }
+                lastReceivedTick = receivedTick;
+                lastPacketTime = System.currentTimeMillis();
+                for (int i = 0; i < GameBoard.HEIGHT; i++) {
+                    for (int j = 0; j < GameBoard.WIDTH; j++) {
+                        decodeBuffer[i][j] = receiveByteBuffer.getInt();
                     }
                 }
+                onBoardDataReceived.accept(decodeBuffer);
+
+            } catch (SocketTimeoutException e) {
+                // 타임아웃이면 다음 tick으로
             } catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.err.println("(BoardSync)[Receive thread interrupted - graceful shutdown]");
@@ -372,9 +338,6 @@ public class InGameNetworkManager {
     }
 
     private void releaseResources(boolean remoteDisconnected) {
-        if (!released.compareAndSet(false, true)) {
-            return; // 이미 해제됨
-        }
         if (remoteDisconnected) {
             Platform.runLater(onDisconnect);
         }
@@ -388,8 +351,7 @@ public class InGameNetworkManager {
             gameDataReceiveThread.interrupt();
         try {
             tcpSocket.close();
-            if (selector != null) selector.close();
-            if (udpChannel != null) udpChannel.close();
+            udpSocket.close();
         } catch (IOException e) {
             System.err.println("[Error while closing socket]");
         }
@@ -401,10 +363,9 @@ public class InGameNetworkManager {
         if (boardSyncReceiveThread != null)
             boardSyncReceiveThread.interrupt();
         try {
-            if (selector != null) selector.close();
-            if (udpChannel != null) udpChannel.close();
+            udpSocket.close();
         } catch (Exception e) {
-            System.err.println("[Error while closing UDP channel]");
+            System.err.println("[Error while closing UDP socket]");
         }
     }
 
