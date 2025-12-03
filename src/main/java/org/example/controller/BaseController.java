@@ -2,6 +2,7 @@ package org.example.controller;
 
 import java.util.Stack;
 
+import org.example.App;
 import org.example.service.ColorManager;
 import org.example.service.DisplayManager;
 import org.example.service.SettingManager;
@@ -38,10 +39,17 @@ public abstract class BaseController {
         DisplayManager displayManager = DisplayManager.getInstance();
         int width = displayManager.getWidth(displayManager.getCurrentSize());
         int height = displayManager.getHeight(displayManager.getCurrentSize());
-        
+
         scene = new Scene(root, width, height);
-        scene.setFill(ColorManager.getInstance().getBackgroundColor());
+        scene.setFill(ColorManager.getInstance().getCanvasBackgroundColor());
         scene.setOnKeyPressed(event -> handleKeyInput(event));
+
+        // CSS 스타일시트 로드
+        String css = App.class.getResource("/styles/tetris.css").toExternalForm();
+        scene.getStylesheets().add(css);
+
+        // 스크린 사이즈 클래스 적용
+        displayManager.applyScreenSizeClass(root);
     }
 
     public static void popState() {
@@ -53,9 +61,15 @@ public abstract class BaseController {
         if (stateStack.isEmpty()) {
             return;
         }
-        stateStack.peek().resume();
+        BaseController currentState = stateStack.peek();
+        currentState.resume();
 
-        primaryStage.setScene(stateStack.peek().getScene());
+        Scene currentScene = currentState.getScene();
+        primaryStage.setScene(currentScene);
+
+        // popState로 돌아올 때도 스크린 사이즈 클래스 재적용
+        DisplayManager displayManager = DisplayManager.getInstance();
+        displayManager.applyScreenSizeClass(currentScene.getRoot());
     }
 
     //이전 스테이트로 돌아갈 수 있어야 할 때 사용
@@ -65,6 +79,10 @@ public abstract class BaseController {
 
         Scene scene = newState.createScene();
         primaryStage.setScene(scene);
+
+        // stackState로 새로운 화면 진입 시에도 스크린 사이즈 클래스 재적용
+        DisplayManager displayManager = DisplayManager.getInstance();
+        displayManager.applyScreenSizeClass(scene.getRoot());
 
         stateStack.push(newState);
     }

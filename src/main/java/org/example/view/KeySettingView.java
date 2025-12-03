@@ -3,12 +3,8 @@ package org.example.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 import org.example.service.KeySettingManager;
@@ -68,19 +64,15 @@ public class KeySettingView extends BaseView {
         VBox root = new VBox(20);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(30));
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
 
         // 제목
         title = new Text("Key Settings");
-        title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(Font.font("Arial", 36));
+        title.getStyleClass().addAll("text-title-medium", "text-primary");
 
         // 상태 텍스트
         statusText = new Text("Use ↑↓ to navigate, ENTER to change key, ESC to go back");
-        statusText.setFill(Color.LIGHTGRAY);
-        statusText.setFont(Font.font("Arial", 16));
+        statusText.getStyleClass().addAll("text-body-medium", "text-secondary");
 
         // 키 바인딩 컨테이너
         VBox keyBindingsContainer = new VBox(15);
@@ -128,15 +120,13 @@ public class KeySettingView extends BaseView {
         
         // 액션 이름 표시
         Text actionLabel = new Text(keySettingManager.getActionDisplayName(action) + ":");
-        actionLabel.setFill(colorManager.getPrimaryTextColor());
-        actionLabel.setFont(Font.font("Arial", 20));
+        actionLabel.getStyleClass().addAll("text-body-large", "text-primary");
         actionLabel.setWrappingWidth(200);
-        
+
         // 현재 키 바인딩 표시
         KeyCode currentKey = keySettingManager.getKeyBinding(action);
         Text keyText = new Text(currentKey != null ? currentKey.getName() : "Not Set");
-        keyText.setFill(colorManager.getSecondaryTextColor());
-        keyText.setFont(Font.font("Arial", 20));
+        keyText.getStyleClass().addAll("text-body-large", "text-secondary");
         keyText.setWrappingWidth(150);
         keyBindingTexts.put(action, keyText);
         
@@ -157,8 +147,7 @@ public class KeySettingView extends BaseView {
         row.setMinHeight(50);
         
         Text text = new Text(label);
-        text.setFill(Color.WHITE);
-        text.setFont(Font.font("Arial", 18));
+        text.getStyleClass().addAll("text-body-large", "text-primary");
         
         row.getChildren().add(text);
         setDefaultStyle(row);
@@ -170,25 +159,30 @@ public class KeySettingView extends BaseView {
      * 선택된 스타일을 설정합니다.
      */
     private void setSelectedStyle(HBox row) {
-        row.setStyle(
-            "-fx-background-color: #6a6a6a;" +
-            "-fx-border-color: yellow;" +
-            "-fx-border-width: 3px;" +
-            "-fx-background-radius: 5;" +
-            "-fx-border-radius: 5;"
-        );
+        row.getStyleClass().remove("key-setting-row");
+        if (!row.getStyleClass().contains("key-setting-row--selected")) {
+            row.getStyleClass().add("key-setting-row--selected");
+        }
     }
-    
+
     /**
      * 기본 스타일을 설정합니다.
      */
     private void setDefaultStyle(HBox row) {
-        row.setStyle(
-            "-fx-background-color: #4a4a4a;" +
-            "-fx-background-radius: 5;"
-        );
+        row.getStyleClass().remove("key-setting-row--selected");
+        if (!row.getStyleClass().contains("key-setting-row")) {
+            row.getStyleClass().add("key-setting-row");
+        }
     }
-    
+
+    /**
+     * 상태 텍스트의 색상 스타일을 변경합니다.
+     */
+    private void setStatusTextStyle(String colorClass) {
+        statusText.getStyleClass().removeAll("text-secondary", "text-orange", "text-red");
+        statusText.getStyleClass().add(colorClass);
+    }
+
     /**
      * 키보드 네비게이션을 처리합니다 (일반 모드).
      */
@@ -257,25 +251,25 @@ public class KeySettingView extends BaseView {
      * 키 입력 대기 상태를 표시합니다.
      */
     public void showWaitingForKey(String action) {
-        statusText.setText("Press a key for " + keySettingManager.getActionDisplayName(action) + 
+        statusText.setText("Press a key for " + keySettingManager.getActionDisplayName(action) +
                           " (ESC to cancel)");
-        statusText.setFill(Color.ORANGE);
+        setStatusTextStyle("text-orange");
     }
-    
+
     /**
      * 키 입력 대기 상태 표시를 숨기고 기본 메시지로 복구합니다.
      */
     public void hideWaitingForKey() {
         statusText.setText("Use ↑↓ to navigate, ENTER to change key, ESC to go back");
-        statusText.setFill(Color.LIGHTGRAY);
+        setStatusTextStyle("text-secondary");
     }
-    
+
     /**
      * 중복 키 에러를 표시합니다.
      */
     public void showDuplicateKeyError(KeyCode keyCode) {
         statusText.setText("Key " + keyCode.getName() + " is already assigned! Try another key.");
-        statusText.setFill(Color.RED);
+        setStatusTextStyle("text-red");
         
         // 3초 후 메시지 숨기기
         new Thread(() -> {

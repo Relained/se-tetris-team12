@@ -19,30 +19,49 @@ public class ShortNextPiecePanel extends VBox {
     private Canvas nextCanvas;
     private Text title;
     private double cellSize = 20;
+    private double lastAppliedWidth = -1;
     private final ColorManager colorManager;
-    
+
     public ShortNextPiecePanel() {
         super(10);
         setAlignment(Pos.TOP_CENTER);
         setPadding(new Insets(10));
-        
+
         this.colorManager = ColorManager.getInstance();
-        
+
         // 타이틀
         this.title = new Text("Next");
         title.setFill(Color.WHITE);
         title.setFont(Font.font(16));
         getChildren().add(title);
-        
+
         // 캔버스 초기화
         this.nextCanvas = new Canvas(4 * cellSize + 8, 4 * cellSize + 8);
         nextCanvas.setStyle("-fx-effect: dropshadow(gaussian, rgba(255,255,255,0.3), 3, 0.5, 0, 0); " +
                           "-fx-background-color: #444; -fx-background-radius: 5;");
         getChildren().add(nextCanvas);
-        
-        setStyle("-fx-background-color: #333;");
+
+        getStyleClass().add("panel-hold");
     }
-    
+
+    /**
+     * ShortNextPiecePanel의 크기에 맞게 캔버스 크기를 조정합니다. (외부에서 명시적으로 호출)
+     */
+    public void updateCanvasSize() {
+        double currentWidth = getWidth();
+        if (currentWidth > 0 && Math.abs(currentWidth - lastAppliedWidth) > 2) {
+            adjustCanvasSizeByWidth(currentWidth);
+            lastAppliedWidth = currentWidth;
+        }
+    }
+
+    /**
+     * 일시정지 해제(resume) 시 반드시 updateCanvasSize()를 호출해야 함
+     */
+    public void onResume() {
+        updateCanvasSize();
+    }
+
     /**
      * 선호하는 크기를 설정합니다.
      */
@@ -50,24 +69,25 @@ public class ShortNextPiecePanel extends VBox {
         setPrefWidth(size + 20);
         setPrefHeight(size + 50);
         adjustCanvasSizeByWidth(size + 20);
+        lastAppliedWidth = size + 20;
     }
-    
+
     /**
      * 가로 크기를 기준으로 캔버스 크기를 조정합니다.
      */
     private void adjustCanvasSizeByWidth(double containerWidth) {
         double padding = 20; // 좌우 패딩
         double availableWidth = containerWidth - padding;
-        
+
         if (availableWidth <= 0) return;
-        
-        // 정사각형 캔버스 크기 계산 (가로 크기 기준)
-        double canvasSize = Math.max(50, availableWidth);
-        
+
+        // 정사각형 캔버스 크기 계산 (가로 크기 기준, 상한선 적용)
+        double canvasSize = Math.max(50, Math.min(availableWidth * 0.95, 200));
+
         nextCanvas.setWidth(canvasSize);
         nextCanvas.setHeight(canvasSize);
         cellSize = (canvasSize - 8) / 4;
-        
+
         // 폰트 크기도 비례하여 조정
         double fontSize = Math.max(10, Math.min(18, canvasSize / 4));
         title.setFont(Font.font(fontSize));

@@ -4,17 +4,23 @@ import javafx.application.Platform;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.example.model.GameBoard;
+import org.example.service.ColorManager;
 
 public class DummyTetrisCanvas extends TetrisCanvas {
+    private final ColorManager colorManager;
+
     // Magic Number (TetrisSystem과 같아야함)
     private static final int WEIGHT_MARK = 'W';
     private static final int BOMB_MARK = 'B';
     private static final int GHOST_MARK = -2;
+    private final Color BACKGROUND_COLOR;
 
     int[][] compressedBoard;
 
     public DummyTetrisCanvas() {
         super();
+        this.colorManager = ColorManager.getInstance();
+        this.BACKGROUND_COLOR = colorManager.getCanvasBackgroundColor();
     }
 
     public void updateBoard(int[][] compressedBoard) {

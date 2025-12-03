@@ -3,10 +3,7 @@ package org.example.view;
 import java.util.List;
 
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 /**
@@ -22,13 +19,10 @@ public class MultiPlayModeView extends BaseView {
     public VBox createView(Runnable onLocal, Runnable onOnline, Runnable onGoBack) {
         VBox root = new VBox(40);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
 
         Text title = new Text("Select MultiPlay Mode");
-        title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(Font.font("Arial", 36));
+        title.getStyleClass().addAll("text-title-medium", "text-primary");
 
         var created = buttonSystem.createNavigableButtonFromList(
             List.of("Local MultiPlay", "Online MultiPlay", "Go Back"),

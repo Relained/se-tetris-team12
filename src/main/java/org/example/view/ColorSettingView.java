@@ -5,11 +5,7 @@ import java.util.List;
 import org.example.model.SettingData.ColorBlindMode;
 
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 /**
@@ -41,11 +37,10 @@ public class ColorSettingView extends BaseView {
                           Runnable onGoBack) {
         VBox root = new VBox(30);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+        root.getStyleClass().add("root-dark");
 
         title = new Text("Color Settings\nCurrent: " + currentMode.name());
-        title.setFill(Color.WHITE);
-        title.setFont(Font.font("Arial", 36));
+        title.getStyleClass().addAll("text-title-medium", "text-primary");
 
         var created = buttonSystem.createNavigableButtonFromList(
             List.of("Default", "PROTANOPIA", "DEUTERANOPIA", "TRITANOPIA", "Go Back"),

@@ -13,11 +13,12 @@ import org.example.model.TetrominoPosition;
  * 창의 높이에 따라 동적으로 크기가 조정됩니다.
  */
 public class TetrisCanvas extends Canvas {
-    protected double cellSize = 30;
-    protected static final Color BORDER_COLOR = Color.DARKGRAY;
-    protected static final Color GHOST_COLOR = Color.GRAY;
-    protected final ColorManager colorManager;
-    protected final Color BACKGROUND_COLOR;
+    private double cellSize = 30;
+    private final ColorManager colorManager;
+
+    private static final Color BORDER_COLOR = Color.WHITE;
+    private static final Color GHOST_COLOR = Color.GRAY;
+    private final Color BACKGROUND_COLOR;
 
     private GameBoard board;
     private TetrominoPosition currentPiece;
@@ -26,7 +27,27 @@ public class TetrisCanvas extends Canvas {
     public TetrisCanvas() {
         super(GameBoard.WIDTH * 30, GameBoard.HEIGHT * 30);
         this.colorManager = ColorManager.getInstance();
-        this.BACKGROUND_COLOR = colorManager.getBackgroundColor();
+        this.BACKGROUND_COLOR = colorManager.getCanvasBackgroundColor();
+    }
+
+    /**
+     * 캔버스 크기를 다시 계산합니다. (외부에서 명시적으로 호출)
+     */
+    public void updateCanvasSize() {
+        // 현재 높이 기반으로 cell size 재계산
+        double currentHeight = getHeight();
+        if (currentHeight > 0) {
+            cellSize = currentHeight / GameBoard.HEIGHT;
+            setWidth(GameBoard.WIDTH * cellSize);
+            draw();
+        }
+    }
+
+    /**
+     * 일시정지 해제(resume) 시 반드시 updateCanvasSize()를 호출해야 함
+     */
+    public void onResume() {
+        updateCanvasSize();
     }
     
     public void setCanvasHeight(double height) {

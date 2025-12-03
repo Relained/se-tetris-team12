@@ -4,14 +4,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 import org.example.model.AdderBoardSync;
 import org.example.model.TetrominoPosition;
@@ -50,18 +46,21 @@ public class P2PMultiPlayView extends BaseView{
      */
     public HBox createView(String mode, String difficulty) {
         root = new HBox(20);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
         root.setPadding(new Insets(20));
 
         opGameCanvas = new DummyTetrisCanvas();
         myGameCanvas = new TetrisCanvas();
         HBox.setHgrow(opGameCanvas, Priority.NEVER);
         HBox.setHgrow(myGameCanvas, Priority.NEVER);
+        
+        // 캔버스 사이 공간을 위한 스페이서
+        VBox canvasSpacer = new VBox();
+        HBox.setHgrow(canvasSpacer, Priority.ALWAYS);
+        
         widgetsContainer = createPlayerWidgets(mode, difficulty);
 
-        root.getChildren().addAll(opGameCanvas, myGameCanvas, widgetsContainer);
+        root.getChildren().addAll(opGameCanvas, canvasSpacer, myGameCanvas, widgetsContainer);
 
         return root;
     }
@@ -70,7 +69,7 @@ public class P2PMultiPlayView extends BaseView{
         VBox container = new VBox(10);
         container.setAlignment(Pos.TOP_CENTER);
         container.setPadding(new Insets(10));
-        container.setStyle("-fx-background-color: #333;");
+        container.getStyleClass().add("widget-container");
         container.setMinWidth(150);
         container.setPrefWidth(150);
 
@@ -84,14 +83,13 @@ public class P2PMultiPlayView extends BaseView{
         networkDelayContainer = new VBox(2);
         networkDelayContainer.setAlignment(Pos.CENTER);
         networkDelayContainer.setPadding(new Insets(5));
-        networkDelayContainer.setStyle("-fx-background-color: #222; -fx-background-radius: 5;");
+        networkDelayContainer.getStyleClass().add("network-delay-container");
         
         Label titleLabel = new Label("Network Delay");
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 10));
-        titleLabel.setTextFill(Color.LIGHTGRAY);
+        titleLabel.getStyleClass().addAll("label-secondary", "text-caption");
         
         networkDelayLabel = new Label("0 ms");
-        networkDelayLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        networkDelayLabel.getStyleClass().addAll("label-primary", "text-body-small");
         networkDelayLabel.setTextFill(Color.LIME);
         
         networkDelayContainer.getChildren().addAll(titleLabel, networkDelayLabel);

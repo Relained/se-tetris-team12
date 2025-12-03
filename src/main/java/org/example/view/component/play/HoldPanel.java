@@ -14,30 +14,44 @@ public class HoldPanel extends VBox {
     private Canvas holdCanvas;
     private Text title;
     private double cellSize = 20;
+    private double lastAppliedWidth = -1;
 
     public HoldPanel() {
         super(10);
         setAlignment(Pos.TOP_CENTER);
         setPadding(new Insets(10));
-        
+
         this.title = new Text("Hold");
         title.setFill(Color.WHITE);
         title.setFont(Font.font(16));
-        
+
         this.holdCanvas = new Canvas(4 * cellSize, 4 * cellSize);
-        
+
         getChildren().addAll(title, holdCanvas);
-        setStyle("-fx-background-color: #333;");
-        
-        // 가로 크기 변경 감지 - 가로 크기 기준으로 비율 조정
-        widthProperty().addListener((obs, oldVal, newVal) -> {
-            double newWidth = newVal.doubleValue();
-            if (newWidth > 0) {
-                adjustCanvasSizeByWidth(newWidth);
-            }
-        });
+        getStyleClass().add("panel-hold");
+
+        // 생성 시 캔버스 크기 초기화
+        updateCanvasSize();
     }
-    
+
+    /**
+     * HoldPanel의 크기에 맞게 캔버스 크기를 조정합니다. (외부에서 명시적으로 호출)
+     */
+    public void updateCanvasSize() {
+        double currentWidth = getWidth();
+        if (currentWidth > 0 && Math.abs(currentWidth - lastAppliedWidth) > 2) {
+            adjustCanvasSizeByWidth(currentWidth);
+            lastAppliedWidth = currentWidth;
+        }
+    }
+
+    /**
+     * 일시정지 해제(resume) 시 반드시 updateCanvasSize()를 호출해야 함
+     */
+    public void onResume() {
+        updateCanvasSize();
+    }
+
     /**
      * 가로 크기를 기준으로 캔버스 크기를 조정합니다.
      * HoldPanel은 다른 위젯보다 조금 더 작은 크기를 유지합니다.
@@ -45,16 +59,16 @@ public class HoldPanel extends VBox {
     private void adjustCanvasSizeByWidth(double containerWidth) {
         double padding = 20; // 좌우 패딩
         double availableWidth = containerWidth - padding;
-        
+
         if (availableWidth <= 0) return;
-        
-        // 정사각형 캔버스 크기 계산 (가로 크기의 70%로 더 작게 유지)
-        double canvasSize = Math.max(50, availableWidth * 0.7);
-        
+
+        // 정사각형 캔버스 크기 계산 (상한선 적용으로 과도한 확대 방지)
+        double canvasSize = Math.max(50, Math.min(availableWidth * 0.7, 150));
+
         holdCanvas.setWidth(canvasSize);
         holdCanvas.setHeight(canvasSize);
         cellSize = canvasSize / 4;
-        
+
         // 폰트 크기도 비례하여 조정
         double fontSize = Math.max(10, Math.min(18, canvasSize / 4));
         title.setFont(Font.font(fontSize));

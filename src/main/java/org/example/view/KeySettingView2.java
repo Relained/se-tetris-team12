@@ -4,13 +4,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.example.view.component.NavigableButtonSystem;
 
@@ -59,19 +55,15 @@ public class KeySettingView2 extends BaseView {
         VBox root = new VBox(20);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(30));
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
 
         // 제목
         title = new Text("Multiplayer Key Settings");
-        title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(Font.font("Arial", 36));
+        title.getStyleClass().addAll("text-title-medium", "text-primary");
 
         // 상태 텍스트
         statusText = new Text("Use ↑↓←→ to navigate, ENTER to change key, ESC to go back");
-        statusText.setFill(Color.LIGHTGRAY);
-        statusText.setFont(Font.font("Arial", 16));
+        statusText.getStyleClass().addAll("text-body-medium", "text-secondary");
 
         // GridPane으로 Player 1과 Player 2의 키를 좌우로 배치
         GridPane gridPane = new GridPane();
@@ -81,14 +73,12 @@ public class KeySettingView2 extends BaseView {
         
         // Player 1 컬럼
         Text p1Header = new Text("Player 1");
-        p1Header.setFill(colorManager.getPrimaryTextColor());
-        p1Header.setFont(Font.font("Arial", 24));
+        p1Header.getStyleClass().addAll("text-title-small", "text-primary");
         gridPane.add(p1Header, 0, 0);
-        
+
         // Player 2 컬럼
         Text p2Header = new Text("Player 2");
-        p2Header.setFill(colorManager.getPrimaryTextColor());
-        p2Header.setFont(Font.font("Arial", 24));
+        p2Header.getStyleClass().addAll("text-title-small", "text-primary");
         gridPane.add(p2Header, 1, 0);
         
         // NavigableButtonSystem 초기화 (2열 그리드)
@@ -179,9 +169,9 @@ public class KeySettingView2 extends BaseView {
     private void startKeyBinding(int playerNumber, String action) {
         waitingPlayer = playerNumber;
         waitingAction = action;
-        statusText.setText("Player " + playerNumber + " - Press a key for " + 
+        statusText.setText("Player " + playerNumber + " - Press a key for " +
                           getActionDisplayName(action) + " (ESC to cancel)");
-        statusText.setFill(Color.ORANGE);
+        setStatusTextStyle("text-orange");
     }
     
     /**
@@ -219,15 +209,23 @@ public class KeySettingView2 extends BaseView {
      */
     public void hideWaitingForKey() {
         statusText.setText("Use ↑↓←→ to navigate, ENTER to change key, ESC to go back");
-        statusText.setFill(Color.LIGHTGRAY);
+        setStatusTextStyle("text-secondary");
     }
-    
+
+    /**
+     * 상태 텍스트의 색상 스타일을 변경합니다.
+     */
+    private void setStatusTextStyle(String colorClass) {
+        statusText.getStyleClass().removeAll("text-secondary", "text-orange", "text-red");
+        statusText.getStyleClass().add(colorClass);
+    }
+
     /**
      * 중복 키 에러를 표시합니다.
      */
     public void showDuplicateKeyError(KeyCode keyCode) {
         statusText.setText("Key " + keyCode.getName() + " is already assigned! Try another key.");
-        statusText.setFill(Color.RED);
+        setStatusTextStyle("text-red");
         
         // 3초 후 메시지 숨기기
         new Thread(() -> {

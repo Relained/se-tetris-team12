@@ -3,8 +3,6 @@ package org.example.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -62,9 +60,7 @@ public class LocalMultiPlayView extends BaseView {
         this.difficultyName = difficulty;
         // 메인 컨테이너 (플레이어2 위젯 | 플레이어2 캔버스 | 플레이어1 캔버스 | 플레이어1 위젯)
         root = new HBox(20);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
         root.setPadding(new Insets(20));
         root.setAlignment(Pos.CENTER);
         
@@ -93,7 +89,7 @@ public class LocalMultiPlayView extends BaseView {
         VBox widgetContainer = new VBox(10);
         widgetContainer.setAlignment(Pos.TOP_CENTER);
         widgetContainer.setPadding(new Insets(10));
-        widgetContainer.setStyle("-fx-background-color: #333;");
+        widgetContainer.getStyleClass().add("panel-widget");
         widgetContainer.setMinWidth(150);
         widgetContainer.setPrefWidth(150);
         
@@ -270,6 +266,36 @@ public class LocalMultiPlayView extends BaseView {
     public void setShowTimer(boolean show) {
         player1ScorePanel.setShowTimer(show);
         player2ScorePanel.setShowTimer(show);
+    }
+
+    /**
+     * Play 재개 시 모든 UI 요소의 크기를 업데이트합니다.
+     */
+    public void onResume() {
+        if (player1Canvas != null) {
+            player1Canvas.onResume();
+        }
+        if (player2Canvas != null) {
+            player2Canvas.onResume();
+        }
+        if (player1HoldPanel != null) {
+            player1HoldPanel.onResume();
+        }
+        if (player2HoldPanel != null) {
+            player2HoldPanel.onResume();
+        }
+        if (player1NextPanel != null) {
+            player1NextPanel.onResume();
+        }
+        if (player2NextPanel != null) {
+            player2NextPanel.onResume();
+        }
+        if (player1ScorePanel != null) {
+            player1ScorePanel.onResume();
+        }
+        if (player2ScorePanel != null) {
+            player2ScorePanel.onResume();
+        }
     }
     
     public ShortNextPiecePanel getPlayer1NextPanel() {
