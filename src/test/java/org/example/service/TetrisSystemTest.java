@@ -675,4 +675,81 @@ class TetrisSystemTest {
         assertTrue(iPercentage < OTHER_EXPECTED + ERROR_MARGIN,
             "I block should appear less frequently than other blocks in Hard mode");
     }
+    
+    /**
+     * 가중치 기반 확률 검증 - 예제 시나리오
+     * 4개 블록 중 블록 B의 가중치가 2배일 때:
+     * - 블록 B: 40% (2 / (1+1+1+2) = 2/5)
+     * - 나머지 블록: 각 20% (1 / (1+1+1+2) = 1/5)
+     * 
+     * 1,000번 반복 시:
+     * - 블록 B: 약 400번
+     * - 나머지: 각 약 200번
+     * 
+     * 오차 범위: ±5%
+     */
+    @Test
+    void testWeightedProbabilityExample() {
+        final int ITERATIONS = 1000;
+        final double TOTAL_WEIGHT = 1.0 + 1.0 + 1.0 + 2.0; // A(1) + C(1) + D(1) + B(2) = 5
+        final double B_EXPECTED = (2.0 / TOTAL_WEIGHT) * 100; // 40%
+        final double OTHER_EXPECTED = (1.0 / TOTAL_WEIGHT) * 100; // 20%
+        final double ERROR_MARGIN = 5.0; // ±5%
+        
+        // 가중치: A=1, B=2, C=1, D=1
+        double[] weights = {1.0, 2.0, 1.0, 1.0};
+        int[] counts = new int[4]; // A, B, C, D
+        
+        java.util.Random random = new java.util.Random();
+        
+        // 1,000번 가중치 기반 선택
+        for (int i = 0; i < ITERATIONS; i++) {
+            double randomValue = random.nextDouble() * TOTAL_WEIGHT;
+            double cumulativeWeight = 0.0;
+            
+            for (int j = 0; j < weights.length; j++) {
+                cumulativeWeight += weights[j];
+                if (randomValue < cumulativeWeight) {
+                    counts[j]++;
+                    break;
+                }
+            }
+        }
+        
+        // 결과 검증
+        String[] blockNames = {"A", "B", "C", "D"};
+        System.err.println("\n=== Weighted Probability Example (1,000 iterations) ===");
+        System.err.println("Weights - A:1.0, B:2.0, C:1.0, D:1.0 (Total: 5.0)");
+        
+        for (int i = 0; i < 4; i++) {
+            int count = counts[i];
+            double percentage = (count * 100.0) / ITERATIONS;
+            double expected = (i == 1) ? B_EXPECTED : OTHER_EXPECTED; // B is index 1
+            double deviation = Math.abs(percentage - expected);
+            
+            System.err.printf("Block %s: %d times (%.2f%%) - Expected: %.2f%% - Deviation: %.2f%%\n",
+                blockNames[i], count, percentage, expected, deviation);
+            
+            assertTrue(deviation <= ERROR_MARGIN,
+                String.format("Block %s deviation %.2f%% exceeds ±5%% margin (Expected: %.2f%%, Actual: %.2f%%)", 
+                    blockNames[i], deviation, expected, percentage));
+        }
+        
+        // 블록 B 검증 (약 400번, 40%)
+        int bCount = counts[1];
+        double bPercentage = (bCount * 100.0) / ITERATIONS;
+        assertTrue(Math.abs(bPercentage - 40.0) <= ERROR_MARGIN,
+            String.format("Block B should appear ~40%% (Expected: 400±50, Actual: %d)", bCount));
+        
+        // 나머지 블록 검증 (각 약 200번, 20%)
+        for (int i = 0; i < 4; i++) {
+            if (i == 1) continue; // Skip B
+            
+            int count = counts[i];
+            double percentage = (count * 100.0) / ITERATIONS;
+            assertTrue(Math.abs(percentage - 20.0) <= ERROR_MARGIN,
+                String.format("Block %s should appear ~20%% (Expected: 200±50, Actual: %d)", 
+                    blockNames[i], count));
+        }
+    }
 }
