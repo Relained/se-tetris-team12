@@ -75,6 +75,13 @@ public class ScorePanel extends VBox {
         getChildren().addAll(title, scoreText, linesLevelRow, modeDifficultyRow, timerText);
         getStyleClass().add("panel-score");
 
+        // 크기 변경 시 폰트 크기 자동 조정
+        widthProperty().addListener((_, _, newWidth) -> {
+            if (newWidth.doubleValue() > 0) {
+                adjustFontSizeByWidth(newWidth.doubleValue());
+            }
+        });
+
         // 생성 시 폰트 크기 초기화
         updateFontSize();
     }
@@ -105,15 +112,15 @@ public class ScorePanel extends VBox {
         
         if (availableWidth <= 0) return;
         
-        // 가로 크기에 비례하여 폰트 크기 조정
-        baseFontSize = Math.max(11, Math.min(18, availableWidth / 7));
+        // 가로 크기에 비례하여 폰트 크기 조정 (최소값을 9로 낮춤)
+        baseFontSize = Math.max(13, Math.min(18, availableWidth / 8));
         
-        title.setFont(Font.font(baseFontSize * 1.3));
+        title.setFont(Font.font(baseFontSize + 2));
         scoreText.setFont(Font.font(baseFontSize));
-        linesText.setFont(Font.font(baseFontSize * 0.9));
-        levelText.setFont(Font.font(baseFontSize * 0.9));
-        modeText.setFont(Font.font(baseFontSize * 0.85));
-        difficultyText.setFont(Font.font(baseFontSize * 0.85));
+        linesText.setFont(Font.font(baseFontSize));
+        levelText.setFont(Font.font(baseFontSize));
+        modeText.setFont(Font.font(baseFontSize));
+        difficultyText.setFont(Font.font(baseFontSize));
         timerText.setFont(Font.font(baseFontSize));
     }
 
