@@ -36,13 +36,9 @@ public class LocalMultiPlayController extends BaseController {
     private AdderBoard player1AdderBoard;
     private AdderBoard player2AdderBoard;
     
-    // Player 1 키 입력
-    private final Set<KeyCode> player1PressedKeys = new HashSet<>();
-    private final Set<KeyCode> player1JustPressedKeys = new HashSet<>();
-    
-    // Player 2 키 입력 (WASD + 별도 키)
-    private final Set<KeyCode> player2PressedKeys = new HashSet<>();
-    private final Set<KeyCode> player2JustPressedKeys = new HashSet<>();
+    // 키 입력 (Player 1, Player 2 공통)
+    private final Set<KeyCode> pressedKeys = new HashSet<>();
+    private final Set<KeyCode> justPressedKeys = new HashSet<>();
     
     // 게임 모드 정보
     private final GameMode gameMode;
@@ -174,10 +170,8 @@ public class LocalMultiPlayController extends BaseController {
     @Override
     protected void resume() {
         // 키 입력 상태 초기화
-        player1PressedKeys.clear();
-        player1JustPressedKeys.clear();
-        player2PressedKeys.clear();
-        player2JustPressedKeys.clear();
+        pressedKeys.clear();
+        justPressedKeys.clear();
 
         // TIME_ATTACK 모드: 타이머 재개
         if (player1System instanceof TimeTetrisSystem) {
@@ -210,8 +204,7 @@ public class LocalMultiPlayController extends BaseController {
 
         if (currentTime - lastKeyProcessTime >= 50) {
             handleInputs();
-            player1JustPressedKeys.clear();
-            player2JustPressedKeys.clear();
+            justPressedKeys.clear();
             lastKeyProcessTime = currentTime;
         }
         
@@ -298,54 +291,19 @@ public class LocalMultiPlayController extends BaseController {
      * 키 입력 처리 - 키가 눌렸을 때
      */
     public void handleKeyPressed(KeyCode key) {
-        KeyData data = settingManager.getCurrentSettings().controlData;
-        
-        // Player 1 키 처리
-        if (isPlayer1Key(key, data)) {
-            if (!player1PressedKeys.contains(key)) {
-                player1JustPressedKeys.add(key);
-            }
-            player1PressedKeys.add(key);
+        if (!pressedKeys.contains(key)) {
+            justPressedKeys.add(key);
         }
-        
-        // Player 2 키 처리 (WASD + 별도 키)
-        if (isPlayer2Key(key)) {
-            if (!player2PressedKeys.contains(key)) {
-                player2JustPressedKeys.add(key);
-            }
-            player2PressedKeys.add(key);
-        }
+        pressedKeys.add(key);
     }
 
     /**
      * 키 입력 처리 - 키가 떼어졌을 때
      */
     public void handleKeyReleased(KeyCode key) {
-        player1PressedKeys.remove(key);
-        player2PressedKeys.remove(key);
+        pressedKeys.remove(key);
     }
     
-    /**
-     * Player 1의 키인지 확인
-     */
-    private boolean isPlayer1Key(KeyCode key, KeyData data) {
-        return key == data.multi1MoveLeft || key == data.multi1MoveRight || 
-               key == data.multi1SoftDrop || key == data.multi1HardDrop ||
-               key == data.multi1RotateClockwise || key == data.multi1RotateCounterClockwise ||
-               key == data.multi1Hold || key == data.pause;
-    }
-    
-    /**
-     * Player 2의 키인지 확인
-     */
-    private boolean isPlayer2Key(KeyCode key) {
-        KeyData data = settingManager.getCurrentSettings().controlData;
-        return key == data.multi2MoveLeft || key == data.multi2MoveRight || 
-               key == data.multi2SoftDrop || key == data.multi2HardDrop ||
-               key == data.multi2RotateClockwise || key == data.multi2RotateCounterClockwise ||
-               key == data.multi2Hold || key == data.pause;
-    }
-
     /**
      * 입력에 따른 게임 로직 실행
      */
@@ -356,80 +314,60 @@ public class LocalMultiPlayController extends BaseController {
         KeyData data = settingManager.getCurrentSettings().controlData;
 
         // Pause 키는 한 번만 처리 (공유 키)
-        if (player1JustPressedKeys.contains(data.pause) || player2JustPressedKeys.contains(data.pause)) {
+        if (justPressedKeys.contains(data.pause)) {
             handlePause();
-            return; // Pause 처리 후 다른 입력은 처리하지 않음
+            return;
         }
 
-        // Player 1 입력 처리
-        if (!player1System.isGameOver()) {
-            handlePlayer1Inputs(data);
-        }
-        
-        // Player 2 입력 처리
-        if (!player2System.isGameOver()) {
-            handlePlayer2Inputs();
-        }
-    }
-    
-    /**
-     * Player 1 입력 처리 (멀티플레이 전용 키 사용)
-     */
-    private void handlePlayer1Inputs(KeyData data) {
         // 한 번만 실행되는 입력
-        for (KeyCode key : player1JustPressedKeys) {
-            if (key == data.multi1HardDrop) {
-                player1System.hardDrop();
-            } else if (key == data.multi1RotateCounterClockwise) {
-                player1System.rotateCounterClockwise();
-            } else if (key == data.multi1RotateClockwise) {
-                player1System.rotateClockwise();
-            } else if (key == data.multi1Hold) {
-                player1System.hold();
+        for (KeyCode key : justPressedKeys) {
+            // Player 1
+            if (!player1System.isGameOver()) {
+                if (key == data.multi1HardDrop) {
+                    player1System.hardDrop();
+                } else if (key == data.multi1RotateCounterClockwise) {
+                    player1System.rotateCounterClockwise();
+                } else if (key == data.multi1RotateClockwise) {
+                    player1System.rotateClockwise();
+                } else if (key == data.multi1Hold) {
+                    player1System.hold();
+                }
             }
-            // pause 키 제거 - handleInputs()에서 공통 처리
+            // Player 2
+            if (!player2System.isGameOver()) {
+                if (key == data.multi2HardDrop) {
+                    player2System.hardDrop();
+                } else if (key == data.multi2RotateCounterClockwise) {
+                    player2System.rotateCounterClockwise();
+                } else if (key == data.multi2RotateClockwise) {
+                    player2System.rotateClockwise();
+                } else if (key == data.multi2Hold) {
+                    player2System.hold();
+                }
+            }
         }
 
         // 연속 실행되는 입력
-        for (KeyCode key : player1PressedKeys) {
-            if (key == data.multi1MoveLeft) {
-                player1System.moveLeft();
-            } else if (key == data.multi1MoveRight) {
-                player1System.moveRight();
-            } else if (key == data.multi1SoftDrop) {
-                player1System.moveDown();
+        for (KeyCode key : pressedKeys) {
+            // Player 1
+            if (!player1System.isGameOver()) {
+                if (key == data.multi1MoveLeft) {
+                    player1System.moveLeft();
+                } else if (key == data.multi1MoveRight) {
+                    player1System.moveRight();
+                } else if (key == data.multi1SoftDrop) {
+                    player1System.moveDown();
+                }
             }
-        }
-    }
-    
-    /**
-     * Player 2 입력 처리 (멀티플레이 전용 키 사용)
-     */
-    private void handlePlayer2Inputs() {
-        KeyData data = settingManager.getCurrentSettings().controlData;
-        
-        // 한 번만 실행되는 입력
-        for (KeyCode key : player2JustPressedKeys) {
-            if (key == data.multi2HardDrop) {
-                player2System.hardDrop();
-            } else if (key == data.multi2RotateCounterClockwise) {
-                player2System.rotateCounterClockwise();
-            } else if (key == data.multi2RotateClockwise) {
-                player2System.rotateClockwise();
-            } else if (key == data.multi2Hold) {
-                player2System.hold();
-            }
-            // pause 키 제거 - handleInputs()에서 공통 처리
-        }
-
-        // 연속 실행되는 입력
-        for (KeyCode key : player2PressedKeys) {
-            if (key == data.multi2MoveLeft) {
-                player2System.moveLeft();
-            } else if (key == data.multi2MoveRight) {
-                player2System.moveRight();
-            } else if (key == data.multi2SoftDrop) {
-                player2System.moveDown();
+            // Player 2
+            if (!player2System.isGameOver()) {
+                if (key == data.multi2MoveLeft) {
+                    player2System.moveLeft();
+                } else if (key == data.multi2MoveRight) {
+                    player2System.moveRight();
+                } else if (key == data.multi2SoftDrop) {
+                    player2System.moveDown();
+                }
             }
         }
     }
