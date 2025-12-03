@@ -2,391 +2,299 @@ package org.example.controller;
 
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Stage;
+import org.example.service.ColorManager;
 import org.example.service.KeySettingManager;
 import org.example.service.SettingManager;
-import org.example.service.StateManager;
+import org.example.view.BaseView;
 import org.example.view.KeySettingView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.testfx.framework.junit5.ApplicationTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
+
+import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class KeySettingControllerTest extends ApplicationTest {
+/**
+ * KeySettingController 클래스의 Unit Test with Mockito
+ */
+@ExtendWith(ApplicationExtension.class)
+class KeySettingControllerTest {
     
     private KeySettingController controller;
-    private StateManager stateManager;
-    private KeySettingView keySettingView;
-    private KeySettingManager keySettingManager;
+    
+    @Mock
+    private KeySettingView mockView;
+    
+    @Mock
+    private KeySettingManager mockKeySettingManager;
+    
+    @Start
+    private void start(Stage stage) {
+        ColorManager colorManager = ColorManager.getInstance();
+        BaseView.Initialize(colorManager);
+        
+        SettingManager settingManager = new SettingManager();
+        BaseController.Initialize(stage, settingManager);
+    }
     
     @BeforeEach
-    void setUp() {
-        stateManager = mock(StateManager.class);
-        SettingManager settingManager = new SettingManager();
-        stateManager.settingManager = settingManager;
-        keySettingManager = KeySettingManager.getInstance();
-        keySettingManager.setSettingManager(settingManager);
-        keySettingView = mock(KeySettingView.class);
-        controller = new KeySettingController(stateManager, keySettingView);
+    void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
+        controller = new KeySettingController();
+        
+        // Mock 객체를 Controller의 private field에 주입
+        Field viewField = KeySettingController.class.getDeclaredField("keySettingView");
+        viewField.setAccessible(true);
+        viewField.set(controller, mockView);
+        
+        Field managerField = KeySettingController.class.getDeclaredField("keySettingManager");
+        managerField.setAccessible(true);
+        managerField.set(controller, mockKeySettingManager);
     }
     
     @Test
-    @DisplayName("컨트롤러 생성 시 null이 아닌지 확인")
-    void testControllerNotNull() {
-        assertNotNull(controller);
-    }
-    
-    @Test
-    @DisplayName("초기 상태는 키 입력 대기 중이 아님")
-    void testInitialState() {
+    void testInitialWaitingState() {
         assertFalse(controller.isWaitingForKey());
         assertNull(controller.getWaitingForKeyAction());
     }
     
     @Test
-    @DisplayName("Reset to Default 핸들러")
-    void testHandleResetToDefault() {
+    void testControllerExtendsBaseController() {
+        assertTrue(controller instanceof BaseController);
+    }
+    
+    // ========== Mockito 기반 Private Method 테스트 ==========
+    
+    @Test
+    void testStartKeySettingModeWithMock() throws Exception {
+        var method = controller.getClass().getDeclaredMethod("startKeySettingMode", String.class);
+        method.setAccessible(true);
+        
+        method.invoke(controller, "Move Left");
+        
+        assertTrue(controller.isWaitingForKey());
+        assertEquals("Move Left", controller.getWaitingForKeyAction());
+        verify(mockView).showWaitingForKey("Move Left");
+    }
+    
+    @Test
+    void testCancelKeyBindingWithMock() throws Exception {
+        var startMethod = controller.getClass().getDeclaredMethod("startKeySettingMode", String.class);
+        startMethod.setAccessible(true);
+        startMethod.invoke(controller, "Move Right");
+        
+        var method = controller.getClass().getDeclaredMethod("cancelKeyBinding");
+        method.setAccessible(true);
+        method.invoke(controller);
+        
+        assertFalse(controller.isWaitingForKey());
+        assertNull(controller.getWaitingForKeyAction());
+        verify(mockView).hideWaitingForKey();
+    }
+    
+    @Test
+    void testHandleNewKeyBindingSuccessWithMock() throws Exception {
+        var startMethod = controller.getClass().getDeclaredMethod("startKeySettingMode", String.class);
+        startMethod.setAccessible(true);
+        startMethod.invoke(controller, "Soft Drop");
+        
+        when(mockKeySettingManager.setKeyBinding("Soft Drop", KeyCode.W)).thenReturn(true);
+        
+        var method = controller.getClass().getDeclaredMethod("handleNewKeyBinding", KeyEvent.class);
+        method.setAccessible(true);
+        
+        KeyEvent keyEvent = new KeyEvent(
+            KeyEvent.KEY_PRESSED, "", "", KeyCode.W,
+            false, false, false, false
+        );
+        
+        method.invoke(controller, keyEvent);
+        
+        verify(mockView).updateKeyBinding("Soft Drop", KeyCode.W);
+        verify(mockView).hideWaitingForKey();
+        assertFalse(controller.isWaitingForKey());
+    }
+    
+    @Test
+    void testHandleNewKeyBindingDuplicateWithMock() throws Exception {
+        var startMethod = controller.getClass().getDeclaredMethod("startKeySettingMode", String.class);
+        startMethod.setAccessible(true);
+        startMethod.invoke(controller, "Hard Drop");
+        
+        when(mockKeySettingManager.setKeyBinding("Hard Drop", KeyCode.LEFT)).thenReturn(false);
+        
+        var method = controller.getClass().getDeclaredMethod("handleNewKeyBinding", KeyEvent.class);
+        method.setAccessible(true);
+        
+        KeyEvent keyEvent = new KeyEvent(
+            KeyEvent.KEY_PRESSED, "", "", KeyCode.LEFT,
+            false, false, false, false
+        );
+        
+        method.invoke(controller, keyEvent);
+        
+        verify(mockView).showDuplicateKeyError(KeyCode.LEFT);
+        assertTrue(controller.isWaitingForKey());
+    }
+    
+    @Test
+    void testHandleNewKeyBindingWithEscapeKeyMock() throws Exception {
+        var startMethod = controller.getClass().getDeclaredMethod("startKeySettingMode", String.class);
+        startMethod.setAccessible(true);
+        startMethod.invoke(controller, "Soft Drop");
+        
+        var method = controller.getClass().getDeclaredMethod("handleNewKeyBinding", KeyEvent.class);
+        method.setAccessible(true);
+        
+        KeyEvent escapeEvent = new KeyEvent(
+            KeyEvent.KEY_PRESSED, "", "", KeyCode.ESCAPE,
+            false, false, false, false
+        );
+        
+        method.invoke(controller, escapeEvent);
+        
+        assertFalse(controller.isWaitingForKey());
+        verify(mockView).hideWaitingForKey();
+    }
+    
+    @Test
+    void testHandleNewKeyBindingWithModifierKeyMock() throws Exception {
+        var startMethod = controller.getClass().getDeclaredMethod("startKeySettingMode", String.class);
+        startMethod.setAccessible(true);
+        startMethod.invoke(controller, "Hard Drop");
+        
+        var method = controller.getClass().getDeclaredMethod("handleNewKeyBinding", KeyEvent.class);
+        method.setAccessible(true);
+        
+        KeyEvent shiftEvent = new KeyEvent(
+            KeyEvent.KEY_PRESSED, "", "", KeyCode.SHIFT,
+            false, false, false, false
+        );
+        
+        method.invoke(controller, shiftEvent);
+        
+        assertTrue(controller.isWaitingForKey());
+        verify(mockKeySettingManager, never()).setKeyBinding(any(), any());
+    }
+    
+    @Test
+    void testHandleEnterKeyWithButtonSelected() throws Exception {
+        when(mockView.isButtonSelected()).thenReturn(true);
+        
+        var method = controller.getClass().getDeclaredMethod("handleEnterKey");
+        method.setAccessible(true);
+        method.invoke(controller);
+        
+        verify(mockView).executeSelectedButton();
+    }
+    
+    @Test
+    void testHandleEnterKeyWithActionSelected() throws Exception {
+        when(mockView.isButtonSelected()).thenReturn(false);
+        when(mockView.getSelectedAction()).thenReturn("Rotate Clockwise");
+        
+        var method = controller.getClass().getDeclaredMethod("handleEnterKey");
+        method.setAccessible(true);
+        method.invoke(controller);
+        
+        assertTrue(controller.isWaitingForKey());
+        assertEquals("Rotate Clockwise", controller.getWaitingForKeyAction());
+    }
+    
+    @Test
+    void testHandleResetToDefaultWithMock() {
         controller.handleResetToDefault();
         
-        verify(keySettingView).updateAllKeyBindings();
+        verify(mockKeySettingManager).resetToDefault();
+        verify(mockView).updateAllKeyBindings();
     }
     
     @Test
-    @DisplayName("Go Back 핸들러 - 이전 상태로 복귀")
-    void testHandleGoBack() {
-        controller.handleGoBack();
+    void testMultipleKeySettingModesWithMock() throws Exception {
+        var method = controller.getClass().getDeclaredMethod("startKeySettingMode", String.class);
+        method.setAccessible(true);
         
-        verify(stateManager).popState();
+        method.invoke(controller, "Move Left");
+        assertEquals("Move Left", controller.getWaitingForKeyAction());
+        verify(mockView).showWaitingForKey("Move Left");
+        
+        method.invoke(controller, "Rotate Clockwise");
+        assertEquals("Rotate Clockwise", controller.getWaitingForKeyAction());
+        verify(mockView).showWaitingForKey("Rotate Clockwise");
     }
     
     @Test
-    @DisplayName("handleKeyInput - UP 키 네비게이션")
-    void testHandleKeyInputUp() {
+    void testHandleNavigationCallsViewMethods() throws Exception {
+        var method = controller.getClass().getDeclaredMethod("handleNavigation", KeyEvent.class);
+        method.setAccessible(true);
+        
         KeyEvent upEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.UP,
+            KeyEvent.KEY_PRESSED, "", "", KeyCode.UP,
             false, false, false, false
         );
         
-        controller.handleKeyInput(upEvent);
+        method.invoke(controller, upEvent);
+        verify(mockView).navigateActions(true);
         
-        verify(keySettingView).navigateActions(true);
-    }
-    
-    @Test
-    @DisplayName("handleKeyInput - DOWN 키 네비게이션")
-    void testHandleKeyInputDown() {
         KeyEvent downEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.DOWN,
+            KeyEvent.KEY_PRESSED, "", "", KeyCode.DOWN,
             false, false, false, false
         );
         
-        controller.handleKeyInput(downEvent);
-        
-        verify(keySettingView).navigateActions(false);
+        method.invoke(controller, downEvent);
+        verify(mockView).navigateActions(false);
     }
     
     @Test
-    @DisplayName("handleKeyInput - ESCAPE 키로 뒤로 가기")
-    void testHandleKeyInputEscape() {
-        KeyEvent escapeEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ESCAPE,
-            false, false, false, false
-        );
+    void testIsModifierKeyMethod() throws Exception {
+        var method = controller.getClass().getDeclaredMethod("isModifierKey", KeyCode.class);
+        method.setAccessible(true);
         
-        controller.handleKeyInput(escapeEvent);
+        assertTrue((Boolean) method.invoke(controller, KeyCode.SHIFT));
+        assertTrue((Boolean) method.invoke(controller, KeyCode.CONTROL));
+        assertTrue((Boolean) method.invoke(controller, KeyCode.ALT));
+        assertTrue((Boolean) method.invoke(controller, KeyCode.META));
         
-        verify(stateManager).popState();
+        assertFalse((Boolean) method.invoke(controller, KeyCode.W));
+        assertFalse((Boolean) method.invoke(controller, KeyCode.ENTER));
     }
     
     @Test
-    @DisplayName("handleKeyInput - ENTER 키로 버튼 실행")
-    void testHandleKeyInputEnterOnButton() {
-        when(keySettingView.isButtonSelected()).thenReturn(true);
+    void testIsModifierKeyWithAllModifiers() throws Exception {
+        var method = controller.getClass().getDeclaredMethod("isModifierKey", KeyCode.class);
+        method.setAccessible(true);
         
-        KeyEvent enterEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ENTER,
-            false, false, false, false
-        );
-        
-        controller.handleKeyInput(enterEvent);
-        
-        verify(keySettingView).executeSelectedButton();
-    }
-    
-    @Test
-    @DisplayName("handleKeyInput - ENTER 키로 키 설정 모드 진입")
-    void testHandleKeyInputEnterOnAction() {
-        when(keySettingView.isButtonSelected()).thenReturn(false);
-        when(keySettingView.getSelectedAction()).thenReturn("moveLeft");
-        
-        KeyEvent enterEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ENTER,
-            false, false, false, false
-        );
-        
-        controller.handleKeyInput(enterEvent);
-        
-        assertTrue(controller.isWaitingForKey());
-        assertEquals("moveLeft", controller.getWaitingForKeyAction());
-        verify(keySettingView).showWaitingForKey("moveLeft");
-    }
-    
-    @Test
-    @DisplayName("handleKeyInput - SPACE 키로 키 설정 모드 진입")
-    void testHandleKeyInputSpaceOnAction() {
-        when(keySettingView.isButtonSelected()).thenReturn(false);
-        when(keySettingView.getSelectedAction()).thenReturn("moveRight");
-        
-        KeyEvent spaceEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.SPACE,
-            false, false, false, false
-        );
-        
-        controller.handleKeyInput(spaceEvent);
-        
-        assertTrue(controller.isWaitingForKey());
-        assertEquals("moveRight", controller.getWaitingForKeyAction());
-        verify(keySettingView).showWaitingForKey("moveRight");
-    }
-    
-    @Test
-    @DisplayName("handleKeyInput - 키 설정 모드에서 새 키 바인딩 성공")
-    void testHandleKeyInputNewKeyBindingSuccess() {
-        // 키 설정 모드 진입
-        when(keySettingView.isButtonSelected()).thenReturn(false);
-        when(keySettingView.getSelectedAction()).thenReturn("moveLeft");
-        
-        KeyEvent enterEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ENTER,
-            false, false, false, false
-        );
-        controller.handleKeyInput(enterEvent);
-        
-        // 새 키 입력
-        KeyEvent newKeyEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.A,
-            false, false, false, false
-        );
-        controller.handleKeyInput(newKeyEvent);
-        
-        verify(keySettingView).updateKeyBinding("moveLeft", KeyCode.A);
-        verify(keySettingView).hideWaitingForKey();
-        assertFalse(controller.isWaitingForKey());
-        assertNull(controller.getWaitingForKeyAction());
-    }
-    
-    @Test
-    @DisplayName("handleKeyInput - 키 설정 모드에서 ESC로 취소")
-    void testHandleKeyInputCancelKeyBinding() {
-        // 키 설정 모드 진입
-        when(keySettingView.isButtonSelected()).thenReturn(false);
-        when(keySettingView.getSelectedAction()).thenReturn("moveLeft");
-        
-        KeyEvent enterEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ENTER,
-            false, false, false, false
-        );
-        controller.handleKeyInput(enterEvent);
-        
-        assertTrue(controller.isWaitingForKey());
-        
-        // ESC로 취소
-        KeyEvent escapeEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ESCAPE,
-            false, false, false, false
-        );
-        controller.handleKeyInput(escapeEvent);
-        
-        verify(keySettingView).hideWaitingForKey();
-        assertFalse(controller.isWaitingForKey());
-        assertNull(controller.getWaitingForKeyAction());
-    }
-    
-    @Test
-    @DisplayName("handleKeyInput - 키 설정 모드에서 중복 키 에러")
-    void testHandleKeyInputDuplicateKey() {
-        // 먼저 LEFT 키를 moveLeft에 설정
-        keySettingManager.setKeyBinding("moveLeft", KeyCode.LEFT);
-        
-        // 키 설정 모드 진입 (moveRight 설정 시도)
-        when(keySettingView.isButtonSelected()).thenReturn(false);
-        when(keySettingView.getSelectedAction()).thenReturn("moveRight");
-        
-        KeyEvent enterEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ENTER,
-            false, false, false, false
-        );
-        controller.handleKeyInput(enterEvent);
-        
-        // 이미 사용 중인 LEFT 키 입력
-        KeyEvent leftKeyEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.LEFT,
-            false, false, false, false
-        );
-        controller.handleKeyInput(leftKeyEvent);
-        
-        verify(keySettingView).showDuplicateKeyError(KeyCode.LEFT);
-        // 키 설정 모드는 유지됨
-        assertTrue(controller.isWaitingForKey());
-    }
-    
-    @Test
-    @DisplayName("handleKeyInput - 수정자 키는 무시됨")
-    void testHandleKeyInputModifierKeyIgnored() {
-        // 키 설정 모드 진입
-        when(keySettingView.isButtonSelected()).thenReturn(false);
-        when(keySettingView.getSelectedAction()).thenReturn("moveLeft");
-        
-        KeyEvent enterEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ENTER,
-            false, false, false, false
-        );
-        controller.handleKeyInput(enterEvent);
-        
-        // SHIFT 키 입력 (무시되어야 함)
-        KeyEvent shiftEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.SHIFT,
-            false, false, false, false
-        );
-        controller.handleKeyInput(shiftEvent);
-        
-        // 키 설정 모드는 유지됨 (updateKeyBinding이 호출되지 않음)
-        assertTrue(controller.isWaitingForKey());
-        verify(keySettingView, never()).updateKeyBinding(anyString(), any(KeyCode.class));
-        verify(keySettingView, never()).hideWaitingForKey();
-    }
-    
-    @Test
-    @DisplayName("handleKeyInput - 여러 수정자 키 테스트")
-    void testHandleKeyInputVariousModifierKeys() {
-        // 키 설정 모드 진입
-        when(keySettingView.isButtonSelected()).thenReturn(false);
-        when(keySettingView.getSelectedAction()).thenReturn("rotateClockwise");
-        
-        KeyEvent enterEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ENTER,
-            false, false, false, false
-        );
-        controller.handleKeyInput(enterEvent);
-        
-        // 여러 수정자 키 테스트
-        KeyCode[] modifierKeys = {
-            KeyCode.CONTROL, KeyCode.ALT, KeyCode.META,
-            KeyCode.CAPS, KeyCode.NUM_LOCK
+        KeyCode[] modifiers = {
+            KeyCode.SHIFT, KeyCode.CONTROL, KeyCode.ALT, KeyCode.META,
+            KeyCode.COMMAND, KeyCode.WINDOWS, KeyCode.CAPS,
+            KeyCode.NUM_LOCK, KeyCode.SCROLL_LOCK
         };
         
-        for (KeyCode modifierKey : modifierKeys) {
-            KeyEvent modEvent = new KeyEvent(
-                KeyEvent.KEY_PRESSED,
-                "",
-                "",
-                modifierKey,
-                false, false, false, false
-            );
-            controller.handleKeyInput(modEvent);
-            
-            // 키 설정 모드는 유지됨
-            assertTrue(controller.isWaitingForKey());
+        for (KeyCode modifier : modifiers) {
+            assertTrue((Boolean) method.invoke(controller, modifier));
         }
     }
     
     @Test
-    @DisplayName("handleKeyInput - 연속적인 키 설정")
-    void testHandleKeyInputSequentialKeySettings() {
-        // 첫 번째 키 설정
-        when(keySettingView.isButtonSelected()).thenReturn(false);
-        when(keySettingView.getSelectedAction()).thenReturn("moveLeft");
+    void testIsModifierKeyWithRegularKeys() throws Exception {
+        var method = controller.getClass().getDeclaredMethod("isModifierKey", KeyCode.class);
+        method.setAccessible(true);
         
-        KeyEvent enterEvent1 = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ENTER,
-            false, false, false, false
-        );
-        controller.handleKeyInput(enterEvent1);
+        KeyCode[] regularKeys = {
+            KeyCode.A, KeyCode.W, KeyCode.SPACE, KeyCode.ENTER,
+            KeyCode.UP, KeyCode.DOWN, KeyCode.DIGIT1
+        };
         
-        KeyEvent aKeyEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.A,
-            false, false, false, false
-        );
-        controller.handleKeyInput(aKeyEvent);
-        
-        verify(keySettingView).updateKeyBinding("moveLeft", KeyCode.A);
-        assertFalse(controller.isWaitingForKey());
-        
-        // 두 번째 키 설정
-        when(keySettingView.getSelectedAction()).thenReturn("moveRight");
-        
-        KeyEvent enterEvent2 = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.ENTER,
-            false, false, false, false
-        );
-        controller.handleKeyInput(enterEvent2);
-        
-        KeyEvent dKeyEvent = new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            KeyCode.D,
-            false, false, false, false
-        );
-        controller.handleKeyInput(dKeyEvent);
-        
-        verify(keySettingView).updateKeyBinding("moveRight", KeyCode.D);
-        assertFalse(controller.isWaitingForKey());
+        for (KeyCode key : regularKeys) {
+            assertFalse((Boolean) method.invoke(controller, key));
+        }
     }
 }

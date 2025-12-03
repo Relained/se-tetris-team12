@@ -3,20 +3,65 @@ package org.example.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import org.example.service.DisplayManager;
 
 /**
  * Score Input 화면의 UI를 담당하는 View 클래스
  */
 public class ScoreInputView extends BaseView {
     
+    // 기준 크기 (MEDIUM 기준)
+    private static final double BASE_MAX_WIDTH = 500.0;
+    private static final double BASE_MAX_HEIGHT = 450.0;
+    private static final double BASE_INPUT_WIDTH = 300.0;
+    
     private TextField nameInput;
+    private Text title;
     private Text rankText;
+    private Text scoreText;
+    private Text instructionText;
+    private Text keyHintText;
+    private VBox root;
+
+    public ScoreInputView() {
+        super(false);
+        // DisplayManager에서 현재 스케일 가져오기
+        initializeScale();
+    }
+    
+    private void initializeScale() {
+        var displayManager = DisplayManager.getInstance();
+        var screenSize = displayManager.getCurrentSize();
+        switch (screenSize) {
+            case SMALL -> currentScale = 0.9;
+            case MEDIUM -> currentScale = 1.0;
+            case LARGE -> currentScale = 1.1;
+        }
+    }
+    
+    @Override
+    protected void onScaleChanged(double scale) {
+        // UI 요소가 아직 생성되지 않았으면 스킵
+        if (title == null) {
+            return;
+        }
+        
+        // DisplayManager에서 현재 스케일 가져오기
+        var dm = DisplayManager.getInstance();
+        var screenSize = dm.getCurrentSize();
+        double currentScale = switch (screenSize) {
+            case SMALL -> 0.9;
+            case MEDIUM -> 1.0;
+            case LARGE -> 1.1;
+        };
+        
+        // 컨테이너 크기 조정
+        root.setMaxWidth(BASE_MAX_WIDTH * currentScale);
+        root.setMaxHeight(BASE_MAX_HEIGHT * currentScale);
+        nameInput.setMaxWidth(BASE_INPUT_WIDTH * currentScale);
+    }
     
     /**
      * Score Input 화면의 UI를 구성하고 반환합니다.
@@ -29,36 +74,31 @@ public class ScoreInputView extends BaseView {
      * @return 구성된 VBox root
      */
     public VBox createView(int rank, int score, int lines, int level, Runnable onSubmit, Runnable onSkip) {
-        VBox root = new VBox(20);
+        root = new VBox(20);
         root.setAlignment(Pos.CENTER);
         root.setSpacing(20);
         root.setPadding(new Insets(40));
-        root.setBackground(new Background(new BackgroundFill(Color.DARKBLUE, null, null)));
-        root.setMaxWidth(500);
-        root.setMaxHeight(450);
+        root.getStyleClass().add("score-input-container");
+        root.setMaxWidth(BASE_MAX_WIDTH * currentScale);
+        root.setMaxHeight(BASE_MAX_HEIGHT * currentScale);
         
-        Text title = new Text("NEW HIGH SCORE!");
-        title.setFill(Color.GOLD);
-        title.setFont(Font.font("Arial", 28));
+        title = new Text("NEW HIGH SCORE!");
+        title.getStyleClass().addAll("text-title-medium", "text-gold");
         
         rankText = new Text(String.format("Rank: #%d", rank));
-        rankText.setFill(Color.YELLOW);
-        rankText.setFont(Font.font("Arial", 20));
+        rankText.getStyleClass().addAll("text-body-large", "text-yellow");
         
-        Text scoreText = new Text(String.format("Score: %,d  |  Lines: %d  |  Level: %d", 
+        scoreText = new Text(String.format("Score: %,d  |  Lines: %d  |  Level: %d", 
                                           score, lines, level));
-        scoreText.setFill(Color.WHITE);
-        scoreText.setFont(Font.font("Arial", 16));
+        scoreText.getStyleClass().addAll("text-body-medium", "text-primary");
         
-        Text instructionText = new Text("Enter your name (max 3 characters):");
-        instructionText.setFill(Color.LIGHTGRAY);
-        instructionText.setFont(Font.font("Arial", 14));
+        instructionText = new Text("Enter your name (max 3 characters):");
+        instructionText.getStyleClass().addAll("text-body-small", "text-lightgray");
         
         nameInput = new TextField();
         nameInput.setPromptText("ABC");
-        nameInput.setMaxWidth(300);
-        nameInput.setFont(Font.font("Arial", 14));
-        nameInput.setStyle("-fx-background-color: white; -fx-text-fill: black;");
+        nameInput.setMaxWidth(BASE_INPUT_WIDTH * currentScale);
+        nameInput.getStyleClass().add("text-input");
         
         nameInput.textProperty().addListener((_, _, newText) -> {
             // 공백 입력 시 필터링
@@ -81,9 +121,8 @@ public class ScoreInputView extends BaseView {
         });
         
         // Key instructions
-        Text keyHintText = new Text("Press ENTER to submit  |  Press ESC to cancel");
-        keyHintText.setFill(Color.LIGHTGREEN);
-        keyHintText.setFont(Font.font("Arial", 12));
+        keyHintText = new Text("Press ENTER to submit  |  Press ESC to cancel");
+        keyHintText.getStyleClass().addAll("text-caption", "text-easy");
         
         root.getChildren().addAll(title, rankText, scoreText, instructionText, nameInput, keyHintText);
         

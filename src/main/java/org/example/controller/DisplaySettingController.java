@@ -1,24 +1,41 @@
 package org.example.controller;
 
+import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 
 import org.example.model.SettingData.ScreenSize;
-import org.example.service.StateManager;
 import org.example.view.DisplaySettingView;
 
 /**
- * DisplaySettingState의 화면 크기 설정 처리를 담당하는 Controller
+ * DisplaySetting 화면의 화면 크기 설정 처리를 담당하는 Controller
  */
-public class DisplaySettingController {
+public class DisplaySettingController extends BaseController {
     
-    private StateManager stateManager;
     private DisplaySettingView displaySettingView;
     private ScreenSize selectedSize;
     
-    public DisplaySettingController(StateManager stateManager, DisplaySettingView displaySettingView) {
-        this.stateManager = stateManager;
-        this.displaySettingView = displaySettingView;
-        this.selectedSize = stateManager.settingManager.getCurrentSettings().screenSize;
+    public DisplaySettingController() {
+        this.displaySettingView = new DisplaySettingView();
+        this.selectedSize = settingManager.getCurrentSettings().screenSize;
+    }
+
+    @Override
+    protected Scene createScene() {
+        var root = displaySettingView.createView(
+            selectedSize,
+            this::handleSmall,
+            this::handleMedium,
+            this::handleLarge,
+            this::handleGoBack
+        );
+        createDefaultScene(root);
+        return scene;
+    }
+
+    @Override
+    protected void exit() {
+        // 설정 화면 종료 시 선택된 화면 크기를 저장
+        settingManager.setScreenSize(selectedSize);
     }
     
     /**
@@ -46,7 +63,7 @@ public class DisplaySettingController {
      * Go Back 버튼 클릭 시 처리 - 이전 화면으로 복귀
      */
     public void handleGoBack() {
-        stateManager.popState();
+        popState();
     }
     
     /**
@@ -56,10 +73,15 @@ public class DisplaySettingController {
     private void setScreenSize(ScreenSize size) {
         selectedSize = size;
         displaySettingView.updateCurrentSize(size);
-        
+
         // 설정을 SettingManager에 즉시 저장하고 DisplayManager를 통해 적용
-        stateManager.settingManager.setScreenSize(size);
-        stateManager.settingManager.applyScreenSize(stateManager.getPrimaryStage());
+        settingManager.setScreenSize(size);
+        settingManager.applyScreenSize();
+
+        // 현재 Scene의 root에 스크린 사이즈 클래스 재적용
+        if (scene != null && scene.getRoot() != null) {
+            org.example.service.DisplayManager.getInstance().applyScreenSizeClass(scene.getRoot());
+        }
     }
     
     /**
@@ -74,6 +96,7 @@ public class DisplaySettingController {
      * 키보드 입력 처리
      * NavigableButtonSystem을 통해 버튼 내비게이션 처리
      */
+    @Override
     public void handleKeyInput(KeyEvent event) {
         displaySettingView.getButtonSystem().handleInput(event);
     }

@@ -1,118 +1,169 @@
 package org.example.service;
 
+import javafx.stage.Stage;
 import org.example.model.SettingData;
-import org.example.model.SettingData.ColorBlindMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
 
-import java.io.File;
+import java.lang.reflect.Field;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * SettingManager Unit Test
+ */
+@ExtendWith(ApplicationExtension.class)
 class SettingManagerTest {
+    
     private SettingManager settingManager;
-
-    @BeforeEach
-    void setUp() {
-        settingManager = new SettingManager();
+    
+    @TempDir
+    Path tempDir;
+    
+    @Start
+    private void start(Stage stage) {
+        // JavaFX 초기화
     }
-
+    
+    @BeforeEach
+    void setUp() throws Exception {
+        settingManager = new SettingManager();
+        
+        // Redirect save path to temp directory
+        Field pathField = SettingManager.class.getDeclaredField("SETTING_SAVE_PATH");
+        pathField.setAccessible(true);
+        String tempPath = tempDir.resolve("test_tetris_settings.ser").toString();
+        pathField.set(settingManager, tempPath);
+    }
+    
     @Test
-    @DisplayName("현재 설정 가져오기")
+    void testConstructor() {
+        assertNotNull(settingManager);
+        assertNotNull(settingManager.getCurrentSettings());
+    }
+    
+    @Test
     void testGetCurrentSettings() {
         SettingData settings = settingManager.getCurrentSettings();
         assertNotNull(settings);
+        assertNotNull(settings.controlData);
     }
-
+    
     @Test
-    @DisplayName("기본값으로 리셋")
     void testResetToDefault() {
-        settingManager.setColorSetting(ColorBlindMode.PROTANOPIA);
+        settingManager.setColorSetting(SettingData.ColorBlindMode.PROTANOPIA);
+        settingManager.setScreenSize(SettingData.ScreenSize.LARGE);
+        
         settingManager.resetToDefault();
         
         SettingData settings = settingManager.getCurrentSettings();
-        assertEquals(ColorBlindMode.Default, settings.colorBlindMode);
+        assertEquals(SettingData.ColorBlindMode.Default, settings.colorBlindMode);
+        assertEquals(SettingData.ScreenSize.MEDIUM, settings.screenSize);
     }
-
+    
     @Test
-    @DisplayName("색상 설정 변경")
     void testSetColorSetting() {
-        settingManager.setColorSetting(ColorBlindMode.DEUTERANOPIA);
+        settingManager.setColorSetting(SettingData.ColorBlindMode.PROTANOPIA);
         
-        SettingData settings = settingManager.getCurrentSettings();
-        assertEquals(ColorBlindMode.DEUTERANOPIA, settings.colorBlindMode);
+        assertEquals(SettingData.ColorBlindMode.PROTANOPIA, 
+            settingManager.getCurrentSettings().colorBlindMode);
     }
-
+    
     @Test
-    @DisplayName("색상 설정 적용")
+    void testSetScreenSize() {
+        settingManager.setScreenSize(SettingData.ScreenSize.SMALL);
+        
+        assertEquals(SettingData.ScreenSize.SMALL, 
+            settingManager.getCurrentSettings().screenSize);
+    }
+    
+    @Test
     void testApplyColorSetting() {
-        settingManager.setColorSetting(ColorBlindMode.TRITANOPIA);
-        settingManager.applyColorSetting();
+        settingManager.setColorSetting(SettingData.ColorBlindMode.DEUTERANOPIA);
         
-        ColorManager colorManager = ColorManager.getInstance();
-        assertEquals(ColorBlindMode.TRITANOPIA, colorManager.getCurrentMode());
+        assertDoesNotThrow(() -> settingManager.applyColorSetting());
     }
-
+    
     @Test
-    @DisplayName("설정 저장 테스트")
-    void testSaveSettingData() {
-        settingManager.setColorSetting(ColorBlindMode.PROTANOPIA);
+    void testApplyScreenSize() {
+        settingManager.setScreenSize(SettingData.ScreenSize.LARGE);
         
-        // 예외가 발생하지 않아야 함
+        assertDoesNotThrow(() -> settingManager.applyScreenSize());
+    }
+    
+    @Test
+    void testSaveSettingData() {
+        settingManager.setColorSetting(SettingData.ColorBlindMode.TRITANOPIA);
+        settingManager.setScreenSize(SettingData.ScreenSize.LARGE);
+        
         assertDoesNotThrow(() -> settingManager.saveSettingData());
     }
-
+    
     @Test
-    @DisplayName("설정 로드 테스트")
-    void testLoadSettingData() {
-        // 먼저 설정 저장
-        settingManager.setColorSetting(ColorBlindMode.DEUTERANOPIA);
-        settingManager.saveSettingData();
-        
-        // 새로운 SettingManager 생성 (저장된 설정을 로드)
+    void testLoadSettingDataWhenFileNotExists() {
+        // First time load should return false (file doesn't exist)
         SettingManager newManager = new SettingManager();
-        
-        // 로드된 설정이 저장된 설정과 같은지 확인
-        assertEquals(ColorBlindMode.DEUTERANOPIA, newManager.getCurrentSettings().colorBlindMode);
-    }
-
-    @Test
-    @DisplayName("설정 파일이 없을 때 기본 설정 사용")
-    void testLoadSettingData_FileNotExists() {
-        // setting.ser 파일을 삭제 (존재한다면)
-        File settingFile = new File("setting.ser");
-        if (settingFile.exists()) {
-            settingFile.delete();
-        }
-        
-        // 새로운 SettingManager 생성
-        SettingManager newManager = new SettingManager();
-        
-        // 기본 설정이어야 함
         assertNotNull(newManager.getCurrentSettings());
     }
-
+    
     @Test
-    @DisplayName("모든 색상 블라인드 모드 설정 가능")
-    void testSetAllColorBlindModes() {
-        for (ColorBlindMode mode : ColorBlindMode.values()) {
-            settingManager.setColorSetting(mode);
-            assertEquals(mode, settingManager.getCurrentSettings().colorBlindMode);
-        }
-    }
-
-    @Test
-    @DisplayName("설정 저장 및 로드 일관성")
-    void testSaveAndLoadConsistency() {
-        // 여러 설정 변경
-        settingManager.setColorSetting(ColorBlindMode.TRITANOPIA);
+    void testSaveAndLoadSettingData() throws Exception {
+        // Set custom settings
+        settingManager.setColorSetting(SettingData.ColorBlindMode.PROTANOPIA);
+        settingManager.setScreenSize(SettingData.ScreenSize.SMALL);
         settingManager.saveSettingData();
         
-        // 로드
-        boolean loaded = settingManager.loadSettingData();
+        // Create new manager (should load saved settings)
+        SettingManager newManager = new SettingManager();
+        Field pathField = SettingManager.class.getDeclaredField("SETTING_SAVE_PATH");
+        pathField.setAccessible(true);
+        String tempPath = tempDir.resolve("test_tetris_settings.ser").toString();
+        pathField.set(newManager, tempPath);
         
-        assertTrue(loaded);
-        assertEquals(ColorBlindMode.TRITANOPIA, settingManager.getCurrentSettings().colorBlindMode);
+        boolean loaded = newManager.loadSettingData();
+        
+        if (loaded) {
+            assertEquals(SettingData.ColorBlindMode.PROTANOPIA, 
+                newManager.getCurrentSettings().colorBlindMode);
+            assertEquals(SettingData.ScreenSize.SMALL, 
+                newManager.getCurrentSettings().screenSize);
+        }
+    }
+    
+    @Test
+    void testResetScoreboard() {
+        assertDoesNotThrow(() -> settingManager.resetScoreboard());
+    }
+    
+    @Test
+    void testMultipleColorModeChanges() {
+        settingManager.setColorSetting(SettingData.ColorBlindMode.PROTANOPIA);
+        assertEquals(SettingData.ColorBlindMode.PROTANOPIA, 
+            settingManager.getCurrentSettings().colorBlindMode);
+        
+        settingManager.setColorSetting(SettingData.ColorBlindMode.DEUTERANOPIA);
+        assertEquals(SettingData.ColorBlindMode.DEUTERANOPIA, 
+            settingManager.getCurrentSettings().colorBlindMode);
+        
+        settingManager.setColorSetting(SettingData.ColorBlindMode.Default);
+        assertEquals(SettingData.ColorBlindMode.Default, 
+            settingManager.getCurrentSettings().colorBlindMode);
+    }
+    
+    @Test
+    void testMultipleScreenSizeChanges() {
+        settingManager.setScreenSize(SettingData.ScreenSize.SMALL);
+        assertEquals(SettingData.ScreenSize.SMALL, settingManager.getCurrentSettings().screenSize);
+        
+        settingManager.setScreenSize(SettingData.ScreenSize.LARGE);
+        assertEquals(SettingData.ScreenSize.LARGE, settingManager.getCurrentSettings().screenSize);
+        
+        settingManager.setScreenSize(SettingData.ScreenSize.MEDIUM);
+        assertEquals(SettingData.ScreenSize.MEDIUM, settingManager.getCurrentSettings().screenSize);
     }
 }

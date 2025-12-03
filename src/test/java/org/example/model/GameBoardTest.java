@@ -2,186 +2,248 @@ package org.example.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * GameBoard Unit Test
+ */
 class GameBoardTest {
+    
     private GameBoard board;
-
+    
     @BeforeEach
     void setUp() {
         board = new GameBoard();
     }
-
+    
     @Test
-    @DisplayName("새 게임 보드는 모든 셀이 비어있어야 함")
-    void testNewBoardIsEmpty() {
-        int[][] visibleBoard = board.getVisibleBoard();
-        for (int row = 0; row < GameBoard.HEIGHT; row++) {
+    void testBoardConstants() {
+        assertEquals(10, GameBoard.WIDTH);
+        assertEquals(20, GameBoard.HEIGHT);
+        assertEquals(4, GameBoard.BUFFER_ZONE);
+        assertEquals(-1, GameBoard.CLEAR_MARK);
+    }
+    
+    @Test
+    void testConstructor() {
+        assertNotNull(board);
+    }
+    
+    @Test
+    void testInitialBoardIsEmpty() {
+        for (int row = 0; row < GameBoard.HEIGHT + GameBoard.BUFFER_ZONE; row++) {
             for (int col = 0; col < GameBoard.WIDTH; col++) {
-                assertEquals(0, visibleBoard[row][col]);
+                assertEquals(0, board.getCellColor(row, col));
             }
         }
     }
-
+    
     @Test
-    @DisplayName("유효한 위치 확인 - 보드 중앙")
-    void testIsValidPosition_Center() {
-        TetrominoPosition pos = new TetrominoPosition(Tetromino.I, 3, 10, 0);
+    void testIsValidPositionOnEmptyBoard() {
+        TetrominoPosition pos = new TetrominoPosition(Tetromino.I, 3, 0, 0);
         assertTrue(board.isValidPosition(pos));
     }
-
+    
     @Test
-    @DisplayName("유효하지 않은 위치 - 왼쪽 경계 밖")
-    void testIsValidPosition_LeftOutOfBounds() {
-        TetrominoPosition pos = new TetrominoPosition(Tetromino.I, -1, 10, 0);
+    void testIsValidPositionOutOfBoundsLeft() {
+        TetrominoPosition pos = new TetrominoPosition(Tetromino.I, -1, 0, 0);
         assertFalse(board.isValidPosition(pos));
     }
-
+    
     @Test
-    @DisplayName("유효하지 않은 위치 - 오른쪽 경계 밖")
-    void testIsValidPosition_RightOutOfBounds() {
-        TetrominoPosition pos = new TetrominoPosition(Tetromino.I, GameBoard.WIDTH, 10, 0);
+    void testIsValidPositionOutOfBoundsRight() {
+        TetrominoPosition pos = new TetrominoPosition(Tetromino.I, 8, 0, 0); // I piece at x=8 is out of bounds
         assertFalse(board.isValidPosition(pos));
     }
-
+    
     @Test
-    @DisplayName("유효하지 않은 위치 - 아래 경계 밖")
-    void testIsValidPosition_BottomOutOfBounds() {
+    void testIsValidPositionOutOfBoundsBottom() {
         TetrominoPosition pos = new TetrominoPosition(Tetromino.I, 3, GameBoard.HEIGHT + GameBoard.BUFFER_ZONE, 0);
         assertFalse(board.isValidPosition(pos));
     }
-
+    
     @Test
-    @DisplayName("테트로미노 배치 테스트")
     void testPlaceTetromino() {
-        // O 블록은 4x4 배열에서 (0,1), (0,2), (1,1), (1,2) 위치에 블록이 있음
-        TetrominoPosition pos = new TetrominoPosition(Tetromino.O, 4, GameBoard.BUFFER_ZONE + 18, 0);
+        TetrominoPosition pos = new TetrominoPosition(Tetromino.O, 4, 5, 0);
         board.placeTetromino(pos);
         
-        int colorIndex = Tetromino.O.getColorIndex();
-        // O 블록의 실제 모양: {0,1,1,0}, {0,1,1,0}
-        // x=4에서 시작하므로 x+1=5, x+2=6 위치에 블록
-        assertEquals(colorIndex, board.getCellColor(GameBoard.BUFFER_ZONE + 18, 5));
-        assertEquals(colorIndex, board.getCellColor(GameBoard.BUFFER_ZONE + 18, 6));
-        assertEquals(colorIndex, board.getCellColor(GameBoard.BUFFER_ZONE + 19, 5));
-        assertEquals(colorIndex, board.getCellColor(GameBoard.BUFFER_ZONE + 19, 6));
+        // O piece shape: [[0,1,1,0], [0,1,1,0], [0,0,0,0], [0,0,0,0]]
+        // At position (4,5), blocks are at: (5,5), (5,6), (6,5), (6,6)
+        assertEquals(Tetromino.O.getColorIndex(), board.getCellColor(5, 5));
+        assertEquals(Tetromino.O.getColorIndex(), board.getCellColor(5, 6));
+        assertEquals(Tetromino.O.getColorIndex(), board.getCellColor(6, 5));
+        assertEquals(Tetromino.O.getColorIndex(), board.getCellColor(6, 6));
     }
-
+    
     @Test
-    @DisplayName("한 줄 클리어 테스트")
-    void testClearOneLine() {
-        // 바닥 줄을 거의 채우기 (한 칸만 남김)
+    void testIsValidPositionWithBlockedCell() {
+        // Place a piece
+        board.setCellColor(10, 5, 1);
+        
+        // Try to place another piece at the same location
+        TetrominoPosition pos = new TetrominoPosition(Tetromino.O, 4, 9, 0);
+        assertFalse(board.isValidPosition(pos));
+    }
+    
+    @Test
+    void testClearLines() {
+        // Fill a complete line
+        int lineIndex = GameBoard.HEIGHT + GameBoard.BUFFER_ZONE - 1;
         for (int col = 0; col < GameBoard.WIDTH; col++) {
-            int[][] shape = new int[][]{{1}};
-            TetrominoPosition singleBlock = new TetrominoPosition(Tetromino.I, col, GameBoard.BUFFER_ZONE + GameBoard.HEIGHT - 1, 0) {
-                @Override
-                public int[][] getCurrentShape() {
-                    return shape;
-                }
-            };
-            board.placeTetromino(singleBlock);
+            board.setCellColor(lineIndex, col, 1);
         }
         
-        int linesCleared = board.clearLines();
-        assertEquals(1, linesCleared);
+        int cleared = board.clearLines();
+        assertEquals(1, cleared);
     }
-
+    
     @Test
-    @DisplayName("여러 줄 클리어 테스트")
     void testClearMultipleLines() {
-        // 아래 두 줄을 완전히 채우기
-        for (int row = GameBoard.BUFFER_ZONE + GameBoard.HEIGHT - 2; row < GameBoard.BUFFER_ZONE + GameBoard.HEIGHT; row++) {
+        // Fill two complete lines
+        for (int line = 0; line < 2; line++) {
+            int lineIndex = GameBoard.HEIGHT + GameBoard.BUFFER_ZONE - 1 - line;
             for (int col = 0; col < GameBoard.WIDTH; col++) {
-                int[][] shape = new int[][]{{1}};
-                TetrominoPosition singleBlock = new TetrominoPosition(Tetromino.I, col, row, 0) {
-                    @Override
-                    public int[][] getCurrentShape() {
-                        return shape;
-                    }
-                };
-                board.placeTetromino(singleBlock);
+                board.setCellColor(lineIndex, col, 1);
             }
         }
         
-        int linesCleared = board.clearLines();
-        assertEquals(2, linesCleared);
+        int cleared = board.clearLines();
+        assertEquals(2, cleared);
     }
-
+    
     @Test
-    @DisplayName("셀 색상 가져오기 - 유효한 위치")
-    void testGetCellColor_ValidPosition() {
-        assertEquals(0, board.getCellColor(10, 5));
+    void testClearNoLines() {
+        // Partially filled line
+        for (int col = 0; col < GameBoard.WIDTH - 1; col++) {
+            board.setCellColor(GameBoard.HEIGHT + GameBoard.BUFFER_ZONE - 1, col, 1);
+        }
+        
+        int cleared = board.clearLines();
+        assertEquals(0, cleared);
     }
-
+    
     @Test
-    @DisplayName("셀 색상 가져오기 - 유효하지 않은 위치")
-    void testGetCellColor_InvalidPosition() {
+    void testGetCellColor() {
+        board.setCellColor(10, 5, 3);
+        assertEquals(3, board.getCellColor(10, 5));
+    }
+    
+    @Test
+    void testGetCellColorOutOfBounds() {
         assertEquals(0, board.getCellColor(-1, 5));
+        assertEquals(0, board.getCellColor(100, 5));
         assertEquals(0, board.getCellColor(10, -1));
-        assertEquals(0, board.getCellColor(GameBoard.HEIGHT + GameBoard.BUFFER_ZONE + 1, 5));
-        assertEquals(0, board.getCellColor(10, GameBoard.WIDTH + 1));
+        assertEquals(0, board.getCellColor(10, 100));
     }
-
+    
     @Test
-    @DisplayName("게임 오버 확인 - 버퍼 존에 블록 없음")
-    void testIsGameOver_NoBlocksInBuffer() {
+    void testSetCellColor() {
+        board.setCellColor(10, 5, 7);
+        assertEquals(7, board.getCellColor(10, 5));
+    }
+    
+    @Test
+    void testSetCellColorOutOfBounds() {
+        // Should not throw exception
+        assertDoesNotThrow(() -> board.setCellColor(-1, 5, 1));
+        assertDoesNotThrow(() -> board.setCellColor(100, 5, 1));
+        assertDoesNotThrow(() -> board.setCellColor(10, -1, 1));
+        assertDoesNotThrow(() -> board.setCellColor(10, 100, 1));
+    }
+    
+    @Test
+    void testIsGameOverEmptyBoard() {
         assertFalse(board.isGameOver());
     }
-
+    
     @Test
-    @DisplayName("게임 오버 확인 - 버퍼 존에 블록 있음")
-    void testIsGameOver_BlocksInBuffer() {
-        // 버퍼 존에 블록 배치
-        int[][] shape = new int[][]{{1}};
-        TetrominoPosition blockInBuffer = new TetrominoPosition(Tetromino.I, 5, 1, 0) {
-            @Override
-            public int[][] getCurrentShape() {
-                return shape;
-            }
-        };
-        board.placeTetromino(blockInBuffer);
-        
+    void testIsGameOverWithBlockInBufferZone() {
+        board.setCellColor(0, 5, 1); // Block in buffer zone
         assertTrue(board.isGameOver());
     }
-
+    
     @Test
-    @DisplayName("보드 클리어 테스트")
+    void testIsGameOverWithBlockInVisibleArea() {
+        board.setCellColor(GameBoard.BUFFER_ZONE, 5, 1); // Block in visible area
+        assertFalse(board.isGameOver());
+    }
+    
+    @Test
     void testClear() {
-        // 보드에 블록 배치
-        TetrominoPosition pos = new TetrominoPosition(Tetromino.O, 4, 18, 0);
-        board.placeTetromino(pos);
+        // Fill some cells
+        board.setCellColor(10, 5, 1);
+        board.setCellColor(15, 7, 2);
         
-        // 클리어
         board.clear();
         
-        // 모든 셀이 비어있는지 확인
-        int[][] visibleBoard = board.getVisibleBoard();
-        for (int row = 0; row < GameBoard.HEIGHT; row++) {
+        // All cells should be 0
+        for (int row = 0; row < GameBoard.HEIGHT + GameBoard.BUFFER_ZONE; row++) {
             for (int col = 0; col < GameBoard.WIDTH; col++) {
-                assertEquals(0, visibleBoard[row][col]);
+                assertEquals(0, board.getCellColor(row, col));
             }
         }
     }
-
+    
     @Test
-    @DisplayName("가시 영역 보드 가져오기")
-    void testGetVisibleBoard() {
-        int[][] visibleBoard = board.getVisibleBoard();
-        assertEquals(GameBoard.HEIGHT, visibleBoard.length);
-        assertEquals(GameBoard.WIDTH, visibleBoard[0].length);
-    }
-
-    @Test
-    @DisplayName("겹치는 위치는 유효하지 않음")
-    void testIsValidPosition_Overlap() {
-        // 먼저 블록 배치
-        TetrominoPosition pos1 = new TetrominoPosition(Tetromino.O, 4, 18, 0);
-        board.placeTetromino(pos1);
+    void testGetCompressedBoard() {
+        board.setCellColor(GameBoard.BUFFER_ZONE + 5, 3, 5);
         
-        // 같은 위치에 다른 블록 배치 시도
-        TetrominoPosition pos2 = new TetrominoPosition(Tetromino.O, 4, 18, 0);
-        assertFalse(board.isValidPosition(pos2));
+        int[][] compressed = board.getCompressedBoard();
+        
+        assertEquals(GameBoard.HEIGHT, compressed.length);
+        assertEquals(GameBoard.WIDTH, compressed[0].length);
+        assertEquals(5, compressed[5][3]);
+    }
+    
+    @Test
+    void testGetVisibleBoard() {
+        board.setCellColor(GameBoard.BUFFER_ZONE + 5, 3, 5);
+        
+        int[][] visible = board.getVisibleBoard();
+        
+        assertEquals(GameBoard.HEIGHT, visible.length);
+        assertEquals(GameBoard.WIDTH, visible[0].length);
+        assertEquals(5, visible[5][3]);
+    }
+    
+    @Test
+    void testGetItemAtReturnsNone() {
+        // GameBoard default implementation always returns NONE
+        assertEquals(ItemBlock.NONE, board.getItemAt(10, 5));
+    }
+    
+    @Test
+    void testPlayClearLineEffect() {
+        board.playClearLineEffect(2, 5, 7, 10);
+        
+        // Should not throw exception
+        assertNotNull(board);
+    }
+    
+    @Test
+    void testProcessPendingClearsIfDue() throws InterruptedException {
+        // Fill a complete line
+        int lineIndex = GameBoard.HEIGHT + GameBoard.BUFFER_ZONE - 1;
+        for (int col = 0; col < GameBoard.WIDTH; col++) {
+            board.setCellColor(lineIndex, col, 1);
+        }
+        
+        board.clearLines();
+        
+        // Wait for pending clear
+        Thread.sleep(600);
+        
+        board.processPendingClearsIfDue();
+        
+        // Line should be cleared (moved up)
+        boolean lineCleared = true;
+        for (int col = 0; col < GameBoard.WIDTH; col++) {
+            if (board.getCellColor(lineIndex, col) != 0) {
+                lineCleared = false;
+                break;
+            }
+        }
+        assertTrue(lineCleared);
     }
 }

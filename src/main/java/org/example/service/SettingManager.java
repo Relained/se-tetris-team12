@@ -8,12 +8,12 @@ import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.io.ObjectInputStream;
 import java.io.FileNotFoundException;
-import javafx.stage.Stage;
 import org.example.model.SettingData;
 
 public class SettingManager {
     final String SETTING_SAVE_PATH = System.getProperty("user.home") 
             + File.separator + "tetris_settings.ser";
+    // final String SETTING_SAVE_PATH = TetrisUtil.getAppDataPath() + "tetris_settings.ser";
     private SettingData currentSettings;
     private ColorManager colorManager;
     private KeySettingManager keySettingManager;
@@ -60,18 +60,9 @@ public class SettingManager {
 
     /**
      * DisplayManager를 활용하여 화면 크기를 적용합니다.
-     * @param stage 크기를 적용할 Stage
      */
-    public void applyScreenSize(Stage stage) {
-        displayManager.applyDisplayMode(stage, currentSettings.screenSize);
-    }
-
-    /**
-     * DisplayManager 인스턴스를 반환합니다.
-     * @return DisplayManager 인스턴스
-     */
-    public DisplayManager getDisplayManager() {
-        return displayManager;
+    public void applyScreenSize() {
+        displayManager.setDisplayMode(currentSettings.screenSize);
     }
 
     public void saveSettingData() {

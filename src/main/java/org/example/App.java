@@ -3,55 +3,38 @@ package org.example;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-import org.example.service.StateManager;
+import org.example.controller.BaseController;
+import org.example.controller.StartController;
 import org.example.service.SettingManager;
+import org.example.view.BaseView;
+import org.example.service.ColorManager;
 import org.example.service.DisplayManager;
-import org.example.state.*;
 
 public class App extends Application {
 
-    private StateManager stateManager;
     private SettingManager settingManager;
-    private DisplayManager displayManager;
 
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Tetris");
         
-        // 창 크기 조정 가능하도록 설정
-        primaryStage.setResizable(true);
-        
-        // 최소 크기 설정 (게임이 정상적으로 표시될 수 있는 최소 크기)
-        primaryStage.setMinWidth(600);
-        primaryStage.setMinHeight(800);
+        primaryStage.setResizable(false);
         
         // Initialize managers
         settingManager = new SettingManager();
-        displayManager = settingManager.getDisplayManager();
         
         // DisplayManager에 Stage 참조 설정
-        displayManager.setPrimaryStage(primaryStage);
+        DisplayManager.getInstance().setPrimaryStage(primaryStage);
         
-        stateManager = new StateManager(primaryStage, settingManager);
+        // Base 초기화 (static 의존성 주입)
+        BaseController.Initialize(primaryStage, settingManager);
+        BaseView.Initialize(ColorManager.getInstance());
 
         // SettingManager를 통해 DisplayManager를 활용하여 초기 창 크기 설정
-        settingManager.applyScreenSize(primaryStage);
-
-        // Add all game states
-        stateManager.addState("start", new StartState(stateManager));
-        stateManager.addState("play", new PlayState(stateManager));
-        stateManager.addState("gamemode", new GameModeState(stateManager));
-        stateManager.addState("pause", new PauseState(stateManager));
-        stateManager.addState("setting", new SettingState(stateManager));
-        stateManager.addState("color_setting", new ColorSettingState(stateManager));
-        stateManager.addState("key_setting", new KeySettingState(stateManager));
-        stateManager.addState("display_setting", new DisplaySettingState(stateManager));
-        stateManager.addState("gameover", new GameOverState(stateManager));
-        stateManager.addState("difficulty", new DifficultyState(stateManager));
-        stateManager.addState("scoreboard", new ScoreboardState(stateManager));
+        settingManager.applyScreenSize();
 
         // Start with the start screen
-        stateManager.setState("start");
+        BaseController.setState(new StartController());
 
         primaryStage.show();
     }

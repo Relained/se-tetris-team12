@@ -1,42 +1,70 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import org.example.model.ScoreRecord;
 
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 /**
  * Scoreboard 화면의 UI를 담당하는 View 클래스
  */
 public class ScoreboardView extends BaseView {
     private static final int MAX_DISPLAY_SCORES = 10;
+    
+    // 화면 너비 대비 비율
+    private static final double CONTAINER_WIDTH_RATIO = 0.92; // 컨테이너는 화면 너비의 92%
+    private static final double GRID_WIDTH_RATIO = 0.88; // GridPane은 화면 너비의 88%
+    
+    // 컬럼 너비 비율 (전체 대비)
+    private static final double COL_RANK_RATIO = 0.08;
+    private static final double COL_NAME_RATIO = 0.12;
+    private static final double COL_SCORE_RATIO = 0.15;
+    private static final double COL_LEVEL_RATIO = 0.09;
+    private static final double COL_DIFF_RATIO = 0.10;
+    private static final double COL_MODE_RATIO = 0.10;
+    private static final double COL_DATE_RATIO = 0.16;
+    
     private VBox scoresContainer;
+    private VBox container;
+    private GridPane headerGrid;
     private Text titleLabel;
-    private boolean showNewlyAddedHighlight;
+    private boolean showNewlyAddedHighlight = false;
     private boolean isAfterGamePlay = false; // 게임 플레이 후인지 여부
 
-    public ScoreboardView(boolean showNewlyAddedHighlight) {
+    private double currentWidth;
+
+    public ScoreboardView() {
         super(true);
+        var displayManager = org.example.service.DisplayManager.getInstance();
+        this.currentWidth = displayManager.getWidth(displayManager.getCurrentSize());
+    }
+    
+    public ScoreboardView(boolean isAfterGamePlay, boolean showNewlyAddedHighlight) {
+        this();
+        this.isAfterGamePlay = isAfterGamePlay;
         this.showNewlyAddedHighlight = showNewlyAddedHighlight;
     }
     
-    public ScoreboardView(boolean showNewlyAddedHighlight, boolean isAfterGamePlay) {
-        super(true);
-        this.showNewlyAddedHighlight = showNewlyAddedHighlight;
-        this.isAfterGamePlay = isAfterGamePlay;
+    @Override
+    protected void onScaleChanged(double scale) {
+        // container가 아직 생성되지 않았으면 스킵
+        if (container == null) {
+            return;
+        }
+        
+        // DisplayManager에서 현재 화면 크기에 맞는 너비 가져오기
+        var displayManager = org.example.service.DisplayManager.getInstance();
+        double width = displayManager.getWidth(displayManager.getCurrentSize());
+        updateLayout(width);
     }
 
     /**
@@ -47,7 +75,7 @@ public class ScoreboardView extends BaseView {
      */
     public BorderPane createView(Runnable onBackToMenu, Runnable onClearScores) {
         BorderPane root = new BorderPane();
-        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+        root.getStyleClass().add("root-dark");
 
         // Scoreboard content를 포함하는 컨테이너
         VBox topContainer = new VBox();
@@ -66,49 +94,72 @@ public class ScoreboardView extends BaseView {
     }
 
     private VBox createScoreboardContent() {
-        VBox container = new VBox(15);
+        container = new VBox(15);
         container.setAlignment(Pos.CENTER);
         container.setSpacing(15);
         container.setPadding(new Insets(20));
-        container.setBackground(new Background(new BackgroundFill(Color.DARKSLATEGRAY, null, null)));
-        container.setMaxWidth(650);
-        container.setPrefWidth(650);
+        container.getStyleClass().add("root-dark");
         container.setMinHeight(550);
 
         titleLabel = new Text("HIGH SCORES");
-        titleLabel.setFill(Color.GOLD);
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+        titleLabel.getStyleClass().add("scoreboard-title");
 
-        GridPane headerGrid = createHeaderRow();
+        headerGrid = createHeaderRow();
 
         scoresContainer = new VBox(8);
         scoresContainer.setAlignment(Pos.TOP_CENTER);
         scoresContainer.setMinHeight(300);
 
         Text noScoresLabel = new Text("Loading...");
-        noScoresLabel.setFill(Color.LIGHTGRAY);
-        noScoresLabel.setFont(Font.font("Arial", 16));
+        noScoresLabel.getStyleClass().addAll("text-body-medium", "text-lightgray");
         scoresContainer.getChildren().add(noScoresLabel);
 
         container.getChildren().addAll(titleLabel, headerGrid, scoresContainer);
         return container;
     }
-
-    private GridPane createHeaderRow() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setAlignment(Pos.CENTER);
-        grid.setMaxWidth(600);
-        grid.setPadding(new Insets(0, 0, 10, 0));
-
-        // 컬럼 제약 설정
-        ColumnConstraints col1 = new ColumnConstraints(60); // RANK
-        ColumnConstraints col2 = new ColumnConstraints(80); // NAME
-        ColumnConstraints col3 = new ColumnConstraints(120); // SCORE
-        ColumnConstraints col4 = new ColumnConstraints(60); // LEVEL
-        ColumnConstraints col5 = new ColumnConstraints(70); // DIFF
-        ColumnConstraints col6 = new ColumnConstraints(70); // MODE
-        ColumnConstraints col7 = new ColumnConstraints(120); // DATE
+    
+    /**
+     * 화면 크기에 따라 레이아웃을 업데이트합니다.
+     * @param width 현재 Stage 너비
+     */
+    private void updateLayout(double width) {
+        this.currentWidth = width;
+        
+        // 컨테이너 크기 업데이트
+        double containerWidth = width * CONTAINER_WIDTH_RATIO;
+        container.setMaxWidth(containerWidth);
+        container.setPrefWidth(containerWidth);
+        
+        // 헤더 그리드 업데이트
+        double gridWidth = width * GRID_WIDTH_RATIO;
+        headerGrid.setMaxWidth(gridWidth);
+        updateGridColumns(headerGrid, width);
+        
+        // 기존 점수 행들도 업데이트
+        scoresContainer.getChildren().forEach(node -> {
+            if (node instanceof GridPane) {
+                GridPane grid = (GridPane) node;
+                grid.setMaxWidth(gridWidth);
+                updateGridColumns(grid, width);
+            }
+        });
+    }
+    
+    /**
+     * GridPane의 컬럼 크기를 화면 너비에 맞게 업데이트합니다.
+     * @param grid 업데이트할 GridPane
+     * @param screenWidth 현재 화면 너비
+     */
+    private void updateGridColumns(GridPane grid, double screenWidth) {
+        grid.getColumnConstraints().clear();
+        
+        ColumnConstraints col1 = new ColumnConstraints(screenWidth * COL_RANK_RATIO);
+        ColumnConstraints col2 = new ColumnConstraints(screenWidth * COL_NAME_RATIO);
+        ColumnConstraints col3 = new ColumnConstraints(screenWidth * COL_SCORE_RATIO);
+        ColumnConstraints col4 = new ColumnConstraints(screenWidth * COL_LEVEL_RATIO);
+        ColumnConstraints col5 = new ColumnConstraints(screenWidth * COL_DIFF_RATIO);
+        ColumnConstraints col6 = new ColumnConstraints(screenWidth * COL_MODE_RATIO);
+        ColumnConstraints col7 = new ColumnConstraints(screenWidth * COL_DATE_RATIO);
         
         col1.setHalignment(HPos.CENTER);
         col2.setHalignment(HPos.CENTER);
@@ -119,34 +170,37 @@ public class ScoreboardView extends BaseView {
         col7.setHalignment(HPos.CENTER);
         
         grid.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6, col7);
+    }
+
+    private GridPane createHeaderRow() {
+        GridPane grid = new GridPane();
+        grid.setHgap(5);
+        grid.setAlignment(Pos.CENTER);
+        grid.setPadding(new Insets(0, 0, 10, 0));
+
+        // 초기 컬럼 제약 설정 (updateGridColumns에서 동적으로 업데이트됨)
+        updateGridColumns(grid, currentWidth);
 
         Text rankHeader = new Text("RANK");
-        rankHeader.setFill(Color.WHITE);
-        rankHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        rankHeader.getStyleClass().add("scoreboard-header");
 
         Text nameHeader = new Text("NAME");
-        nameHeader.setFill(Color.WHITE);
-        nameHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        nameHeader.getStyleClass().add("scoreboard-header");
 
         Text scoreHeader = new Text("SCORE");
-        scoreHeader.setFill(Color.WHITE);
-        scoreHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        scoreHeader.getStyleClass().add("scoreboard-header");
 
         Text levelHeader = new Text("LEVEL");
-        levelHeader.setFill(Color.WHITE);
-        levelHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        levelHeader.getStyleClass().add("scoreboard-header");
 
         Text diffHeader = new Text("DIFF");
-        diffHeader.setFill(Color.WHITE);
-        diffHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        diffHeader.getStyleClass().add("scoreboard-header");
 
         Text modeHeader = new Text("MODE");
-        modeHeader.setFill(Color.WHITE);
-        modeHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        modeHeader.getStyleClass().add("scoreboard-header");
 
         Text dateHeader = new Text("DATE");
-        dateHeader.setFill(Color.WHITE);
-        dateHeader.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        dateHeader.getStyleClass().add("scoreboard-header");
 
         grid.add(rankHeader, 0, 0);
         grid.add(nameHeader, 1, 0);
@@ -163,19 +217,16 @@ public class ScoreboardView extends BaseView {
         VBox buttonPanel = new VBox(15);
         buttonPanel.setAlignment(Pos.CENTER);
         buttonPanel.setPadding(new Insets(30, 0, 40, 0));
-
-        var backButton = buttonSystem.createNavigableButton(
-            afterGamePlay ? "Continue" : "Go Back", 
-            onBackToMenu
-        );
-        backButton.setPrefWidth(200);
         
         // 게임 플레이 후가 아닐 때만 Clear Scores 버튼 추가
-        if (!afterGamePlay && onClearScores != null) {
-            var clearButton = buttonSystem.createNavigableButton("Clear Scores", onClearScores);
-            clearButton.setPrefWidth(200);
-            buttonPanel.getChildren().addAll(backButton, clearButton);
+        if (!afterGamePlay) {
+            var created = buttonSystem.createNavigableButtonFromList(
+                List.of("Go Back", "Clear Scores"),
+                List.of(onBackToMenu, onClearScores)
+            );
+            buttonPanel.getChildren().addAll(created);
         } else {
+            var backButton = buttonSystem.createNavigableButton("Continue", onBackToMenu);
             buttonPanel.getChildren().add(backButton);
         }
 
@@ -191,8 +242,7 @@ public class ScoreboardView extends BaseView {
 
         if (topScores.isEmpty()) {
             Text noScoresLabel = new Text("No scores recorded yet!");
-            noScoresLabel.setFill(Color.LIGHTGRAY);
-            noScoresLabel.setFont(Font.font("Arial", 16));
+            noScoresLabel.getStyleClass().addAll("text-body-medium", "text-lightgray");
             scoresContainer.getChildren().add(noScoresLabel);
             return;
         }
@@ -206,68 +256,36 @@ public class ScoreboardView extends BaseView {
 
     private GridPane createScoreRow(int rank, ScoreRecord record) {
         GridPane grid = new GridPane();
-        grid.setHgap(10);
+        grid.setHgap(5);
         grid.setAlignment(Pos.CENTER);
-        grid.setMaxWidth(600);
+        grid.setMaxWidth(currentWidth * GRID_WIDTH_RATIO);
 
         Text rankText = new Text(String.valueOf(rank));
         Text nameText = new Text(record.getPlayerName());
         Text scoreText = new Text(String.format("%,d", record.getScore()));
         Text levelText = new Text(String.valueOf(record.getLevel()));
         Text diffText = new Text(mapDifficulty(record.getDifficulty()));
-        Text modeText = new Text(mapGameMode(record.getGameMode()));
+        Text modeText = new Text(record.getGameMode().toString());
         Text dateText = new Text(record.getPlayDate().format(DateTimeFormatter.ofPattern("MM/dd/yy")));
 
-        // Rank에 따른 색상 지정
-        Color textColor = getColorForRank(rank);
-        rankText.setFill(textColor);
-        nameText.setFill(textColor);
-        scoreText.setFill(textColor);
-        levelText.setFill(textColor);
-        diffText.setFill(textColor);
-        modeText.setFill(textColor);
-        dateText.setFill(textColor);
-
-        Font font = Font.font("Courier New", 13);
+        // Rank에 따른 색상 클래스 지정
+        String rankColorClass = getRankColorClass(rank);
         
         // Highlight가 활성화된 경우 새로 추가된 점수에 밑줄 적용
-        if (showNewlyAddedHighlight && record.isNewlyAdded()) {
-            font = Font.font("Courier New", FontWeight.BOLD, 13);
-            rankText.setUnderline(true);
-            nameText.setUnderline(true);
-            scoreText.setUnderline(true);
-            levelText.setUnderline(true);
-            diffText.setUnderline(true);
-            modeText.setUnderline(true);
-            dateText.setUnderline(true);
+        String cellClass = (showNewlyAddedHighlight && record.isNewAndEligible()) 
+            ? "scoreboard-cell-highlight" 
+            : "scoreboard-cell";
+        
+        // 모든 텍스트에 스타일 클래스 적용
+        for (Text text : List.of(rankText, nameText, scoreText, levelText, diffText, modeText, dateText)) {
+            text.getStyleClass().addAll(cellClass, rankColorClass);
+            if (showNewlyAddedHighlight && record.isNewAndEligible()) {
+                text.setUnderline(true);
+            }
         }
-        
-        rankText.setFont(font);
-        nameText.setFont(font);
-        scoreText.setFont(font);
-        levelText.setFont(font);
-        diffText.setFont(font);
-        modeText.setFont(font);
-        dateText.setFont(font);
 
-        // 컬럼 제약 설정 (헤더와 동일)
-        ColumnConstraints col1 = new ColumnConstraints(60);
-        ColumnConstraints col2 = new ColumnConstraints(80);
-        ColumnConstraints col3 = new ColumnConstraints(120);
-        ColumnConstraints col4 = new ColumnConstraints(60);
-        ColumnConstraints col5 = new ColumnConstraints(70);
-        ColumnConstraints col6 = new ColumnConstraints(70);
-        ColumnConstraints col7 = new ColumnConstraints(120);
-        
-        col1.setHalignment(HPos.CENTER);
-        col2.setHalignment(HPos.CENTER);
-        col3.setHalignment(HPos.RIGHT);
-        col4.setHalignment(HPos.CENTER);
-        col5.setHalignment(HPos.CENTER);
-        col6.setHalignment(HPos.CENTER);
-        col7.setHalignment(HPos.CENTER);
-        
-        grid.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6, col7);
+        // 컬럼 제약 설정 (화면 크기에 비례)
+        updateGridColumns(grid, currentWidth);
 
         grid.add(rankText, 0, 0);
         grid.add(nameText, 1, 0);
@@ -289,30 +307,12 @@ public class ScoreboardView extends BaseView {
         };
     }
 
-    private String mapGameMode(org.example.model.GameMode gameMode) {
-        if (gameMode == null) {
-            return "Normal"; // null인 경우 기본값
-        }
-        return switch (gameMode) {
-            case NORMAL -> "Normal";
-            case ITEM -> "Item";
-        };
-    }
-
-    private Color getColorForRank(int rank) {
+    private String getRankColorClass(int rank) {
         return switch (rank) {
-            case 1 -> Color.GOLD;
-            case 2 -> Color.SILVER;
-            case 3 -> Color.web("#CD7F32"); // Bronze
-            default -> Color.WHITE;
+            case 1 -> "scoreboard-rank-1";
+            case 2 -> "scoreboard-rank-2";
+            case 3 -> "scoreboard-rank-3";
+            default -> "text-white";
         };
-    }
-
-    /**
-     * 스코어보드를 새로고침합니다.
-     * Controller에서 데이터를 가져와서 호출해야 합니다.
-     */
-    public void refresh(List<ScoreRecord> topScores) {
-        updateScoreboard(topScores);
     }
 }

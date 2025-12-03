@@ -1,25 +1,43 @@
 package org.example.controller;
 
+import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 
 import org.example.model.SettingData.ColorBlindMode;
-import org.example.service.StateManager;
 import org.example.view.ColorSettingView;
 
 /**
- * ColorSettingState의 색상 설정 처리를 담당하는 Controller
+ * ColorSetting 화면의 색상 설정 처리를 담당하는 Controller
  */
-public class ColorSettingController {
+public class ColorSettingController extends BaseController {
     
-    private StateManager stateManager;
     private ColorSettingView colorSettingView;
     private ColorBlindMode selectedMode;
     
-    public ColorSettingController(StateManager stateManager, ColorSettingView colorSettingView) {
-        this.stateManager = stateManager;
-        this.colorSettingView = colorSettingView;
+    public ColorSettingController() {
+        this.colorSettingView = new ColorSettingView();
         // 현재 설정된 색맹 모드를 가져옴
-        this.selectedMode = stateManager.settingManager.getCurrentSettings().colorBlindMode;
+        this.selectedMode = settingManager.getCurrentSettings().colorBlindMode;
+    }
+
+    @Override
+    protected Scene createScene() {
+        var root = colorSettingView.createView(
+            selectedMode,
+            this::handleDefault,
+            this::handleProtanopia,
+            this::handleDeuteranopia,
+            this::handleTritanopia,
+            this::handleGoBack
+        );
+        createDefaultScene(root);
+        return scene;
+    }
+
+    @Override
+    protected void exit() {
+        // 설정 화면 종료 시 선택된 색맹 모드를 저장
+        settingManager.setColorSetting(selectedMode);
     }
     
     /**
@@ -54,7 +72,7 @@ public class ColorSettingController {
      * Go Back 버튼 클릭 시 처리 - 이전 화면으로 복귀
      */
     public void handleGoBack() {
-        stateManager.popState();
+        popState();
     }
     
     /**
@@ -78,6 +96,7 @@ public class ColorSettingController {
      * 키보드 입력 처리
      * NavigableButtonSystem을 통해 버튼 내비게이션 처리
      */
+    @Override
     public void handleKeyInput(KeyEvent event) {
         colorSettingView.getButtonSystem().handleInput(event);
     }

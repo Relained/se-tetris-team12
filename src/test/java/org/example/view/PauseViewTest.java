@@ -1,157 +1,414 @@
 package org.example.view;
 
+import javafx.application.Platform;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.control.Button;
 import javafx.scene.text.Text;
-import org.junit.jupiter.api.BeforeEach;
+import javafx.stage.Stage;
+import org.example.service.ColorManager;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.testfx.framework.junit5.ApplicationTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PauseViewTest extends ApplicationTest {
-    
+/**
+ * PauseView 클래스의 단위 테스트
+ * TestFX를 사용하여 JavaFX UI 컴포넌트를 테스트합니다.
+ */
+@ExtendWith(ApplicationExtension.class)
+class PauseViewTest {
+
     private PauseView pauseView;
-    
-    @BeforeEach
-    void setUp() {
+
+    @Start
+    void start(Stage stage) throws Exception {
+        // JavaFX 스레드에서 초기화
+        ColorManager colorManager = ColorManager.getInstance();
+        BaseView.Initialize(colorManager);
         pauseView = new PauseView();
     }
-    
+
     @Test
-    @DisplayName("PauseView 생성 테스트")
-    void testConstructor() {
+    void testPauseViewCreation() {
         assertNotNull(pauseView);
         assertNotNull(pauseView.getButtonSystem());
     }
-    
+
     @Test
-    @DisplayName("createView - 5개 버튼 생성")
-    void testCreateViewButtons() {
-        javafx.application.Platform.runLater(() -> {
-            VBox root = pauseView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
-            
-            assertNotNull(root);
-            assertEquals(5, pauseView.getButtonSystem().getButtons().size());
+    void testCreateViewWithAllCallbacks() {
+        AtomicInteger resumeCount = new AtomicInteger(0);
+        AtomicInteger restartCount = new AtomicInteger(0);
+        AtomicInteger settingsCount = new AtomicInteger(0);
+        AtomicInteger mainMenuCount = new AtomicInteger(0);
+        AtomicInteger exitCount = new AtomicInteger(0);
+
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                resumeCount::incrementAndGet,
+                restartCount::incrementAndGet,
+                settingsCount::incrementAndGet,
+                mainMenuCount::incrementAndGet,
+                exitCount::incrementAndGet
+            );
         });
         WaitForAsyncUtils.waitForFxEvents();
+
+        assertNotNull(result[0]);
     }
-    
+
     @Test
-    @DisplayName("createView - 버튼 텍스트 확인")
-    void testCreateViewButtonTexts() {
-        javafx.application.Platform.runLater(() -> {
-            pauseView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
-            
-            var buttons = pauseView.getButtonSystem().getButtons();
-            assertEquals("Resume", buttons.get(0).getText());
-            assertEquals("Restart", buttons.get(1).getText());
-            assertEquals("Settings", buttons.get(2).getText());
-            assertEquals("Main Menu", buttons.get(3).getText());
-            assertEquals("Exit", buttons.get(4).getText());
+    void testCreateViewReturnsVBox() {
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
         });
         WaitForAsyncUtils.waitForFxEvents();
+
+        assertTrue(result[0] instanceof VBox);
     }
-    
+
     @Test
-    @DisplayName("createView - VBox 자식 요소 개수")
-    void testCreateViewChildren() {
-        javafx.application.Platform.runLater(() -> {
-            VBox root = pauseView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
-            
-            // Title + 5 buttons = 6개
-            assertEquals(6, root.getChildren().size());
+    void testViewHasTitleText() {
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
         });
         WaitForAsyncUtils.waitForFxEvents();
+
+        VBox vbox = (VBox) result[0];
+        assertFalse(vbox.getChildren().isEmpty());
+        assertTrue(vbox.getChildren().get(0) instanceof Text);
+        
+        Text titleText = (Text) vbox.getChildren().get(0);
+        assertEquals("PAUSED", titleText.getText());
     }
-    
+
     @Test
-    @DisplayName("createView - 타이틀 텍스트")
-    void testCreateViewTitle() {
-        javafx.application.Platform.runLater(() -> {
-            VBox root = pauseView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
-            
-            Text title = (Text) root.getChildren().get(0);
-            assertEquals("PAUSED", title.getText());
+    void testViewHasCorrectNumberOfChildren() {
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
         });
         WaitForAsyncUtils.waitForFxEvents();
+
+        VBox vbox = (VBox) result[0];
+        // Title text (1) + 5 buttons (5) = 6 children
+        assertEquals(6, vbox.getChildren().size());
     }
-    
+
     @Test
-    @DisplayName("createView - Resume 액션")
-    void testResumeAction() {
-        javafx.application.Platform.runLater(() -> {
-            boolean[] resumed = {false};
-            pauseView.createView(() -> resumed[0] = true, () -> {}, () -> {}, () -> {}, () -> {});
-            
-            Button resumeButton = pauseView.getButtonSystem().getButtons().get(0);
-            ((Runnable) resumeButton.getUserData()).run();
-            
-            assertTrue(resumed[0]);
+    void testResumeCallback() {
+        AtomicInteger callCount = new AtomicInteger(0);
+        
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                callCount::incrementAndGet,
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
         });
         WaitForAsyncUtils.waitForFxEvents();
+
+        Platform.runLater(() -> {
+            Runnable action = (Runnable) pauseView.getButtonSystem().getButtons().get(0).getUserData();
+            action.run();
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(1, callCount.get());
     }
-    
+
     @Test
-    @DisplayName("createView - Restart 액션")
-    void testRestartAction() {
-        javafx.application.Platform.runLater(() -> {
-            boolean[] restarted = {false};
-            pauseView.createView(() -> {}, () -> restarted[0] = true, () -> {}, () -> {}, () -> {});
-            
-            Button restartButton = pauseView.getButtonSystem().getButtons().get(1);
-            ((Runnable) restartButton.getUserData()).run();
-            
-            assertTrue(restarted[0]);
+    void testRestartCallback() {
+        AtomicInteger callCount = new AtomicInteger(0);
+        
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                () -> {},
+                callCount::incrementAndGet,
+                () -> {},
+                () -> {},
+                () -> {}
+            );
         });
         WaitForAsyncUtils.waitForFxEvents();
+
+        Platform.runLater(() -> {
+            Runnable action = (Runnable) pauseView.getButtonSystem().getButtons().get(1).getUserData();
+            action.run();
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(1, callCount.get());
     }
-    
+
     @Test
-    @DisplayName("createView - Settings 액션")
-    void testSettingsAction() {
-        javafx.application.Platform.runLater(() -> {
-            boolean[] settingsOpened = {false};
-            pauseView.createView(() -> {}, () -> {}, () -> settingsOpened[0] = true, () -> {}, () -> {});
-            
-            Button settingsButton = pauseView.getButtonSystem().getButtons().get(2);
-            ((Runnable) settingsButton.getUserData()).run();
-            
-            assertTrue(settingsOpened[0]);
+    void testSettingsCallback() {
+        AtomicInteger callCount = new AtomicInteger(0);
+        
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                () -> {},
+                () -> {},
+                callCount::incrementAndGet,
+                () -> {},
+                () -> {}
+            );
         });
         WaitForAsyncUtils.waitForFxEvents();
+
+        Platform.runLater(() -> {
+            Runnable action = (Runnable) pauseView.getButtonSystem().getButtons().get(2).getUserData();
+            action.run();
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(1, callCount.get());
     }
-    
+
     @Test
-    @DisplayName("createView - Main Menu 액션")
-    void testMainMenuAction() {
-        javafx.application.Platform.runLater(() -> {
-            boolean[] mainMenuOpened = {false};
-            pauseView.createView(() -> {}, () -> {}, () -> {}, () -> mainMenuOpened[0] = true, () -> {});
-            
-            Button mainMenuButton = pauseView.getButtonSystem().getButtons().get(3);
-            ((Runnable) mainMenuButton.getUserData()).run();
-            
-            assertTrue(mainMenuOpened[0]);
+    void testMainMenuCallback() {
+        AtomicInteger callCount = new AtomicInteger(0);
+        
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                () -> {},
+                () -> {},
+                () -> {},
+                callCount::incrementAndGet,
+                () -> {}
+            );
         });
         WaitForAsyncUtils.waitForFxEvents();
+
+        Platform.runLater(() -> {
+            Runnable action = (Runnable) pauseView.getButtonSystem().getButtons().get(3).getUserData();
+            action.run();
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(1, callCount.get());
     }
-    
+
     @Test
-    @DisplayName("createView - Exit 액션")
-    void testExitAction() {
-        javafx.application.Platform.runLater(() -> {
-            boolean[] exited = {false};
-            pauseView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> exited[0] = true);
-            
-            Button exitButton = pauseView.getButtonSystem().getButtons().get(4);
-            ((Runnable) exitButton.getUserData()).run();
-            
-            assertTrue(exited[0]);
+    void testExitCallback() {
+        AtomicInteger callCount = new AtomicInteger(0);
+        
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {},
+                callCount::incrementAndGet
+            );
         });
         WaitForAsyncUtils.waitForFxEvents();
+
+        Platform.runLater(() -> {
+            Runnable action = (Runnable) pauseView.getButtonSystem().getButtons().get(4).getUserData();
+            action.run();
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(1, callCount.get());
+    }
+
+    @Test
+    void testButtonSystemHasCorrectNumberOfButtons() {
+        Platform.runLater(() -> {
+            pauseView.createView(
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(5, pauseView.getButtonSystem().getButtons().size());
+    }
+
+    @Test
+    void testButtonLabels() {
+        Platform.runLater(() -> {
+            pauseView.createView(
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        var buttons = pauseView.getButtonSystem().getButtons();
+        assertEquals("Resume", buttons.get(0).getText());
+        assertEquals("Restart", buttons.get(1).getText());
+        assertEquals("Settings", buttons.get(2).getText());
+        assertEquals("Main Menu", buttons.get(3).getText());
+        assertEquals("Exit", buttons.get(4).getText());
+    }
+
+    @Test
+    void testVBoxSpacing() {
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        VBox vbox = (VBox) result[0];
+        assertEquals(30, vbox.getSpacing());
+    }
+
+    @Test
+    void testMultipleCallbackInvocations() {
+        AtomicInteger resumeCount = new AtomicInteger(0);
+        
+        Platform.runLater(() -> {
+            pauseView.createView(
+                resumeCount::incrementAndGet,
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // 같은 버튼을 여러 번 실행
+        Platform.runLater(() -> {
+            Runnable action = (Runnable) pauseView.getButtonSystem().getButtons().get(0).getUserData();
+            action.run();
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        Platform.runLater(() -> {
+            Runnable action = (Runnable) pauseView.getButtonSystem().getButtons().get(0).getUserData();
+            action.run();
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        Platform.runLater(() -> {
+            Runnable action = (Runnable) pauseView.getButtonSystem().getButtons().get(0).getUserData();
+            action.run();
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(3, resumeCount.get());
+    }
+
+    @Test
+    void testAllCallbacksCanBeInvoked() {
+        AtomicInteger resumeCount = new AtomicInteger(0);
+        AtomicInteger restartCount = new AtomicInteger(0);
+        AtomicInteger settingsCount = new AtomicInteger(0);
+        AtomicInteger mainMenuCount = new AtomicInteger(0);
+        AtomicInteger exitCount = new AtomicInteger(0);
+
+        Platform.runLater(() -> {
+            pauseView.createView(
+                resumeCount::incrementAndGet,
+                restartCount::incrementAndGet,
+                settingsCount::incrementAndGet,
+                mainMenuCount::incrementAndGet,
+                exitCount::incrementAndGet
+            );
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // 모든 버튼 실행
+        var buttons = pauseView.getButtonSystem().getButtons();
+        for (int i = 0; i < buttons.size(); i++) {
+            int index = i;
+            Platform.runLater(() -> {
+                Runnable action = (Runnable) buttons.get(index).getUserData();
+                action.run();
+            });
+            WaitForAsyncUtils.waitForFxEvents();
+        }
+
+        assertEquals(1, resumeCount.get());
+        assertEquals(1, restartCount.get());
+        assertEquals(1, settingsCount.get());
+        assertEquals(1, mainMenuCount.get());
+        assertEquals(1, exitCount.get());
+    }
+
+    @Test
+    void testViewBackgroundColor() {
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        VBox vbox = (VBox) result[0];
+        assertTrue(vbox.getStyleClass().contains("root-dark"));
+    }
+
+    @Test
+    void testTitleTextStyle() {
+        Pane[] result = new Pane[1];
+        Platform.runLater(() -> {
+            result[0] = pauseView.createView(
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        VBox vbox = (VBox) result[0];
+        Text titleText = (Text) vbox.getChildren().get(0);
+        assertNotNull(titleText.getFill());
+        assertNotNull(titleText.getFont());
     }
 }

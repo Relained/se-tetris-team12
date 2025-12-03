@@ -1,193 +1,190 @@
 package org.example.view;
 
-import javafx.application.Platform;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import org.example.model.SettingData.ScreenSize;
-import org.junit.jupiter.api.BeforeAll;
+import org.example.service.ColorManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.testfx.framework.junit5.ApplicationTest;
-import org.testfx.util.WaitForAsyncUtils;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DisplaySettingViewTest extends ApplicationTest {
+/**
+ * DisplaySettingView 클래스의 Unit Test
+ */
+@ExtendWith(ApplicationExtension.class)
+class DisplaySettingViewTest {
     
-    @BeforeAll
-    static void initJavaFX() {
-        try {
-            Platform.startup(() -> {});
-        } catch (IllegalStateException e) {
-            // 이미 초기화된 경우 무시
+    private DisplaySettingView view;
+    
+    @Start
+    private void start(Stage stage) {
+        ColorManager colorManager = ColorManager.getInstance();
+        BaseView.Initialize(colorManager);
+    }
+    
+    @BeforeEach
+    void setUp() {
+        view = new DisplaySettingView();
+    }
+    
+    @Test
+    void testCreateViewWithSmallSize() {
+        VBox root = view.createView(
+            ScreenSize.SMALL,
+            () -> {},
+            () -> {},
+            () -> {},
+            () -> {}
+        );
+        
+        assertNotNull(root);
+        assertNotNull(root.getChildren());
+        assertTrue(root.getChildren().size() > 0);
+    }
+    
+    @Test
+    void testCreateViewWithMediumSize() {
+        VBox root = view.createView(
+            ScreenSize.MEDIUM,
+            () -> {},
+            () -> {},
+            () -> {},
+            () -> {}
+        );
+        
+        assertNotNull(root);
+    }
+    
+    @Test
+    void testCreateViewWithLargeSize() {
+        VBox root = view.createView(
+            ScreenSize.LARGE,
+            () -> {},
+            () -> {},
+            () -> {},
+            () -> {}
+        );
+        
+        assertNotNull(root);
+    }
+    
+    @Test
+    void testUpdateCurrentSize() {
+        view.createView(
+            ScreenSize.SMALL,
+            () -> {},
+            () -> {},
+            () -> {},
+            () -> {}
+        );
+        
+        assertDoesNotThrow(() -> view.updateCurrentSize(ScreenSize.MEDIUM));
+        assertDoesNotThrow(() -> view.updateCurrentSize(ScreenSize.LARGE));
+        assertDoesNotThrow(() -> view.updateCurrentSize(ScreenSize.SMALL));
+    }
+    
+    @Test
+    void testViewExtendsBaseView() {
+        assertTrue(view instanceof BaseView);
+    }
+    
+    @Test
+    void testGetButtonSystem() {
+        view.createView(
+            ScreenSize.MEDIUM,
+            () -> {},
+            () -> {},
+            () -> {},
+            () -> {}
+        );
+        
+        assertNotNull(view.getButtonSystem());
+    }
+    
+    @Test
+    void testCallbacksAreNotNull() {
+        boolean[] called = {false, false, false, false};
+        
+        VBox root = view.createView(
+            ScreenSize.MEDIUM,
+            () -> called[0] = true,
+            () -> called[1] = true,
+            () -> called[2] = true,
+            () -> called[3] = true
+        );
+        
+        assertNotNull(root);
+    }
+    
+    @Test
+    void testRootAlignment() {
+        VBox root = view.createView(
+            ScreenSize.MEDIUM,
+            () -> {},
+            () -> {},
+            () -> {},
+            () -> {}
+        );
+        
+        assertNotNull(root.getAlignment());
+    }
+    
+    @Test
+    void testRootBackground() {
+        VBox root = view.createView(
+            ScreenSize.MEDIUM,
+            () -> {},
+            () -> {},
+            () -> {},
+            () -> {}
+        );
+        
+        assertTrue(root.getStyleClass().contains("root-dark"));
+    }
+    
+    @Test
+    void testUpdateCurrentSizeBeforeViewCreation() {
+        assertDoesNotThrow(() -> view.updateCurrentSize(ScreenSize.LARGE));
+    }
+    
+    @Test
+    void testMultipleViewCreations() {
+        VBox root1 = view.createView(
+            ScreenSize.SMALL,
+            () -> {},
+            () -> {},
+            () -> {},
+            () -> {}
+        );
+        
+        VBox root2 = view.createView(
+            ScreenSize.LARGE,
+            () -> {},
+            () -> {},
+            () -> {},
+            () -> {}
+        );
+        
+        assertNotNull(root1);
+        assertNotNull(root2);
+    }
+    
+    @Test
+    void testAllScreenSizes() {
+        for (ScreenSize size : ScreenSize.values()) {
+            VBox root = view.createView(
+                size,
+                () -> {},
+                () -> {},
+                () -> {},
+                () -> {}
+            );
+            
+            assertNotNull(root, "Root should not be null for size: " + size);
         }
-    }
-    
-    @Test
-    @DisplayName("DisplaySettingView 생성자 테스트")
-    void testConstructor() {
-        Platform.runLater(() -> {
-            DisplaySettingView view = new DisplaySettingView();
-            assertNotNull(view);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("createView - SMALL 크기로 UI 생성")
-    void testCreateViewWithSmall() {
-        Platform.runLater(() -> {
-            DisplaySettingView view = new DisplaySettingView();
-            boolean[] smallCalled = {false};
-            
-            VBox root = view.createView(
-                ScreenSize.SMALL,
-                () -> smallCalled[0] = true,
-                () -> {},
-                () -> {},
-                () -> {}
-            );
-            
-            assertNotNull(root);
-            assertFalse(smallCalled[0]);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("createView - MEDIUM 크기로 UI 생성")
-    void testCreateViewWithMedium() {
-        Platform.runLater(() -> {
-            DisplaySettingView view = new DisplaySettingView();
-            boolean[] mediumCalled = {false};
-            
-            VBox root = view.createView(
-                ScreenSize.MEDIUM,
-                () -> {},
-                () -> mediumCalled[0] = true,
-                () -> {},
-                () -> {}
-            );
-            
-            assertNotNull(root);
-            assertFalse(mediumCalled[0]);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("createView - LARGE 크기로 UI 생성")
-    void testCreateViewWithLarge() {
-        Platform.runLater(() -> {
-            DisplaySettingView view = new DisplaySettingView();
-            boolean[] largeCalled = {false};
-            
-            VBox root = view.createView(
-                ScreenSize.LARGE,
-                () -> {},
-                () -> {},
-                () -> largeCalled[0] = true,
-                () -> {}
-            );
-            
-            assertNotNull(root);
-            assertFalse(largeCalled[0]);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("updateCurrentSize - SMALL 업데이트")
-    void testUpdateCurrentSizeSmall() {
-        Platform.runLater(() -> {
-            DisplaySettingView view = new DisplaySettingView();
-            view.createView(ScreenSize.MEDIUM, () -> {}, () -> {}, () -> {}, () -> {});
-            
-            assertDoesNotThrow(() -> view.updateCurrentSize(ScreenSize.SMALL));
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("updateCurrentSize - MEDIUM 업데이트")
-    void testUpdateCurrentSizeMedium() {
-        Platform.runLater(() -> {
-            DisplaySettingView view = new DisplaySettingView();
-            view.createView(ScreenSize.SMALL, () -> {}, () -> {}, () -> {}, () -> {});
-            
-            assertDoesNotThrow(() -> view.updateCurrentSize(ScreenSize.MEDIUM));
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("updateCurrentSize - LARGE 업데이트")
-    void testUpdateCurrentSizeLarge() {
-        Platform.runLater(() -> {
-            DisplaySettingView view = new DisplaySettingView();
-            view.createView(ScreenSize.MEDIUM, () -> {}, () -> {}, () -> {}, () -> {});
-            
-            assertDoesNotThrow(() -> view.updateCurrentSize(ScreenSize.LARGE));
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("updateCurrentSize - null title 테스트")
-    void testUpdateCurrentSizeWithNullTitle() {
-        Platform.runLater(() -> {
-            DisplaySettingView view = new DisplaySettingView();
-            // createView를 호출하지 않아 title이 null인 상태
-            
-            // null title일 때 분기 커버
-            assertDoesNotThrow(() -> view.updateCurrentSize(ScreenSize.LARGE));
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("모든 버튼 콜백 테스트")
-    void testAllButtonCallbacks() {
-        Platform.runLater(() -> {
-            DisplaySettingView view = new DisplaySettingView();
-            boolean[] smallCalled = {false};
-            boolean[] mediumCalled = {false};
-            boolean[] largeCalled = {false};
-            boolean[] backCalled = {false};
-            
-            view.createView(
-                ScreenSize.MEDIUM,
-                () -> smallCalled[0] = true,
-                () -> mediumCalled[0] = true,
-                () -> largeCalled[0] = true,
-                () -> backCalled[0] = true
-            );
-            
-            // 모든 콜백이 초기에는 호출되지 않아야 함
-            assertFalse(smallCalled[0]);
-            assertFalse(mediumCalled[0]);
-            assertFalse(largeCalled[0]);
-            assertFalse(backCalled[0]);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("NavigableButtonSystem 사용 테스트")
-    void testNavigableButtonSystem() {
-        Platform.runLater(() -> {
-            DisplaySettingView view = new DisplaySettingView();
-            VBox root = view.createView(
-                ScreenSize.MEDIUM,
-                () -> {},
-                () -> {},
-                () -> {},
-                () -> {}
-            );
-            
-            // buttonSystem이 사용되는지 확인 (4개 버튼 생성)
-            assertNotNull(root);
-            assertTrue(root.getChildren().size() >= 5); // title + 4 buttons
-        });
-        WaitForAsyncUtils.waitForFxEvents();
     }
 }

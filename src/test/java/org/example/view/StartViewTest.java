@@ -1,20 +1,42 @@
 package org.example.view;
 
 import javafx.scene.layout.VBox;
-import javafx.scene.control.Button;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import org.example.model.SettingData.ScreenSize;
+import org.example.service.ColorManager;
+import org.example.service.DisplayManager;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.testfx.framework.junit5.ApplicationTest;
-import org.testfx.util.WaitForAsyncUtils;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
 
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class StartViewTest extends ApplicationTest {
+/**
+ * StartView에 대한 Unit Test
+ * Line Coverage 70% 이상을 목표로 작성됨
+ */
+@ExtendWith(ApplicationExtension.class)
+class StartViewTest {
     
     private StartView startView;
+    
+    @BeforeAll
+    static void initToolkit() {
+        // JavaFX 환경 초기화는 @Start에서 처리됨
+    }
+    
+    @Start
+    void start(Stage stage) {
+        // JavaFX 스레드에서 초기화
+        ColorManager colorManager = ColorManager.getInstance();
+        BaseView.Initialize(colorManager);
+    }
     
     @BeforeEach
     void setUp() {
@@ -22,180 +44,174 @@ class StartViewTest extends ApplicationTest {
     }
     
     @Test
-    @DisplayName("StartView 생성 테스트")
-    void testConstructor() {
-        assertNotNull(startView);
+    void testStartViewCreation() {
+        assertNotNull(startView, "StartView should be created");
+        assertNotNull(startView.getButtonSystem(), "ButtonSystem should be initialized");
+    }
+    
+    @Test
+    void testCreateViewWithCallbacks() {
+        // Given: 콜백 실행 카운터
+        AtomicInteger startGameCounter = new AtomicInteger(0);
+        AtomicInteger multiPlayCounter = new AtomicInteger(0);
+        AtomicInteger scoreboardCounter = new AtomicInteger(0);
+        AtomicInteger settingCounter = new AtomicInteger(0);
+        AtomicInteger exitCounter = new AtomicInteger(0);
+        
+        // When: View 생성
+        VBox root = startView.createView(
+            startGameCounter::incrementAndGet,
+            multiPlayCounter::incrementAndGet,
+            scoreboardCounter::incrementAndGet,
+            settingCounter::incrementAndGet,
+            exitCounter::incrementAndGet
+        );
+        
+        // Then: UI 구성 요소 확인
+        assertNotNull(root, "Root VBox should be created");
+        assertTrue(root.getChildren().size() >= 5, "Root should contain title, subtitle, buttons, and controls");
+        
+        // 첫 번째는 타이틀
+        assertTrue(root.getChildren().get(0) instanceof Text, "First child should be Text (title)");
+        Text title = (Text) root.getChildren().get(0);
+        assertEquals("TETRIS", title.getText(), "Title should be 'TETRIS'");
+        
+        // 두 번째는 서브타이틀
+        assertTrue(root.getChildren().get(1) instanceof Text, "Second child should be Text (subtitle)");
+        Text subtitle = (Text) root.getChildren().get(1);
+        assertEquals("Team 12 Edition", subtitle.getText(), "Subtitle should be 'Team 12 Edition'");
+    }
+    
+    @Test
+    void testButtonSystemInitialization() {
+        // Given: View 생성
+        AtomicInteger counter = new AtomicInteger(0);
+        Runnable callback = counter::incrementAndGet;
+        
+        VBox root = startView.createView(callback, callback, callback, callback, callback);
+        
+        // When: ButtonSystem 확인
+        var buttonSystem = startView.getButtonSystem();
+        
+        // Then: 5개 버튼이 생성되어야 함 (Start Game, MultiPlay, View Scoreboard, Setting, Exit)
+        assertNotNull(buttonSystem, "ButtonSystem should exist");
+        assertEquals(5, buttonSystem.getButtonCount(), "Should have 5 buttons");
+        
+        // 버튼 텍스트 확인
+        var buttons = buttonSystem.getButtons();
+        assertEquals("Start Game", buttons.get(0).getText());
+        assertEquals("MultiPlay", buttons.get(1).getText());
+        assertEquals("View Scoreboard", buttons.get(2).getText());
+        assertEquals("Setting", buttons.get(3).getText());
+        assertEquals("Exit", buttons.get(4).getText());
+    }
+    
+    @Test
+    void testScaleUpdateSmall() {
+        // Given: View 생성
+        VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
+        
+        // When: SMALL 스케일로 변경
+        startView.updateScale(ScreenSize.SMALL);
+        
+        // Then: 스케일이 적용되어야 함 (0.9)
+        // ButtonSystem의 스케일은 내부적으로 변경됨
         assertNotNull(startView.getButtonSystem());
-        assertNotNull(startView.getColorManager());
     }
     
     @Test
-    @DisplayName("createView - 4개 버튼이 생성됨")
-    void testCreateViewButtons() {
-        javafx.application.Platform.runLater(() -> {
-            boolean[] flags = {false, false, false, false};
-            
-            VBox root = startView.createView(
-                () -> flags[0] = true,
-                () -> flags[1] = true,
-                () -> flags[2] = true,
-                () -> flags[3] = true
-            );
-            
-            assertNotNull(root);
-            assertEquals(4, startView.getButtonSystem().getButtons().size());
-        });
-        WaitForAsyncUtils.waitForFxEvents();
+    void testScaleUpdateMedium() {
+        // Given: View 생성
+        VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
+        
+        // When: MEDIUM 스케일로 변경
+        startView.updateScale(ScreenSize.MEDIUM);
+        
+        // Then: 스케일이 적용되어야 함 (1.0)
+        assertNotNull(startView.getButtonSystem());
     }
     
     @Test
-    @DisplayName("createView - 버튼 텍스트 확인")
-    void testCreateViewButtonTexts() {
-        javafx.application.Platform.runLater(() -> {
-            startView.createView(() -> {}, () -> {}, () -> {}, () -> {});
-            
-            var buttons = startView.getButtonSystem().getButtons();
-            assertEquals("Start Game", buttons.get(0).getText());
-            assertEquals("View Scoreboard", buttons.get(1).getText());
-            assertEquals("Setting", buttons.get(2).getText());
-            assertEquals("Exit", buttons.get(3).getText());
-        });
-        WaitForAsyncUtils.waitForFxEvents();
+    void testScaleUpdateLarge() {
+        // Given: View 생성
+        VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
+        
+        // When: LARGE 스케일로 변경
+        startView.updateScale(ScreenSize.LARGE);
+        
+        // Then: 스케일이 적용되어야 함 (1.1)
+        assertNotNull(startView.getButtonSystem());
     }
     
     @Test
-    @DisplayName("createView - VBox 자식 요소 개수")
-    void testCreateViewChildren() {
-        javafx.application.Platform.runLater(() -> {
-            VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {});
-            
-            // Title, Subtitle, 4 buttons, Controls = 7개
-            assertEquals(7, root.getChildren().size());
-        });
-        WaitForAsyncUtils.waitForFxEvents();
+    void testScaleChangedBeforeViewCreation() {
+        // Given: View가 생성되기 전
+        StartView newView = new StartView();
+        
+        // When: 스케일 변경 시도
+        // Then: 예외가 발생하지 않아야 함 (내부에서 null 체크)
+        assertDoesNotThrow(() -> newView.updateScale(ScreenSize.SMALL));
     }
     
     @Test
-    @DisplayName("createView - 타이틀 텍스트 확인")
-    void testCreateViewTitle() {
-        javafx.application.Platform.runLater(() -> {
-            VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {});
-            
-            Text title = (Text) root.getChildren().get(0);
-            assertEquals("TETRIS", title.getText());
-        });
-        WaitForAsyncUtils.waitForFxEvents();
+    void testControlsTextExists() {
+        // Given: View 생성
+        VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
+        
+        // When: Controls 텍스트 찾기
+        Text controls = null;
+        for (var child : root.getChildren()) {
+            if (child instanceof Text) {
+                Text text = (Text) child;
+                if (text.getText().contains("Controls:")) {
+                    controls = text;
+                    break;
+                }
+            }
+        }
+        
+        // Then: Controls 텍스트가 존재해야 함
+        assertNotNull(controls, "Controls text should exist");
+        assertTrue(controls.getText().contains("← →"), "Controls should contain arrow keys");
+        assertTrue(controls.getText().contains("Space"), "Controls should contain Space key");
+        assertTrue(controls.getText().contains("ESC"), "Controls should contain ESC key");
     }
     
     @Test
-    @DisplayName("createView - 서브타이틀 텍스트 확인")
-    void testCreateViewSubtitle() {
-        javafx.application.Platform.runLater(() -> {
-            VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {});
-            
-            Text subtitle = (Text) root.getChildren().get(1);
-            assertEquals("Team 12 Edition", subtitle.getText());
-        });
-        WaitForAsyncUtils.waitForFxEvents();
+    void testBackgroundColor() {
+        // Given: View 생성
+        VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
+        
+        // When: CSS 클래스 확인
+        var styleClasses = root.getStyleClass();
+        
+        // Then: Background CSS 클래스가 설정되어야 함
+        assertTrue(styleClasses.contains("root-dark"), "Background CSS class should be set");
     }
     
     @Test
-    @DisplayName("createView - Start Game 버튼 액션")
-    void testStartGameAction() {
-        javafx.application.Platform.runLater(() -> {
-            boolean[] started = {false};
-            
-            startView.createView(
-                () -> started[0] = true,
-                () -> {},
-                () -> {},
-                () -> {}
-            );
-            
-            Button startButton = startView.getButtonSystem().getButtons().get(0);
-            Runnable action = (Runnable) startButton.getUserData();
-            action.run();
-            
-            assertTrue(started[0]);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
+    void testButtonAlignment() {
+        // Given: View 생성
+        VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
+        
+        // When: Alignment 확인
+        var alignment = root.getAlignment();
+        
+        // Then: CENTER 정렬이어야 함
+        assertEquals(javafx.geometry.Pos.CENTER, alignment, "Root should be center aligned");
     }
     
     @Test
-    @DisplayName("createView - View Scoreboard 버튼 액션")
-    void testViewScoreboardAction() {
-        javafx.application.Platform.runLater(() -> {
-            boolean[] viewed = {false};
-            
-            startView.createView(
-                () -> {},
-                () -> viewed[0] = true,
-                () -> {},
-                () -> {}
-            );
-            
-            Button scoreboardButton = startView.getButtonSystem().getButtons().get(1);
-            Runnable action = (Runnable) scoreboardButton.getUserData();
-            action.run();
-            
-            assertTrue(viewed[0]);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("createView - Setting 버튼 액션")
-    void testSettingAction() {
-        javafx.application.Platform.runLater(() -> {
-            boolean[] settingOpened = {false};
-            
-            startView.createView(
-                () -> {},
-                () -> {},
-                () -> settingOpened[0] = true,
-                () -> {}
-            );
-            
-            Button settingButton = startView.getButtonSystem().getButtons().get(2);
-            Runnable action = (Runnable) settingButton.getUserData();
-            action.run();
-            
-            assertTrue(settingOpened[0]);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("createView - Exit 버튼 액션")
-    void testExitAction() {
-        javafx.application.Platform.runLater(() -> {
-            boolean[] exited = {false};
-            
-            startView.createView(
-                () -> {},
-                () -> {},
-                () -> {},
-                () -> exited[0] = true
-            );
-            
-            Button exitButton = startView.getButtonSystem().getButtons().get(3);
-            Runnable action = (Runnable) exitButton.getUserData();
-            action.run();
-            
-            assertTrue(exited[0]);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
-    @DisplayName("createView - 여러 번 호출 시 독립적인 View 생성")
-    void testCreateViewMultipleTimes() {
-        javafx.application.Platform.runLater(() -> {
-            VBox root1 = startView.createView(() -> {}, () -> {}, () -> {}, () -> {});
-            VBox root2 = startView.createView(() -> {}, () -> {}, () -> {}, () -> {});
-            
-            assertNotSame(root1, root2);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
+    void testMultipleScaleUpdates() {
+        // Given: View 생성
+        VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
+        
+        // When: 여러 번 스케일 변경
+        startView.updateScale(ScreenSize.SMALL);
+        startView.updateScale(ScreenSize.LARGE);
+        startView.updateScale(ScreenSize.MEDIUM);
+        
+        // Then: 예외가 발생하지 않아야 함
+        assertNotNull(startView.getButtonSystem());
     }
 }

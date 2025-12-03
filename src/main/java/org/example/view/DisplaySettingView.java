@@ -1,14 +1,11 @@
 package org.example.view;
 
+import java.util.List;
+
 import org.example.model.SettingData.ScreenSize;
-import org.example.service.DisplayManager;
 
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 /**
@@ -17,11 +14,9 @@ import javafx.scene.text.Text;
 public class DisplaySettingView extends BaseView {
     
     private Text title;
-    private DisplayManager displayManager;
     
     public DisplaySettingView() {
         super(true); // NavigableButtonSystem 사용
-        this.displayManager = DisplayManager.getInstance();
     }
     
     /**
@@ -40,35 +35,23 @@ public class DisplaySettingView extends BaseView {
                           Runnable onGoBack) {
         VBox root = new VBox(30);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+        root.getStyleClass().add("root-dark");
 
         title = new Text("Display Settings\nCurrent: " + currentSize.name());
-        title.setFill(Color.WHITE);
-        title.setFont(Font.font("Arial", 36));
+        title.getStyleClass().addAll("text-title-medium", "text-primary");
 
-        // DisplayManager를 활용하여 각 크기의 실제 해상도 표시
-        int smallW = displayManager.getWidth(ScreenSize.SMALL);
-        int smallH = displayManager.getHeight(ScreenSize.SMALL);
-        int mediumW = displayManager.getWidth(ScreenSize.MEDIUM);
-        int mediumH = displayManager.getHeight(ScreenSize.MEDIUM);
-        int largeW = displayManager.getWidth(ScreenSize.LARGE);
-        int largeH = displayManager.getHeight(ScreenSize.LARGE);
-
-        var smallButton = buttonSystem.createNavigableButton(
-            String.format("Small (%dx%d)", smallW, smallH), onSmall);
-        var mediumButton = buttonSystem.createNavigableButton(
-            String.format("Medium (%dx%d)", mediumW, mediumH), onMedium);
-        var largeButton = buttonSystem.createNavigableButton(
-            String.format("Large (%dx%d)", largeW, largeH), onLarge);
-        var goBackButton = buttonSystem.createNavigableButton("Go Back", onGoBack);
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of(
+                String.format("Small"),
+                String.format("Medium"),
+                String.format("Large"),
+                "Go Back"
+            ),
+            List.of(onSmall, onMedium, onLarge, onGoBack)
+        );
 
         root.getChildren().add(title);
-        root.getChildren().addAll(
-            smallButton,
-            mediumButton,
-            largeButton,
-            goBackButton
-        );
+        root.getChildren().addAll(created);
 
         return root;
     }

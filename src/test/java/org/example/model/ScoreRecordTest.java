@@ -2,125 +2,137 @@ package org.example.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * ScoreRecord 클래스의 Unit Test
+ */
 class ScoreRecordTest {
     
-    private ScoreRecord scoreRecord;
+    private ScoreRecord record;
     
     @BeforeEach
     void setUp() {
-        scoreRecord = new ScoreRecord(1000, 10, 10, 5);
+        record = new ScoreRecord(10000, 50, 5, 1, GameMode.NORMAL, true);
     }
     
     @Test
-    @DisplayName("ScoreRecord 생성 시 필드 값 확인")
-    void testScoreRecordCreation() {
-        assertEquals(1000, scoreRecord.getScore());
-        assertEquals(10, scoreRecord.getLines());
-        assertEquals(10, scoreRecord.getLevel());
-        assertEquals(5, scoreRecord.getDifficulty());
-        assertEquals("", scoreRecord.getPlayerName()); // 초기값은 빈 문자열
-        assertNotNull(scoreRecord.getPlayDate());
-        assertTrue(scoreRecord.isNewlyAdded());
-    }
-    
-    @Test
-    @DisplayName("점수 기록 날짜가 현재 시간 근처인지 확인")
-    void testPlayDateIsNow() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime playDate = scoreRecord.getPlayDate();
-        
-        // 1초 이내 차이 확인
-        assertTrue(playDate.isAfter(now.minusSeconds(1)));
-        assertTrue(playDate.isBefore(now.plusSeconds(1)));
-    }
-    
-    @Test
-    @DisplayName("compareTo - 점수가 높은 것이 우선순위")
-    void testCompareToHigherScore() {
-        ScoreRecord higherScore = new ScoreRecord(2000, 20, 10, 5);
-        
-        assertTrue(scoreRecord.compareTo(higherScore) > 0);
-        assertTrue(higherScore.compareTo(scoreRecord) < 0);
-    }
-    
-    @Test
-    @DisplayName("compareTo - 같은 점수")
-    void testCompareToEqualScore() {
-        ScoreRecord equalScore = new ScoreRecord(1000, 10, 5, 3);
-        
-        assertEquals(0, scoreRecord.compareTo(equalScore));
-    }
-    
-    @Test
-    @DisplayName("setNewlyAdded - 플래그 변경 확인")
-    void testSetNewlyAdded() {
-        assertTrue(scoreRecord.isNewlyAdded());
-        
-        scoreRecord.setNewlyAdded(false);
-        assertFalse(scoreRecord.isNewlyAdded());
-        
-        scoreRecord.setNewlyAdded(true);
-        assertTrue(scoreRecord.isNewlyAdded());
-    }
-    
-    @Test
-    @DisplayName("setPlayerName - 플레이어 이름 설정")
-    void testPlayerName() {
-        ScoreRecord record = new ScoreRecord(500, 5, 3, 1);
+    void testConstructor() {
+        assertNotNull(record);
+        assertEquals(10000, record.getScore());
+        assertEquals(50, record.getLines());
+        assertEquals(5, record.getLevel());
+        assertEquals(1, record.getDifficulty());
+        assertEquals(GameMode.NORMAL, record.getGameMode());
+        assertTrue(record.isNewAndEligible());
         assertEquals("", record.getPlayerName());
-        
-        record.setPlayerName("NewPlayer");
-        assertEquals("NewPlayer", record.getPlayerName());
+        assertNotNull(record.getPlayDate());
     }
     
     @Test
-    @DisplayName("여러 ScoreRecord 정렬 테스트")
-    void testSortingMultipleRecords() {
-        ScoreRecord record1 = new ScoreRecord(500, 5, 3, 1);
-        ScoreRecord record2 = new ScoreRecord(1500, 15, 7, 3);
-        ScoreRecord record3 = new ScoreRecord(1000, 10, 5, 2);
+    void testSetPlayerName() {
+        record.setPlayerName("ABC");
+        assertEquals("ABC", record.getPlayerName());
         
-        // record2 > record3 > record1 순서여야 함
-        assertTrue(record2.compareTo(record3) < 0);
-        assertTrue(record3.compareTo(record1) < 0);
-        assertTrue(record2.compareTo(record1) < 0);
+        record.setPlayerName("XYZ");
+        assertEquals("XYZ", record.getPlayerName());
     }
     
     @Test
-    @DisplayName("0점 기록 생성 테스트")
-    void testZeroScore() {
-        ScoreRecord zeroScore = new ScoreRecord(0, 0, 1, 0);
+    void testSetNewAndEligible() {
+        assertTrue(record.isNewAndEligible());
         
-        assertEquals(0, zeroScore.getScore());
-        assertEquals(0, zeroScore.getLines());
-        assertEquals(1, zeroScore.getLevel());
+        record.setNewAndEligible(false);
+        assertFalse(record.isNewAndEligible());
+        
+        record.setNewAndEligible(true);
+        assertTrue(record.isNewAndEligible());
     }
     
     @Test
-    @DisplayName("높은 점수 기록 생성 테스트")
-    void testHighScore() {
-        ScoreRecord highScore = new ScoreRecord(999999, 999, 99, 99);
+    void testCompareTo() {
+        ScoreRecord higher = new ScoreRecord(15000, 60, 6, 1, GameMode.NORMAL, false);
+        ScoreRecord lower = new ScoreRecord(5000, 30, 3, 1, GameMode.NORMAL, false);
+        ScoreRecord equal = new ScoreRecord(10000, 50, 5, 1, GameMode.NORMAL, false);
+        
+        assertTrue(record.compareTo(higher) > 0); // 10000 < 15000
+        assertTrue(record.compareTo(lower) < 0);  // 10000 > 5000
+        assertEquals(0, record.compareTo(equal)); // 10000 == 10000
+    }
+    
+    @Test
+    void testPlayDateIsSet() {
+        LocalDateTime before = LocalDateTime.now().minusSeconds(1);
+        ScoreRecord newRecord = new ScoreRecord(1000, 10, 1, 1, GameMode.NORMAL, false);
+        LocalDateTime after = LocalDateTime.now().plusSeconds(1);
+        
+        assertTrue(newRecord.getPlayDate().isAfter(before));
+        assertTrue(newRecord.getPlayDate().isBefore(after));
+    }
+    
+    @Test
+    void testDifferentGameModes() {
+        ScoreRecord normalRecord = new ScoreRecord(1000, 10, 1, 1, GameMode.NORMAL, false);
+        ScoreRecord itemRecord = new ScoreRecord(1000, 10, 1, 1, GameMode.ITEM, false);
+        
+        assertEquals(GameMode.NORMAL, normalRecord.getGameMode());
+        assertEquals(GameMode.ITEM, itemRecord.getGameMode());
+    }
+    
+    @Test
+    void testDifferentDifficulties() {
+        ScoreRecord easy = new ScoreRecord(1000, 10, 1, 0, GameMode.NORMAL, false);
+        ScoreRecord medium = new ScoreRecord(1000, 10, 1, 1, GameMode.NORMAL, false);
+        ScoreRecord hard = new ScoreRecord(1000, 10, 1, 2, GameMode.NORMAL, false);
+        
+        assertEquals(0, easy.getDifficulty());
+        assertEquals(1, medium.getDifficulty());
+        assertEquals(2, hard.getDifficulty());
+    }
+    
+    @Test
+    void testEmptyPlayerNameByDefault() {
+        ScoreRecord newRecord = new ScoreRecord(1000, 10, 1, 1, GameMode.NORMAL, false);
+        assertEquals("", newRecord.getPlayerName());
+    }
+    
+    @Test
+    void testSortingOrder() {
+        ScoreRecord score1 = new ScoreRecord(5000, 25, 3, 1, GameMode.NORMAL, false);
+        ScoreRecord score2 = new ScoreRecord(10000, 50, 5, 1, GameMode.NORMAL, false);
+        ScoreRecord score3 = new ScoreRecord(15000, 75, 7, 1, GameMode.NORMAL, false);
+        
+        java.util.List<ScoreRecord> scores = new java.util.ArrayList<>();
+        scores.add(score1);
+        scores.add(score2);
+        scores.add(score3);
+        
+        java.util.Collections.sort(scores);
+        
+        assertEquals(15000, scores.get(0).getScore());
+        assertEquals(10000, scores.get(1).getScore());
+        assertEquals(5000, scores.get(2).getScore());
+    }
+    
+    @Test
+    void testHighScoreValues() {
+        ScoreRecord highScore = new ScoreRecord(999999, 9999, 99, 2, GameMode.ITEM, true);
         
         assertEquals(999999, highScore.getScore());
-        assertEquals(999, highScore.getLines());
+        assertEquals(9999, highScore.getLines());
         assertEquals(99, highScore.getLevel());
     }
     
     @Test
-    @DisplayName("플레이어 이름 설정 테스트")
-    void testSetPlayerName() {
-        assertEquals("", scoreRecord.getPlayerName()); // 초기값은 빈 문자열
+    void testZeroValues() {
+        ScoreRecord zeroScore = new ScoreRecord(0, 0, 0, 0, GameMode.NORMAL, false);
         
-        scoreRecord.setPlayerName("Player1");
-        assertEquals("Player1", scoreRecord.getPlayerName());
-        
-        scoreRecord.setPlayerName("TestUser");
-        assertEquals("TestUser", scoreRecord.getPlayerName());
+        assertEquals(0, zeroScore.getScore());
+        assertEquals(0, zeroScore.getLines());
+        assertEquals(0, zeroScore.getLevel());
+        assertEquals(0, zeroScore.getDifficulty());
     }
 }

@@ -1,10 +1,9 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 /**
@@ -25,26 +24,22 @@ public class PauseView extends BaseView {
      * @param onExit Exit 버튼 클릭 시 실행될 콜백
      * @return 구성된 VBox root
      */
-    public VBox createView(Runnable onResume, Runnable onRestart, 
+    public VBox createView(Runnable onResume, Runnable onRestart,
                           Runnable onSettings, Runnable onMainMenu, Runnable onExit) {
         VBox root = new VBox(30);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
 
         Text title = new Text("PAUSED");
-        title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(Font.font("Arial", 36));
+        title.getStyleClass().addAll("text-title-medium", "text-primary");
 
-        var resumeButton = buttonSystem.createNavigableButton("Resume", onResume);
-        var restartButton = buttonSystem.createNavigableButton("Restart", onRestart);
-        var settingsButton = buttonSystem.createNavigableButton("Settings", onSettings);
-        var mainMenuButton = buttonSystem.createNavigableButton("Main Menu", onMainMenu);
-        var exitButton = buttonSystem.createNavigableButton("Exit", onExit);
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of("Resume", "Restart", "Settings", "Main Menu", "Exit"),
+            List.of(onResume, onRestart, onSettings, onMainMenu, onExit)
+        );
 
         root.getChildren().add(title);
-        root.getChildren().addAll(resumeButton, restartButton, settingsButton, mainMenuButton, exitButton);
+        root.getChildren().addAll(created);
 
         return root;
     }

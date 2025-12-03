@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.model.BoardSnapshot;
 import org.example.model.GameBoard;
 import org.example.model.Tetromino;
 import org.example.model.TetrominoPosition;
@@ -17,9 +18,11 @@ public class TetrisSystem {
     protected final Deque<TetrominoPosition> nextQueue;
     protected final Random random;
     private final List<Double> cumulativeWeights;
+    protected BoardSnapshot previousSnapshot;
+    protected Runnable onPieceLocked;
 
     // 게임 상태
-    protected int score;
+    protected float score;
     protected int lines;
     protected int level;
     protected int difficulty;
@@ -212,6 +215,9 @@ public class TetrisSystem {
     }
 
     protected void lockPiece() {
+        // lockPiece 시작 전에 스냅샷 캡처 (라인 클리어 전 상태)
+        captureSnapshotBeforeLock();
+        
         board.placeTetromino(currentPiece);
 
         int clearedLines = board.clearLines();
@@ -226,6 +232,38 @@ public class TetrisSystem {
         } else {
             spawnNewPiece();
         }
+
+        // 피스가 배치된 후 콜백 실행 (previousSnapshot은 라인 클리어 전 상태)
+        if (onPieceLocked != null) {
+            onPieceLocked.run();
+        }
+    }
+    
+    /**
+     * 현재 보드에서 완성된 라인의 인덱스 리스트를 반환합니다.
+     * 버퍼존을 제외한 보이는 영역 기준 인덱스(0-based)입니다.
+     * CLEAR_MARK(-1)로 표시된 전체 라인을 찾습니다.
+     * 
+     * @return 완성된 라인의 인덱스 리스트
+     */
+    public java.util.List<Integer> getCompletedLineIndices() {
+        java.util.List<Integer> completed = new java.util.ArrayList<>();
+        
+        for (int row = GameBoard.BUFFER_ZONE; row < GameBoard.HEIGHT + GameBoard.BUFFER_ZONE; row++) {
+            boolean isFullyMarked = true;
+            for (int col = 0; col < GameBoard.WIDTH; col++) {
+                if (board.getCellColor(row, col) != GameBoard.CLEAR_MARK) {
+                    isFullyMarked = false;
+                    break;
+                }
+            }
+            if (isFullyMarked) {
+                // 보이는 영역 기준으로 인덱스 변환
+                completed.add(row - GameBoard.BUFFER_ZONE);
+            }
+        }
+        
+        return completed;
     }
 
     public void update() {
@@ -248,6 +286,7 @@ public class TetrisSystem {
     public GameBoard getBoard() { return board; }
     public TetrominoPosition getCurrentPiece() { return currentPiece; }
     public TetrominoPosition getHoldPiece() { return holdPiece; }
+    public BoardSnapshot getPreviousSnapshot() { return previousSnapshot; }
     public List<TetrominoPosition> getNextQueue() {
         List<TetrominoPosition> preview = new ArrayList<>(5);
         int i = 0;
@@ -257,17 +296,19 @@ public class TetrisSystem {
         }
         return preview;
     }
-    public int getScore() { return score; }
+    public int getScore() { return (int) score; }
     public int getLines() { return lines; }
     public int getLevel() { return level; }
     public boolean isGameOver() { return gameOver; }
     public int getDifficulty() { return difficulty; }
+    public long getRemainingTime() { return -1; }
 
     public void reset() {
         board.clear();
         currentPiece = null;
         holdPiece = null;
         nextQueue.clear();
+        previousSnapshot = null;
         score = 0;
         lines = 0;
         level = 1;
@@ -290,5 +331,88 @@ public class TetrisSystem {
         for (int i = idx; i < n; i++) {
             cumulativeWeights.set(i, cumulativeWeights.get(i) + val);
         }
+    }
+    
+    /**
+     * 현재 보드 상태의 스냅샷을 캡처합니다. (다음 턴에서 사용)
+     */
+    protected void captureSnapshotBeforeLock() {
+        previousSnapshot = new BoardSnapshot(board);
+    }
+    
+    /**
+     * lockPiece 후 실행할 콜백을 설정합니다.
+     */
+    public void setOnPieceLocked(Runnable callback) {
+        this.onPieceLocked = callback;
+    }
+
+    /**
+     * 현재 게임 상태를 압축하여 int[][]로 반환
+     * @return 압축된 int[20][10] 보드
+     */
+    public int[][] getCompressedBoardData() {
+        // Magic Number
+        final int WEIGHT_MARK = 'W';
+        final int BOMB_MARK = 'B';
+        final int GHOST_MARK = -2;
+
+        // 비트마스킹: 상위 16비트(symbol), 하위 8비트(color)
+        // 아이템 블록: (symbol << 16) | colorIndex
+
+        int[][] compressed = board.getCompressedBoard();
+
+        if (currentPiece == null) {
+            return compressed;
+        }
+
+        // 고스트 조각 덮어쓰기 (테두리만 표시하고 싶으면 GHOST_MARK 사용)
+        var ghostPiece = SuperRotationSystem.hardDrop(currentPiece, board);
+        int[][] shape = ghostPiece.getCurrentShape();
+        int startX = ghostPiece.getX();
+        int startY = ghostPiece.getY() - GameBoard.BUFFER_ZONE;
+        for (int r = 0; r < shape.length; r++) {
+            for (int c = 0; c < shape[r].length; c++) {
+                if (shape[r][c] == 1) {
+                    int x = startX + c;
+                    int y = startY + r;
+                    if (x >= 0 && x < GameBoard.WIDTH && y >= 0 && y < GameBoard.HEIGHT) {
+                        compressed[y][x] = GHOST_MARK;
+                    }
+                }
+            }
+        }
+        
+        // 현재 조각 덮어쓰기 (특수/아이템/일반)
+        var special = currentPiece.getSpecialKind();
+        shape = currentPiece.getCurrentShape();
+        startX = currentPiece.getX();
+        startY = currentPiece.getY() - GameBoard.BUFFER_ZONE;
+        for (int r = 0; r < shape.length; r++) {
+            for (int c = 0; c < shape[r].length; c++) {
+                if (shape[r][c] == 1) {
+                    int x = startX + c;
+                    int y = startY + r;
+                    if (x >= 0 && x < GameBoard.WIDTH && y >= 0 && y < GameBoard.HEIGHT) {
+                        if (special == TetrominoPosition.SpecialKind.WEIGHT) {
+                            compressed[y][x] = WEIGHT_MARK;
+                        } else if (special == TetrominoPosition.SpecialKind.BOMB) {
+                            compressed[y][x] = BOMB_MARK;
+                        } else {
+                            var item = currentPiece.getItemAt(r, c);
+                            if (item != null && item.isItem()) {
+                                int symbol = item.getSymbol();
+                                int color = currentPiece.getType().getColorIndex();
+                                compressed[y][x] = (symbol << 16) | (color & 0xFF);
+                            } else {
+                                compressed[y][x] = currentPiece.getType().getColorIndex();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return compressed;
     }
 }

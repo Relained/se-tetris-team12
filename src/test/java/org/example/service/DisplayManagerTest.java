@@ -1,125 +1,271 @@
 package org.example.service;
 
-import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.example.model.SettingData.ScreenSize;
-import org.junit.jupiter.api.BeforeAll;
+import org.example.view.BaseView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.testfx.util.WaitForAsyncUtils;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
 
+import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * DisplayManager 클래스의 Unit Test
+ */
+@ExtendWith(ApplicationExtension.class)
 class DisplayManagerTest {
     
     private DisplayManager displayManager;
+    private Stage stage;
     
-    @BeforeAll
-    static void initJavaFX() {
-        // JavaFX 초기화
-        try {
-            Platform.startup(() -> {});
-        } catch (IllegalStateException e) {
-            // 이미 초기화된 경우 무시
+    static class TestView extends BaseView {
+        private int scaleUpdateCount = 0;
+        
+        public TestView() {
+            super(false);
+        }
+        
+        @Override
+        public void updateScale(ScreenSize screenSize) {
+            super.updateScale(screenSize);
+            scaleUpdateCount++;
+        }
+        
+        public int getScaleUpdateCount() {
+            return scaleUpdateCount;
         }
     }
     
+    @Start
+    private void start(Stage stage) {
+        this.stage = stage;
+        ColorManager colorManager = ColorManager.getInstance();
+        BaseView.Initialize(colorManager);
+    }
+    
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         displayManager = DisplayManager.getInstance();
-        // 테스트 전 기본값으로 초기화
-        displayManager.setDisplayMode(ScreenSize.MEDIUM);
+        displayManager.setPrimaryStage(stage);
+        
+        // registeredViews 초기화
+        Field viewsField = DisplayManager.class.getDeclaredField("registeredViews");
+        viewsField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.List<BaseView> views = (java.util.List<BaseView>) viewsField.get(displayManager);
+        views.clear();
+        
+        // 멀티플레이 모드 초기화
+        displayManager.setMultiplayerMode(false);
     }
     
     @Test
-    @DisplayName("싱글톤 인스턴스 확인")
-    void testSingleton() {
+    void testGetInstance() {
         DisplayManager instance1 = DisplayManager.getInstance();
         DisplayManager instance2 = DisplayManager.getInstance();
         
+        assertNotNull(instance1);
+        assertNotNull(instance2);
         assertSame(instance1, instance2);
     }
     
     @Test
-    @DisplayName("기본 화면 크기는 MEDIUM")
-    void testDefaultSize() {
-        // setUp에서 MEDIUM으로 초기화했으므로 MEDIUM이어야 함
-        assertEquals(ScreenSize.MEDIUM, displayManager.getCurrentSize());
-    }
-    
-    @Test
-    @DisplayName("화면 크기 변경 - SMALL")
-    void testSetDisplayModeSmall() {
+    void testSetDisplayModeToSmall() {
         displayManager.setDisplayMode(ScreenSize.SMALL);
         
         assertEquals(ScreenSize.SMALL, displayManager.getCurrentSize());
     }
     
     @Test
-    @DisplayName("화면 크기 변경 - MEDIUM")
-    void testSetDisplayModeMedium() {
+    void testSetDisplayModeToMedium() {
         displayManager.setDisplayMode(ScreenSize.MEDIUM);
         
         assertEquals(ScreenSize.MEDIUM, displayManager.getCurrentSize());
     }
     
     @Test
-    @DisplayName("화면 크기 변경 - LARGE")
-    void testSetDisplayModeLarge() {
+    void testSetDisplayModeToLarge() {
         displayManager.setDisplayMode(ScreenSize.LARGE);
         
         assertEquals(ScreenSize.LARGE, displayManager.getCurrentSize());
     }
     
     @Test
-    @DisplayName("모든 화면 크기 순회 테스트")
-    void testAllScreenSizes() {
-        for (ScreenSize size : ScreenSize.values()) {
-            displayManager.setDisplayMode(size);
-            assertEquals(size, displayManager.getCurrentSize());
-            
-            int width = displayManager.getWidth(size);
-            int height = displayManager.getHeight(size);
-            
-            assertTrue(width > 0);
-            assertTrue(height > 0);
-        }
-    }
-    
-    @Test
-    @DisplayName("Stage 설정 - null이 아닌 경우")
-    void testSetPrimaryStage() {
-        Platform.runLater(() -> {
-            Stage stage = new Stage();
-            displayManager.setPrimaryStage(stage);
-            // Stage가 설정되어도 예외가 발생하지 않아야 함
-            assertDoesNotThrow(() -> displayManager.setDisplayMode(ScreenSize.LARGE));
-        });
-    }
-    
-    @Test
-    @DisplayName("Stage가 null일 때 화면 크기 설정")
-    void testSetDisplayModeWithoutStage() {
-        displayManager.setPrimaryStage(null);
+    void testGetCurrentSize() {
+        displayManager.setDisplayMode(ScreenSize.LARGE);
+        assertEquals(ScreenSize.LARGE, displayManager.getCurrentSize());
         
-        assertDoesNotThrow(() -> displayManager.setDisplayMode(ScreenSize.SMALL));
+        displayManager.setDisplayMode(ScreenSize.SMALL);
         assertEquals(ScreenSize.SMALL, displayManager.getCurrentSize());
     }
     
     @Test
-    @DisplayName("applyDisplayMode with Stage 파라미터")
-    void testApplyDisplayModeWithStageParameter() {
-        Platform.runLater(() -> {
-            try {
-                Stage stage = new Stage();
-                displayManager.applyDisplayMode(stage, ScreenSize.LARGE);
-                
-                assertEquals(ScreenSize.LARGE, displayManager.getCurrentSize());
-            } finally {
-            }
-        });
-        WaitForAsyncUtils.waitForFxEvents();
+    void testGetWidthForSmall() {
+        int width = displayManager.getWidth(ScreenSize.SMALL);
+        assertTrue(width > 0);
+        assertEquals(512, width); // SMALL_WIDTH
+    }
+    
+    @Test
+    void testGetWidthForMedium() {
+        int width = displayManager.getWidth(ScreenSize.MEDIUM);
+        assertTrue(width > 0);
+        assertEquals(576, width);
+    }
+    
+    @Test
+    void testGetWidthForLarge() {
+        int width = displayManager.getWidth(ScreenSize.LARGE);
+        assertTrue(width > 0);
+        assertEquals(640, width); // LARGE_WIDTH
+    }
+    
+    @Test
+    void testGetHeightForSmall() {
+        int height = displayManager.getHeight(ScreenSize.SMALL);
+        assertTrue(height > 0);
+        assertEquals(768, height);
+    }
+    
+    @Test
+    void testGetHeightForMedium() {
+        int height = displayManager.getHeight(ScreenSize.MEDIUM);
+        assertTrue(height > 0);
+        assertEquals(864, height);
+    }
+    
+    @Test
+    void testGetHeightForLarge() {
+        int height = displayManager.getHeight(ScreenSize.LARGE);
+        assertTrue(height > 0);
+        assertEquals(960, height);
+    }
+    
+    @Test
+    void testSetMultiplayerMode() {
+        displayManager.setMultiplayerMode(true);
+        assertTrue(displayManager.isMultiplayerMode());
+        
+        displayManager.setMultiplayerMode(false);
+        assertFalse(displayManager.isMultiplayerMode());
+    }
+    
+    @Test
+    void testGetWidthInMultiplayerMode() {
+        displayManager.setMultiplayerMode(true);
+        
+        int width = displayManager.getWidth(ScreenSize.MEDIUM);
+        assertEquals(576 * 2, width);
+    }
+    
+    @Test
+    void testRegisterView() {
+        TestView view = new TestView();
+        
+        displayManager.registerView(view);
+        
+        // registerView 호출 시 updateScale이 한 번 호출됨
+        assertEquals(1, view.getScaleUpdateCount());
+    }
+    
+    @Test
+    void testUnregisterView() throws Exception {
+        TestView view1 = new TestView();
+        TestView view2 = new TestView();
+        
+        displayManager.registerView(view1);
+        displayManager.registerView(view2);
+        
+        int sizeBefore = getRegisteredViewsSize();
+        
+        displayManager.unregisterView(view1);
+        
+        int sizeAfter = getRegisteredViewsSize();
+        assertEquals(sizeBefore - 1, sizeAfter);
+    }
+    
+    private int getRegisteredViewsSize() throws Exception {
+        Field viewsField = DisplayManager.class.getDeclaredField("registeredViews");
+        viewsField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.List<BaseView> views = (java.util.List<BaseView>) viewsField.get(displayManager);
+        return views.size();
+    }
+    
+    @Test
+    void testPopView() throws Exception {
+        TestView view1 = new TestView();
+        TestView view2 = new TestView();
+        
+        displayManager.registerView(view1);
+        displayManager.registerView(view2);
+        
+        int sizeBefore = getRegisteredViewsSize();
+        
+        displayManager.popView();
+        
+        int sizeAfter = getRegisteredViewsSize();
+        assertEquals(sizeBefore - 1, sizeAfter);
+    }
+    
+    @Test
+    void testUpdateAllViews() throws Exception {
+        TestView view1 = new TestView();
+        TestView view2 = new TestView();
+        
+        displayManager.registerView(view1);
+        displayManager.registerView(view2);
+        
+        int count1Before = view1.getScaleUpdateCount();
+        int count2Before = view2.getScaleUpdateCount();
+        
+        displayManager.setDisplayMode(ScreenSize.LARGE);
+        
+        // setDisplayMode가 updateAllViews를 호출하므로 카운트가 증가해야 함
+        assertTrue(view1.getScaleUpdateCount() > count1Before);
+        assertTrue(view2.getScaleUpdateCount() > count2Before);
+    }
+    
+    @Test
+    void testClearAllViewsExceptLatest() throws Exception {
+        TestView view1 = new TestView();
+        TestView view2 = new TestView();
+        TestView view3 = new TestView();
+        
+        displayManager.registerView(view1);
+        displayManager.registerView(view2);
+        displayManager.registerView(view3);
+        
+        displayManager.clearAllViewsExceptLatest();
+        
+        Field viewsField = DisplayManager.class.getDeclaredField("registeredViews");
+        viewsField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.List<BaseView> views = (java.util.List<BaseView>) viewsField.get(displayManager);
+        
+        assertEquals(1, views.size());
+        assertTrue(views.contains(view3));
+        assertFalse(views.contains(view1));
+        assertFalse(views.contains(view2));
+    }
+    
+    @Test
+    void testSetPrimaryStage() {
+        assertDoesNotThrow(() -> displayManager.setPrimaryStage(stage));
+        assertDoesNotThrow(() -> displayManager.setDisplayMode(ScreenSize.MEDIUM));
+    }
+    
+    @Test
+    void testPopViewOnEmptyList() {
+        assertDoesNotThrow(() -> displayManager.popView());
+    }
+    
+    @Test
+    void testClearAllViewsExceptLatestOnEmptyList() {
+        assertDoesNotThrow(() -> displayManager.clearAllViewsExceptLatest());
     }
 }

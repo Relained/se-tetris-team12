@@ -1,45 +1,40 @@
 package org.example.view;
 
+import java.util.List;
+
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 public class StartView extends BaseView {
-    
+
     public StartView() {
         super(true); // NavigableButtonSystem 사용
     }
-    
     /**
      * Start 화면의 UI를 구성하고 반환합니다.
      * @param onStartGame Start Game 버튼 클릭 시 실행될 콜백
+     * @param onMultiPlay MultiPlay 버튼 클릭 시 실행될 콜백
      * @param onViewScoreboard View Scoreboard 버튼 클릭 시 실행될 콜백
      * @param onSetting Setting 버튼 클릭 시 실행될 콜백
      * @param onExit Exit 버튼 클릭 시 실행될 콜백
      * @return 구성된 VBox root
      */
-    public VBox createView(Runnable onStartGame, Runnable onViewScoreboard, Runnable onSetting, Runnable onExit) {
+    public VBox createView(Runnable onStartGame, Runnable onMultiPlay, Runnable onViewScoreboard, Runnable onSetting, Runnable onExit) {
         VBox root = new VBox(40);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
 
         Text title = new Text("TETRIS");
-        title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(Font.font("Arial", 48));
+        title.getStyleClass().addAll("text-title-large", "text-primary");
 
         Text subtitle = new Text("Team 12 Edition");
-        subtitle.setFill(colorManager.getSecondaryTextColor());
-        subtitle.setFont(Font.font("Arial", 16));
+        subtitle.getStyleClass().addAll("text-body-medium", "text-secondary");
 
-    var startButton = buttonSystem.createNavigableButton("Start Game", onStartGame);
-        var scoreboardButton = buttonSystem.createNavigableButton("View Scoreboard", onViewScoreboard);
-        var settingButton = buttonSystem.createNavigableButton("Setting", onSetting);
-        var exitButton = buttonSystem.createNavigableButton("Exit", onExit);
+        var created = buttonSystem.createNavigableButtonFromList(
+            List.of("Start Game", "MultiPlay", "View Scoreboard", "Setting", "Exit"),
+            List.of(onStartGame, onMultiPlay, onViewScoreboard, onSetting, onExit)
+        );
 
         Text controls = new Text("Controls:\n" +
                 "← → Move\n" +
@@ -48,10 +43,11 @@ public class StartView extends BaseView {
                 "Z/X Rotate\n" +
                 "C Hold\n" +
                 "ESC Pause");
-        controls.setFill(colorManager.getSecondaryTextColor());
-        controls.setFont(Font.font("Arial", 14));
+        controls.getStyleClass().addAll("text-body-small", "text-secondary");
 
-        root.getChildren().addAll(title, subtitle, startButton, scoreboardButton, settingButton, exitButton, controls);
+        root.getChildren().addAll(title, subtitle);
+        root.getChildren().addAll(created);
+        root.getChildren().add(controls);
 
         return root;
     }

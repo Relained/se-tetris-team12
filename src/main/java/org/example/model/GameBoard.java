@@ -1,5 +1,7 @@
 package org.example.model;
 
+import java.util.Arrays;
+
 public class GameBoard {
     public static final int WIDTH = 10;
     public static final int HEIGHT = 20;
@@ -139,6 +141,14 @@ public class GameBoard {
             board[0][col] = 0;
         }
     }
+
+    public int[][] getCompressedBoard() {
+        int[][] compressed = new int[HEIGHT][WIDTH];
+        for (int i = 0; i < HEIGHT; i++) {
+            compressed[i] = Arrays.copyOf(board[i + BUFFER_ZONE], board[i + BUFFER_ZONE].length);
+        }
+        return compressed;
+    }
     
     public int[][] getVisibleBoard() {
         int[][] visible = new int[HEIGHT][WIDTH];
@@ -151,6 +161,12 @@ public class GameBoard {
             return board[row][col];
         }
         return 0;
+    }
+    
+    public void setCellColor(int row, int col, int color) {
+        if (row >= 0 && row < HEIGHT + BUFFER_ZONE && col >= 0 && col < WIDTH) {
+            board[row][col] = color;
+        }
     }
 
     public boolean isGameOver() {
@@ -175,12 +191,15 @@ public class GameBoard {
 
     /**
      * 보드의 특정 위치에 있는 아이템 정보를 반환합니다.
-     * 
+     *
      * @param row 행 (절대 좌표)
      * @param col 열 (절대 좌표)
      * @return 해당 위치의 아이템 (없으면 ItemBlock.NONE)
      */
     public ItemBlock getItemAt(int row, int col) {
+        if (row >= 0 && row < HEIGHT + BUFFER_ZONE && col >= 0 && col < WIDTH) {
+            return ItemBlock.fromSymbol(board[row][col]);
+        }
         return ItemBlock.NONE;
     }
 }

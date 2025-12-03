@@ -1,129 +1,127 @@
 package org.example.service;
 
+import org.example.model.GameMode;
 import org.example.model.ScoreRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.AfterEach;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * ScoreManager Unit Test
+ */
 class ScoreManagerTest {
     
     private ScoreManager scoreManager;
-    private static final String SAVE_FILE = System.getProperty("user.home") 
-            + File.separator + "tetris_scores.dat";
     
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         scoreManager = ScoreManager.getInstance();
-        scoreManager.clearScores();
-    }
-    
-    @AfterEach
-    void tearDown() {
-        scoreManager.clearScores();
-        File file = new File(SAVE_FILE);
-        if (file.exists()) {
-            file.delete();
-        }
+        
+        // scores 리스??초기??
+        Field scoresField = ScoreManager.class.getDeclaredField("scores");
+        scoresField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<ScoreRecord> scores = (List<ScoreRecord>) scoresField.get(scoreManager);
+        scores.clear();
     }
     
     @Test
-    @DisplayName("싱글톤 인스턴스 확인")
-    void testSingleton() {
+    void testGetInstance() {
         ScoreManager instance1 = ScoreManager.getInstance();
         ScoreManager instance2 = ScoreManager.getInstance();
         
+        assertNotNull(instance1);
+        assertNotNull(instance2);
         assertSame(instance1, instance2);
     }
     
     @Test
-    @DisplayName("점수 추가 - 성공")
     void testAddScore() {
-        ScoreRecord record = new ScoreRecord(1000, 10, 5, 1);
-        record.setPlayerName("Player1");
-        boolean result = scoreManager.addScore(record);
+        ScoreRecord record = new ScoreRecord(10000, 50, 5, 1, GameMode.NORMAL, true);
+        record.setPlayerName("AAA");
         
-        assertTrue(result);
-        assertEquals(1, scoreManager.getTopScores().size());
+        assertTrue(scoreManager.addScore(record));
+        
+        List<ScoreRecord> topScores = scoreManager.getTopScores();
+        assertEquals(1, topScores.size());
+        assertEquals(10000, topScores.get(0).getScore());
     }
     
     @Test
-    @DisplayName("점수 추가 - null 실패")
-    void testAddScoreNull() {
-        boolean result = scoreManager.addScore(null);
-        
-        assertFalse(result);
+    void testAddNullScore() {
+        assertFalse(scoreManager.addScore(null));
         assertEquals(0, scoreManager.getTopScores().size());
     }
     
     @Test
-    @DisplayName("점수 정렬 확인")
-    void testScoreSorting() {
-        ScoreRecord recordA = new ScoreRecord(500, 5, 3, 1);
-        recordA.setPlayerName("A");
-        scoreManager.addScore(recordA);
+    void testAddMultipleScores() {
+        ScoreRecord record1 = new ScoreRecord(10000, 50, 5, 1, GameMode.NORMAL, true);
+        ScoreRecord record2 = new ScoreRecord(5000, 25, 3, 1, GameMode.NORMAL, false);
+        ScoreRecord record3 = new ScoreRecord(15000, 75, 7, 1, GameMode.NORMAL, false);
         
-        ScoreRecord recordB = new ScoreRecord(1500, 15, 7, 1);
-        recordB.setPlayerName("B");
-        scoreManager.addScore(recordB);
+        scoreManager.addScore(record1);
+        scoreManager.addScore(record2);
+        scoreManager.addScore(record3);
         
-        ScoreRecord recordC = new ScoreRecord(1000, 10, 5, 1);
-        recordC.setPlayerName("C");
-        scoreManager.addScore(recordC);
-        
-        List<ScoreRecord> scores = scoreManager.getTopScores();
-        
-        assertEquals(3, scores.size());
-        assertEquals(1500, scores.get(0).getScore());
-        assertEquals(1000, scores.get(1).getScore());
-        assertEquals(500, scores.get(2).getScore());
+        List<ScoreRecord> topScores = scoreManager.getTopScores();
+        assertEquals(3, topScores.size());
+        assertEquals(15000, topScores.get(0).getScore());
+        assertEquals(10000, topScores.get(1).getScore());
+        assertEquals(5000, topScores.get(2).getScore());
     }
     
     @Test
-    @DisplayName("최대 10개 점수만 유지")
     void testMaxScoresLimit() {
-        for (int i = 0; i < 15; i++) {
-            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
-            record.setPlayerName("Player" + i);
+        // Add 11 scores
+        for (int i = 0; i < 11; i++) {
+            ScoreRecord record = new ScoreRecord((11 - i) * 1000, i * 5, i, 1, GameMode.NORMAL, false);
             scoreManager.addScore(record);
         }
         
-        List<ScoreRecord> scores = scoreManager.getTopScores();
-        
-        assertEquals(10, scores.size());
-        assertEquals(1500, scores.get(0).getScore()); // 가장 높은 점수
+        List<ScoreRecord> topScores = scoreManager.getTopScores();
+        assertEquals(10, topScores.size());
+        assertEquals(11000, topScores.get(0).getScore());
+        assertEquals(2000, topScores.get(9).getScore());
     }
     
     @Test
-    @DisplayName("상위 N개 점수 가져오기")
     void testGetTopScoresWithLimit() {
         for (int i = 0; i < 5; i++) {
-            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
-            record.setPlayerName("Player" + i);
+            ScoreRecord record = new ScoreRecord((5 - i) * 1000, i * 5, i, 1, GameMode.NORMAL, false);
             scoreManager.addScore(record);
         }
         
         List<ScoreRecord> top3 = scoreManager.getTopScores(3);
-        
         assertEquals(3, top3.size());
-        assertEquals(500, top3.get(0).getScore());
+        assertEquals(5000, top3.get(0).getScore());
+        assertEquals(4000, top3.get(1).getScore());
+        assertEquals(3000, top3.get(2).getScore());
     }
     
     @Test
-    @DisplayName("모든 점수 삭제")
-    void testClearScores() {
-        ScoreRecord record1 = new ScoreRecord(1000, 10, 5, 1);
-        record1.setPlayerName("Player1");
-        scoreManager.addScore(record1);
+    void testGetTopScoresWithLimitExceedingAvailable() {
+        ScoreRecord record1 = new ScoreRecord(10000, 50, 5, 1, GameMode.NORMAL, false);
+        ScoreRecord record2 = new ScoreRecord(5000, 25, 3, 1, GameMode.NORMAL, false);
         
-        ScoreRecord record2 = new ScoreRecord(2000, 20, 10, 1);
-        record2.setPlayerName("Player2");
+        scoreManager.addScore(record1);
         scoreManager.addScore(record2);
+        
+        List<ScoreRecord> top5 = scoreManager.getTopScores(5);
+        assertEquals(2, top5.size());
+    }
+    
+    @Test
+    void testClearScores() {
+        ScoreRecord record = new ScoreRecord(10000, 50, 5, 1, GameMode.NORMAL, false);
+        scoreManager.addScore(record);
+        
+        assertEquals(1, scoreManager.getTopScores().size());
         
         scoreManager.clearScores();
         
@@ -131,106 +129,108 @@ class ScoreManagerTest {
     }
     
     @Test
-    @DisplayName("상위 점수 여부 확인 - 10개 미만일 때")
-    void testIsHighScoreLessThan10() {
+    void testIsHighScoreWhenEmpty() {
+        assertTrue(scoreManager.isHighScore(100));
+        assertTrue(scoreManager.isHighScore(0));
+    }
+    
+    @Test
+    void testIsHighScoreWhenNotFull() {
         for (int i = 0; i < 5; i++) {
-            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
-            record.setPlayerName("Player" + i);
+            ScoreRecord record = new ScoreRecord((5 - i) * 1000, i * 5, i, 1, GameMode.NORMAL, false);
             scoreManager.addScore(record);
         }
         
-        assertTrue(scoreManager.isHighScore(50)); // 어떤 점수든 상위 점수
+        assertTrue(scoreManager.isHighScore(10000));
+        assertTrue(scoreManager.isHighScore(500));
     }
     
     @Test
-    @DisplayName("상위 점수 여부 확인 - 10개일 때")
-    void testIsHighScore10Records() {
+    void testIsHighScoreWhenFull() {
         for (int i = 0; i < 10; i++) {
-            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
-            record.setPlayerName("Player" + i);
+            ScoreRecord record = new ScoreRecord((10 - i) * 1000, i * 5, i, 1, GameMode.NORMAL, false);
             scoreManager.addScore(record);
         }
         
-        assertTrue(scoreManager.isHighScore(1100)); // 최고 점수보다 높음
-        assertFalse(scoreManager.isHighScore(50)); // 최저 점수보다 낮음
+        assertTrue(scoreManager.isHighScore(11000));
+        assertTrue(scoreManager.isHighScore(1001));
+        assertFalse(scoreManager.isHighScore(1000));
+        assertFalse(scoreManager.isHighScore(500));
     }
     
     @Test
-    @DisplayName("점수 저장 가능 여부 - 10개 미만")
-    void testIsScoreEligibleForSavingLessThan10() {
+    void testIsScoreEligibleForSavingWhenEmpty() {
+        assertTrue(scoreManager.isScoreEligibleForSaving(100));
+        assertTrue(scoreManager.isScoreEligibleForSaving(0));
+    }
+    
+    @Test
+    void testIsScoreEligibleForSavingWhenNotFull() {
         for (int i = 0; i < 5; i++) {
-            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
-            record.setPlayerName("Player" + i);
+            ScoreRecord record = new ScoreRecord((5 - i) * 1000, i * 5, i, 1, GameMode.NORMAL, false);
             scoreManager.addScore(record);
         }
         
-        assertTrue(scoreManager.isScoreEligibleForSaving(1));
+        assertTrue(scoreManager.isScoreEligibleForSaving(10000));
+        assertTrue(scoreManager.isScoreEligibleForSaving(100));
     }
     
     @Test
-    @DisplayName("점수 저장 가능 여부 - 10개일 때")
-    void testIsScoreEligibleForSaving10Records() {
+    void testIsScoreEligibleForSavingWhenFull() {
         for (int i = 0; i < 10; i++) {
-            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
-            record.setPlayerName("Player" + i);
+            ScoreRecord record = new ScoreRecord((10 - i) * 1000, i * 5, i, 1, GameMode.NORMAL, false);
             scoreManager.addScore(record);
         }
         
-        assertTrue(scoreManager.isScoreEligibleForSaving(1100));
-        assertFalse(scoreManager.isScoreEligibleForSaving(50));
+        assertTrue(scoreManager.isScoreEligibleForSaving(11000));
+        assertTrue(scoreManager.isScoreEligibleForSaving(1001));
+        assertFalse(scoreManager.isScoreEligibleForSaving(1000));
+        assertFalse(scoreManager.isScoreEligibleForSaving(500));
     }
     
     @Test
-    @DisplayName("점수 순위 확인")
     void testGetScoreRank() {
         for (int i = 0; i < 5; i++) {
-            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
-            record.setPlayerName("Player" + i);
+            ScoreRecord record = new ScoreRecord((5 - i) * 1000, i * 5, i, 1, GameMode.NORMAL, false);
             scoreManager.addScore(record);
         }
         
-        assertEquals(1, scoreManager.getScoreRank(600)); // 1위
-        assertEquals(3, scoreManager.getScoreRank(400)); // 3위
-        assertEquals(6, scoreManager.getScoreRank(50)); // 6위
+        assertEquals(1, scoreManager.getScoreRank(6000));
+        assertEquals(2, scoreManager.getScoreRank(4500));
+        assertEquals(6, scoreManager.getScoreRank(500));
     }
     
     @Test
-    @DisplayName("점수 순위 - 순위권 밖")
-    void testGetScoreRankOutOfRange() {
+    void testGetScoreRankOutsideTop10() {
         for (int i = 0; i < 10; i++) {
-            ScoreRecord record = new ScoreRecord((i + 1) * 100, i, i, 1);
-            record.setPlayerName("Player" + i);
+            ScoreRecord record = new ScoreRecord((10 - i) * 1000, i * 5, i, 1, GameMode.NORMAL, false);
             scoreManager.addScore(record);
         }
         
-        assertEquals(-1, scoreManager.getScoreRank(50)); // 순위권 밖
+        assertEquals(-1, scoreManager.getScoreRank(500));
     }
     
     @Test
-    @DisplayName("새로 추가된 점수 플래그 확인")
-    void testNewlyAddedFlag() {
-        ScoreRecord record1 = new ScoreRecord(1000, 10, 5, 1);
-        record1.setPlayerName("Player1");
+    void testNewlyAddedFlagReset() {
+        ScoreRecord record1 = new ScoreRecord(10000, 50, 5, 1, GameMode.NORMAL, true);
+        ScoreRecord record2 = new ScoreRecord(5000, 25, 3, 1, GameMode.NORMAL, true);
+        
         scoreManager.addScore(record1);
+        assertTrue(record1.isNewAndEligible()); // Newly added record stays true
         
-        ScoreRecord record2 = new ScoreRecord(2000, 20, 10, 1);
-        record2.setPlayerName("Player2");
         scoreManager.addScore(record2);
-        
-        List<ScoreRecord> scores = scoreManager.getTopScores();
-        
-        // record2가 새로 추가되었으므로 true
-        assertTrue(scores.get(0).isNewlyAdded());
-        // record1은 이전 기록이므로 false
-        assertFalse(scores.get(1).isNewlyAdded());
+        assertFalse(record1.isNewAndEligible()); // Previous record becomes false
+        assertTrue(record2.isNewAndEligible()); // Newly added record stays true
     }
     
     @Test
-    @DisplayName("빈 상태에서 상위 점수 가져오기")
-    void testGetTopScoresEmpty() {
-        List<ScoreRecord> scores = scoreManager.getTopScores();
+    void testTopScoresReturnsCopy() {
+        ScoreRecord record = new ScoreRecord(10000, 50, 5, 1, GameMode.NORMAL, false);
+        scoreManager.addScore(record);
         
-        assertNotNull(scores);
-        assertEquals(0, scores.size());
+        List<ScoreRecord> scores1 = scoreManager.getTopScores();
+        List<ScoreRecord> scores2 = scoreManager.getTopScores();
+        
+        assertNotSame(scores1, scores2);
     }
 }
