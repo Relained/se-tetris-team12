@@ -3,17 +3,19 @@ package org.example.service;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.example.model.GameBoard;
 
 import javafx.application.Platform;
@@ -30,7 +32,8 @@ public class InGameNetworkManager {
     public static final byte SIGNAL_ENDING = 0x04;
 
     private final Socket tcpSocket;
-    private DatagramSocket udpSocket;
+    private DatagramChannel udpChannel;
+    private Selector selector;
 
     private Thread boardSyncSendThread;
     private Thread boardSyncReceiveThread;
@@ -43,7 +46,9 @@ public class InGameNetworkManager {
     private Consumer<int[][]> onBoardDataReceived;
     private Supplier<int[][]> boardDataProvider;
     private IntSupplier scoreProvider;
+    private LongConsumer displayDelay;
     private final BlockingQueue<byte[]> sendQueue = new LinkedBlockingQueue<>();
+    private final AtomicBoolean released = new AtomicBoolean(false);
 
     // ----------- 상수 -----------
     private static final int TICK_TIME = 40;
@@ -58,7 +63,8 @@ public class InGameNetworkManager {
         Consumer<int[][]> onAdderBoardReceived,
         Consumer<int[][]> onBoardDataReceived, 
         Supplier<int[][]> boardDataProvider,
-        IntSupplier scoreProvider
+        IntSupplier scoreProvider,
+        LongConsumer displayDelay
     )
     {
         this.tcpSocket = socket;
@@ -69,16 +75,24 @@ public class InGameNetworkManager {
         this.onBoardDataReceived = onBoardDataReceived;
         this.boardDataProvider = boardDataProvider;
         this.scoreProvider = scoreProvider;
-
+        this.displayDelay = displayDelay;
         try {
-            udpSocket = new DatagramSocket(tcpSocket.getLocalSocketAddress());
-            udpSocket.setSoTimeout(TICK_TIME);
+            // NIO DatagramChannel 설정
+            udpChannel = DatagramChannel.open();
+            udpChannel.configureBlocking(false);
+            udpChannel.bind(tcpSocket.getLocalSocketAddress());
+            udpChannel.connect(tcpSocket.getRemoteSocketAddress()); // 상대방 주소 고정
+            
+            // Selector 설정 (수신 대기용)
+            selector = Selector.open();
+            udpChannel.register(selector, SelectionKey.OP_READ);
+            
             Thread.startVirtualThread(this::startNetworking);
         } catch (IOException e) {
-            System.err.println("[Error while creating UDP socket]");
+            System.err.println("[Error while creating UDP channel]");
             System.err.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
             releaseResources(true);
-            udpSocket = null;
+            udpChannel = null;
         }
     }
     
@@ -230,11 +244,10 @@ public class InGameNetworkManager {
         }
     }
 
-    //UDP 보드 동기화 송신 루프
+    //UDP 보드 동기화 송신 루프 (NIO)
     private void boardSyncSendLoop() {
         int[][] data;
         final ByteBuffer sendDataBuffer = ByteBuffer.allocate(MAX_PACKET_SIZE);
-        final DatagramPacket packet = new DatagramPacket(sendDataBuffer.array(), 0, tcpSocket.getRemoteSocketAddress());
 
         while (true) {
             data = boardDataProvider.get();
@@ -245,7 +258,7 @@ public class InGameNetworkManager {
                     sendDataBuffer.putInt(data[i][j]);
                 }
             }
-            packet.setData(sendDataBuffer.array(), 0, sendDataBuffer.position());
+            sendDataBuffer.flip();
             try {
                 udpChannel.write(sendDataBuffer);
             } catch (java.net.PortUnreachableException e) {
@@ -364,6 +377,9 @@ public class InGameNetworkManager {
     }
 
     private void releaseResources(boolean remoteDisconnected) {
+        if (!released.compareAndSet(false, true)) {
+            return; // 이미 해제됨
+        }
         if (remoteDisconnected) {
             Platform.runLater(onDisconnect);
         }
@@ -377,7 +393,8 @@ public class InGameNetworkManager {
             gameDataReceiveThread.interrupt();
         try {
             tcpSocket.close();
-            udpSocket.close();
+            if (selector != null) selector.close();
+            if (udpChannel != null) udpChannel.close();
         } catch (IOException e) {
             System.err.println("[Error while closing socket]");
         }
@@ -389,9 +406,10 @@ public class InGameNetworkManager {
         if (boardSyncReceiveThread != null)
             boardSyncReceiveThread.interrupt();
         try {
-            udpSocket.close();
+            if (selector != null) selector.close();
+            if (udpChannel != null) udpChannel.close();
         } catch (Exception e) {
-            System.err.println("[Error while closing UDP socket]");
+            System.err.println("[Error while closing UDP channel]");
         }
     }
 

@@ -31,6 +31,8 @@ public class P2PMultiPlayView extends BaseView{
     private ScorePanel scorePanel;
     private HBox root;
     private VBox widgetsContainer;
+    private Label networkDelayLabel;
+    private VBox networkDelayContainer;
 
     public P2PMultiPlayView() {
         super(false); // NavigableButtonSystem 사용하지 않음
@@ -97,6 +99,7 @@ public class P2PMultiPlayView extends BaseView{
         VBox.setVgrow(holdPanel, Priority.NEVER);
         VBox.setVgrow(adderCanvas, Priority.NEVER);
         VBox.setVgrow(spacer, Priority.ALWAYS);
+        VBox.setVgrow(networkDelayContainer, Priority.NEVER);
         VBox.setVgrow(scorePanel, Priority.NEVER);
         HBox.setHgrow(container, Priority.NEVER);
 
@@ -164,5 +167,26 @@ public class P2PMultiPlayView extends BaseView{
 
     public void setShowTimer(boolean show) {
         scorePanel.setShowTimer(show);
+    }
+
+    /**
+     * 네트워크 딜레이 값 업데이트
+     * @param delayMs 딜레이 (밀리초)
+     */
+    public void updateNetworkDelay(long delayMs) {
+        if (networkDelayLabel != null) {
+            networkDelayLabel.setText(delayMs + " ms");
+            
+            // 딜레이에 따른 색상 변경
+            if (delayMs < 40) {
+                networkDelayLabel.setTextFill(Color.LIME);       // 좋음
+            } else if (delayMs < 100) {
+                networkDelayLabel.setTextFill(Color.YELLOW);     // 보통
+            } else if (delayMs < 200) {
+                networkDelayLabel.setTextFill(Color.ORANGE);     // 나쁨
+            } else {
+                networkDelayLabel.setTextFill(Color.RED);        // 매우 나쁨
+            }
+        }
     }
 }
