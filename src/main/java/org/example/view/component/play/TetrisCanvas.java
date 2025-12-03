@@ -78,7 +78,7 @@ public class TetrisCanvas extends Canvas {
         draw();
     }
 
-    private void draw() {
+    protected void draw() {
         GraphicsContext gc = getGraphicsContext2D();
         gc.clearRect(0, 0, getWidth(), getHeight());
 
@@ -163,7 +163,7 @@ public class TetrisCanvas extends Canvas {
         }
     }
 
-    private void drawCell(GraphicsContext gc, int x, int y, Color color) {
+    protected void drawCell(GraphicsContext gc, int x, int y, Color color) {
         double pixelX = x * cellSize;
         double pixelY = y * cellSize;
 
@@ -175,7 +175,7 @@ public class TetrisCanvas extends Canvas {
         gc.strokeRect(pixelX, pixelY, cellSize, cellSize);
     }
 
-    private void drawGhostCell(GraphicsContext gc, int x, int y) {
+    protected void drawGhostCell(GraphicsContext gc, int x, int y) {
         double pixelX = x * cellSize;
         double pixelY = y * cellSize;
 
@@ -184,7 +184,7 @@ public class TetrisCanvas extends Canvas {
         gc.strokeRect(pixelX + 2, pixelY + 2, cellSize - 4, cellSize - 4);
     }
 
-    private void drawGrid(GraphicsContext gc) {
+    protected void drawGrid(GraphicsContext gc) {
         gc.setStroke(Color.DARKGRAY);
         gc.setLineWidth(0.5);
 
@@ -199,7 +199,7 @@ public class TetrisCanvas extends Canvas {
         }
     }
 
-    private void drawItemMark(GraphicsContext gc, int x, int y, char symbol) {
+    protected void drawItemMark(GraphicsContext gc, int x, int y, char symbol) {
         double pixelX = x * cellSize;
         double pixelY = y * cellSize;
         

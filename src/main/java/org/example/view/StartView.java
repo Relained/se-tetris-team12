@@ -11,7 +11,6 @@ public class StartView extends BaseView {
     public StartView() {
         super(true); // NavigableButtonSystem 사용
     }
-
     /**
      * Start 화면의 UI를 구성하고 반환합니다.
      * @param onStartGame Start Game 버튼 클릭 시 실행될 콜백

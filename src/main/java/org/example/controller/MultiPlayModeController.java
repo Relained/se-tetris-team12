@@ -2,6 +2,7 @@ package org.example.controller;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
+
 import org.example.view.MultiPlayModeView;
 
 /**
@@ -39,9 +40,7 @@ public class MultiPlayModeController extends BaseController {
      * Online MultiPlay 선택 시 처리
      */
     public void handleOnline() {
-        // TODO: 온라인 멀티플레이 구현 및 난이도 선택
-        // 임시로 기본 설정(NORMAL, difficulty=1) 사용
-        System.out.println("온라인 멀티플레이 선택 - 추후 구현 필요");
+        stackState(new P2PModeController());
     }
 
     /**

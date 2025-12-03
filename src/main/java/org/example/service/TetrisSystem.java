@@ -22,7 +22,7 @@ public class TetrisSystem {
     protected Runnable onPieceLocked;
 
     // 게임 상태
-    protected int score;
+    protected float score;
     protected int lines;
     protected int level;
     protected int difficulty;
@@ -296,11 +296,12 @@ public class TetrisSystem {
         }
         return preview;
     }
-    public int getScore() { return score; }
+    public int getScore() { return (int) score; }
     public int getLines() { return lines; }
     public int getLevel() { return level; }
     public boolean isGameOver() { return gameOver; }
     public int getDifficulty() { return difficulty; }
+    public long getRemainingTime() { return -1; }
 
     public void reset() {
         board.clear();
@@ -344,5 +345,74 @@ public class TetrisSystem {
      */
     public void setOnPieceLocked(Runnable callback) {
         this.onPieceLocked = callback;
+    }
+
+    /**
+     * 현재 게임 상태를 압축하여 int[][]로 반환
+     * @return 압축된 int[20][10] 보드
+     */
+    public int[][] getCompressedBoardData() {
+        // Magic Number
+        final int WEIGHT_MARK = 'W';
+        final int BOMB_MARK = 'B';
+        final int GHOST_MARK = -2;
+
+        // 비트마스킹: 상위 16비트(symbol), 하위 8비트(color)
+        // 아이템 블록: (symbol << 16) | colorIndex
+
+        int[][] compressed = board.getCompressedBoard();
+
+        if (currentPiece == null) {
+            return compressed;
+        }
+
+        // 고스트 조각 덮어쓰기 (테두리만 표시하고 싶으면 GHOST_MARK 사용)
+        var ghostPiece = SuperRotationSystem.hardDrop(currentPiece, board);
+        int[][] shape = ghostPiece.getCurrentShape();
+        int startX = ghostPiece.getX();
+        int startY = ghostPiece.getY() - GameBoard.BUFFER_ZONE;
+        for (int r = 0; r < shape.length; r++) {
+            for (int c = 0; c < shape[r].length; c++) {
+                if (shape[r][c] == 1) {
+                    int x = startX + c;
+                    int y = startY + r;
+                    if (x >= 0 && x < GameBoard.WIDTH && y >= 0 && y < GameBoard.HEIGHT) {
+                        compressed[y][x] = GHOST_MARK;
+                    }
+                }
+            }
+        }
+        
+        // 현재 조각 덮어쓰기 (특수/아이템/일반)
+        var special = currentPiece.getSpecialKind();
+        shape = currentPiece.getCurrentShape();
+        startX = currentPiece.getX();
+        startY = currentPiece.getY() - GameBoard.BUFFER_ZONE;
+        for (int r = 0; r < shape.length; r++) {
+            for (int c = 0; c < shape[r].length; c++) {
+                if (shape[r][c] == 1) {
+                    int x = startX + c;
+                    int y = startY + r;
+                    if (x >= 0 && x < GameBoard.WIDTH && y >= 0 && y < GameBoard.HEIGHT) {
+                        if (special == TetrominoPosition.SpecialKind.WEIGHT) {
+                            compressed[y][x] = WEIGHT_MARK;
+                        } else if (special == TetrominoPosition.SpecialKind.BOMB) {
+                            compressed[y][x] = BOMB_MARK;
+                        } else {
+                            var item = currentPiece.getItemAt(r, c);
+                            if (item != null && item.isItem()) {
+                                int symbol = item.getSymbol();
+                                int color = currentPiece.getType().getColorIndex();
+                                compressed[y][x] = (symbol << 16) | (color & 0xFF);
+                            } else {
+                                compressed[y][x] = currentPiece.getType().getColorIndex();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return compressed;
     }
 }

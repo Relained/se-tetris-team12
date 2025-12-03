@@ -14,9 +14,10 @@ public class FontManager {
     private static final String MONOSPACE_FONT = "Courier New";
     
     // Title 크기
-    public static final double SIZE_TITLE_LARGE = 48.0;  // StartView Title
+    public static final double SIZE_TITLE_XLARGE = 48.0;  // StartView Title
+    public static final double SIZE_TITLE_LARGE = 36.0;  // Title
     public static final double SIZE_TITLE_MEDIUM = 28.0; // ScoreInputView Title
-    public static final double SIZE_TITLE_SMALL = 24.0;  // ScoreboardView Title
+    public static final double SIZE_TITLE_SMALL = 24.0;  // ScoreboardView Title`
     
     // Body 크기
     public static final double SIZE_BODY_LARGE = 20.0;    // ScoreInputView rank, ScoreNotEligibleView score
