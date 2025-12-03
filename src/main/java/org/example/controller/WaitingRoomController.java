@@ -143,12 +143,12 @@ public class WaitingRoomController extends BaseController {
 
     private void handleGameStart() {
         System.out.println("[Game starting...]");
-        setState(new P2PMultiPlayController(netManager.getSocket(), isServer, selectedGameMode, selectedDifficulty));
+        swapState(new P2PMultiPlayController(netManager.getSocket(), isServer, selectedGameMode, selectedDifficulty));
     }
 
     private void handleGoBack() {
         netManager.disconnect();
-        setState(new StartController());
+        popState();
     }
 
     private void handleDisconnect() {
@@ -157,7 +157,7 @@ public class WaitingRoomController extends BaseController {
         alert.setHeaderText("Connection Lost");
         alert.setContentText("The other person's connection has been lost");
         alert.showAndWait();
-        setState(new StartController());
+        popState();
     }
 
     @Override

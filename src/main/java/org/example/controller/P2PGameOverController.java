@@ -93,14 +93,14 @@ public class P2PGameOverController extends BaseController {
         if (gameResult.isServer) {
             sendSignal(SIGNAL_PLAY_AGAIN);
         }
-        setState(new P2PMultiPlayController(gameResult.socket, gameResult.isServer, gameResult.gameMode, gameResult.difficulty));
+        swapState(new P2PMultiPlayController(gameResult.socket, gameResult.isServer, gameResult.gameMode, gameResult.difficulty));
     }
 
     public void handleGoWaitingRoom() {
         if (gameResult.isServer) {
             sendSignal(SIGNAL_GO_WAITING_ROOM);
         }
-        setState(new WaitingRoomController(gameResult.socket, gameResult.isServer));
+        swapState(new WaitingRoomController(gameResult.socket, gameResult.isServer));
     }
 
     public void handleMainMenu() {

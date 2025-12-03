@@ -94,7 +94,7 @@ public class ServerConnectionController extends BaseController {
 
                 System.out.println("Client connected from " + client.getInetAddress().getHostAddress());
                 
-                Platform.runLater(() -> setState(new WaitingRoomController(client, true)));
+                Platform.runLater(() -> swapState(new WaitingRoomController(client, true)));
 
             } catch (BindException be) {
                 System.err.println("[Port Binding Error]");
