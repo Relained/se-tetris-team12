@@ -4,8 +4,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -48,9 +46,7 @@ public class P2PMultiPlayView extends BaseView{
      */
     public HBox createView(String mode, String difficulty) {
         root = new HBox(20);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
         root.setPadding(new Insets(20));
 
         opGameCanvas = new DummyTetrisCanvas();

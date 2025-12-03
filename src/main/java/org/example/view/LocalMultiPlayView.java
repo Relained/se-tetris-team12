@@ -3,8 +3,6 @@ package org.example.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -62,9 +60,7 @@ public class LocalMultiPlayView extends BaseView {
         this.difficultyName = difficulty;
         // 메인 컨테이너 (플레이어2 위젯 | 플레이어2 캔버스 | 플레이어1 캔버스 | 플레이어1 위젯)
         root = new HBox(20);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
         root.setPadding(new Insets(20));
         root.setAlignment(Pos.CENTER);
         

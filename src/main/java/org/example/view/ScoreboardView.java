@@ -5,15 +5,12 @@ import java.util.List;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import org.example.model.ScoreRecord;
-import org.example.service.ColorManager;
 
 import java.time.format.DateTimeFormatter;
 
@@ -44,13 +41,11 @@ public class ScoreboardView extends BaseView {
     private boolean isAfterGamePlay = false; // 게임 플레이 후인지 여부
 
     private double currentWidth;
-    private final ColorManager colorManager;
 
     public ScoreboardView() {
         super(true);
         var displayManager = org.example.service.DisplayManager.getInstance();
         this.currentWidth = displayManager.getWidth(displayManager.getCurrentSize());
-        this.colorManager = ColorManager.getInstance();
     }
     
     public ScoreboardView(boolean isAfterGamePlay, boolean showNewlyAddedHighlight) {
@@ -80,7 +75,7 @@ public class ScoreboardView extends BaseView {
      */
     public BorderPane createView(Runnable onBackToMenu, Runnable onClearScores) {
         BorderPane root = new BorderPane();
-        root.setBackground(new Background(new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)));
+        root.getStyleClass().add("root-dark");
 
         // Scoreboard content를 포함하는 컨테이너
         VBox topContainer = new VBox();
@@ -103,7 +98,7 @@ public class ScoreboardView extends BaseView {
         container.setAlignment(Pos.CENTER);
         container.setSpacing(15);
         container.setPadding(new Insets(20));
-        container.setBackground(new Background(new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)));
+        container.getStyleClass().add("root-dark");
         container.setMinHeight(550);
 
         titleLabel = new Text("HIGH SCORES");

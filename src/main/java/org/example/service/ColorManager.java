@@ -188,30 +188,10 @@ public class ColorManager {
     }
     
     /**
-     * 배경 색상 반환
+     * Canvas용 배경 색상 반환
+     * (CSS로 스타일링할 수 없는 Canvas에서만 사용)
      */
-    public Color getBackgroundColor() {
+    public Color getCanvasBackgroundColor() {
         return cssColors.getOrDefault("background", Color.BLACK);
-    }
-
-    /**
-     * 텍스트 주 색상 반환 (고정)
-     */
-    public Color getPrimaryTextColor() {
-        return Color.WHITE;
-    }
-
-    /**
-     * 텍스트 보조 색상 반환 (고정)
-     */
-    public Color getSecondaryTextColor() {
-        return Color.LIGHTGRAY;
-    }
-
-    /**
-     * 게임 배경 색상 반환
-     */
-    public Color getGameBackgroundColor() {
-        return cssColors.getOrDefault("game-background", Color.DARKSLATEGRAY);
     }
 }

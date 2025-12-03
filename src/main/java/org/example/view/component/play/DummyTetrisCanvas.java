@@ -20,7 +20,7 @@ public class DummyTetrisCanvas extends TetrisCanvas {
     public DummyTetrisCanvas() {
         super();
         this.colorManager = ColorManager.getInstance();
-        this.BACKGROUND_COLOR = colorManager.getBackgroundColor();
+        this.BACKGROUND_COLOR = colorManager.getCanvasBackgroundColor();
     }
 
     public void updateBoard(int[][] compressedBoard) {

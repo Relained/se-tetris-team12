@@ -41,7 +41,7 @@ public abstract class BaseController {
         int height = displayManager.getHeight(displayManager.getCurrentSize());
 
         scene = new Scene(root, width, height);
-        scene.setFill(ColorManager.getInstance().getBackgroundColor());
+        scene.setFill(ColorManager.getInstance().getCanvasBackgroundColor());
         scene.setOnKeyPressed(event -> handleKeyInput(event));
 
         // CSS 스타일시트 로드

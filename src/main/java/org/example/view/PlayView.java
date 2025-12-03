@@ -3,8 +3,6 @@ package org.example.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -37,9 +35,7 @@ public class PlayView extends BaseView {
     public HBox createView(String mode, String difficulty) {
         // 메인 컨테이너 (좌우 분할)
         HBox root = new HBox(20);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
         root.setPadding(new Insets(20));
         
         // 좌측: 게임 캔버스

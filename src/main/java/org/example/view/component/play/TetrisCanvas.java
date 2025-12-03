@@ -27,7 +27,7 @@ public class TetrisCanvas extends Canvas {
     public TetrisCanvas() {
         super(GameBoard.WIDTH * 30, GameBoard.HEIGHT * 30);
         this.colorManager = ColorManager.getInstance();
-        this.BACKGROUND_COLOR = colorManager.getBackgroundColor();
+        this.BACKGROUND_COLOR = colorManager.getCanvasBackgroundColor();
     }
 
     /**
