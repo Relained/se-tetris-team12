@@ -270,7 +270,7 @@ public class KeySettingController2 extends BaseController {
         keyData.multi2SoftDrop = KeyCode.S;
         keyData.multi2HardDrop = KeyCode.SPACE;
         keyData.multi2RotateCounterClockwise = KeyCode.Z;
-        keyData.multi2RotateClockwise = KeyCode.UP;
+        keyData.multi2RotateClockwise = KeyCode.W;
         keyData.multi2Hold = KeyCode.C;
         
         // pause는 공유 (KeyData.pause)
