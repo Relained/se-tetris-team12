@@ -3,22 +3,19 @@ package org.example.view;
 import java.util.List;
 
 import javafx.geometry.Pos;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 /**
  * Game Over 화면의 UI를 담당하는 View 클래스
  */
 public class GameOverView extends BaseView {
-    
+
     public GameOverView() {
         super(true); // NavigableButtonSystem 사용
+        buttonSystem.setStylePrefix("nav-button-red");
     }
-    
+
     /**
      * Game Over 화면의 UI를 구성하고 반환합니다.
      * @param finalScore 최종 점수
@@ -30,8 +27,8 @@ public class GameOverView extends BaseView {
      * @param onExit Exit Game 버튼 클릭 시 실행될 콜백
      * @return 구성된 VBox root
      */
-    public VBox createView(int finalScore, 
-                          int finalLines, 
+    public VBox createView(int finalScore,
+                          int finalLines,
                           int finalLevel,
                           Runnable onPlayAgain,
                           Runnable onViewScoreboard,
@@ -39,11 +36,10 @@ public class GameOverView extends BaseView {
                           Runnable onExit) {
         VBox root = new VBox(25);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(Color.DARKRED, null, null)));
+        root.getStyleClass().add("root-red");
 
         Text title = new Text("GAME OVER");
-        title.setFill(Color.WHITE);
-        title.setFont(Font.font("Arial", 42));
+        title.getStyleClass().addAll("text-title-medium", "text-primary");
 
         Text scoreText = createText("Final Score: " + finalScore);
         Text linesText = createText("Lines Cleared: " + finalLines);
@@ -62,8 +58,7 @@ public class GameOverView extends BaseView {
 
     Text createText(String str) {
         Text text = new Text(str);
-        text.setFill(Color.LIGHTGRAY);
-        text.setFont(Font.font("Arial", 20));
+        text.getStyleClass().addAll("text-body-large", "text-secondary");
         return text;
     }
 }

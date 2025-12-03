@@ -3,8 +3,6 @@ package org.example.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -37,9 +35,7 @@ public class PlayView extends BaseView {
     public HBox createView(String mode, String difficulty) {
         // 메인 컨테이너 (좌우 분할)
         HBox root = new HBox(20);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getGameBackgroundColor(), null, null)
-        ));
+        root.getStyleClass().add("root-dark");
         root.setPadding(new Insets(20));
         
         // 좌측: 게임 캔버스
@@ -51,7 +47,7 @@ public class PlayView extends BaseView {
         widgetContainer = new VBox(10);
         widgetContainer.setAlignment(Pos.TOP_CENTER);
         widgetContainer.setPadding(new Insets(10));
-        widgetContainer.setStyle("-fx-background-color: #333;");
+        widgetContainer.getStyleClass().add("panel-widget");
         
         holdPanel = new HoldPanel();
         nextPanel = new NextPiecePanel();
@@ -126,6 +122,24 @@ public class PlayView extends BaseView {
      */
     public void setShowTimer(boolean show) {
         scorePanel.setShowTimer(show);
+    }
+
+    /**
+     * Play 재개 시 모든 UI 요소의 크기를 업데이트합니다.
+     */
+    public void onResume() {
+        if (gameCanvas != null) {
+            gameCanvas.onResume();
+        }
+        if (holdPanel != null) {
+            holdPanel.onResume();
+        }
+        if (nextPanel != null) {
+            nextPanel.onResume();
+        }
+        if (scorePanel != null) {
+            scorePanel.onResume();
+        }
     }
     
     public TetrisCanvas getGameCanvas() {

@@ -274,6 +274,7 @@ public class P2PMultiPlayController extends BaseController {
     }
 
     private void handleDisconnect() {
+        gameTimer.stop();
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
         alert.setHeaderText("Connection Lost");

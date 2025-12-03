@@ -16,12 +16,12 @@ import java.util.function.Consumer;
  * - Enter/Space: 버튼 실행
  */
 public class RadioButtonGroupSystem {
-    
-    // 기준 폰트 크기
-    private final static int BASE_FONT_SIZE = 18;
-    
-    // 현재 스케일
-    private double scale = 1.0;
+
+    // CSS 클래스 상수
+    private static final String CSS_RADIO_UNFOCUSED = "radio-unfocused";
+    private static final String CSS_RADIO_SELECTED_UNFOCUSED = "radio-selected-unfocused";
+    private static final String CSS_RADIO_FOCUSED = "radio-focused";
+    private static final String CSS_RADIO_SELECTED_FOCUSED = "radio-selected-focused";
     
     // 여러 라디오 그룹 관리
     private ArrayList<RadioButtonGroupWrapper<?>> radioGroups;
@@ -65,7 +65,6 @@ public class RadioButtonGroupSystem {
         private final ArrayList<RadioButton> radioButtons;
         private final ArrayList<T> options;
         private Consumer<T> onSelectionChanged;
-        private double scale = 1.0;
         private boolean isFocused = false;
         
         public RadioButtonGroupWrapper(List<T> options, int initialIndex) {
@@ -166,45 +165,30 @@ public class RadioButtonGroupSystem {
         }
         
         private void setSelectedStyle(RadioButton button) {
-            int fontSize = (int) (BASE_FONT_SIZE * scale);
+            clearRadioStyleClasses(button);
             if (isFocused) {
-                // 포커스 상태: 밝은 파란색, 굵음, 언더라인 효과
-                button.setStyle(String.format(
-                    "-fx-font-size: %dpx; -fx-text-fill: #2196F3; -fx-font-weight: bold; -fx-underline: true;",
-                    fontSize
-                ));
+                button.getStyleClass().add(CSS_RADIO_SELECTED_FOCUSED);
             } else {
-                // 비포커스 상태: 어두운 파란색, 일반 무게
-                button.setStyle(String.format(
-                    "-fx-font-size: %dpx; -fx-text-fill: #1565C0; -fx-font-weight: bold;",
-                    fontSize
-                ));
+                button.getStyleClass().add(CSS_RADIO_SELECTED_UNFOCUSED);
             }
         }
-        
+
         private void setUnselectedStyle(RadioButton button) {
-            int fontSize = (int) (BASE_FONT_SIZE * scale);
+            clearRadioStyleClasses(button);
             if (isFocused) {
-                // 포커스 상태: 흰색 (선택 가능함을 나타냄)
-                button.setStyle(String.format(
-                    "-fx-font-size: %dpx; -fx-text-fill: white;",
-                    fontSize
-                ));
+                button.getStyleClass().add(CSS_RADIO_FOCUSED);
             } else {
-                // 비포커스 상태: 어두운 회색 (비활성 상태)
-                button.setStyle(String.format(
-                    "-fx-font-size: %dpx; -fx-text-fill: #555555;",
-                    fontSize
-                ));
+                button.getStyleClass().add(CSS_RADIO_UNFOCUSED);
             }
         }
-        
-        /**
-         * 스케일을 설정합니다.
-         */
-        public void setScale(double scale) {
-            this.scale = scale;
-            updateButtonStyles();
+
+        private void clearRadioStyleClasses(RadioButton button) {
+            button.getStyleClass().removeAll(
+                CSS_RADIO_UNFOCUSED,
+                CSS_RADIO_SELECTED_UNFOCUSED,
+                CSS_RADIO_FOCUSED,
+                CSS_RADIO_SELECTED_FOCUSED
+            );
         }
         
         /**
@@ -250,8 +234,6 @@ public class RadioButtonGroupSystem {
         } else if (!group.radioButtons.isEmpty()) {
             group.radioButtons.get(0).setSelected(true);
         }
-        
-        group.setScale(scale);
         
         // 첫 번째 그룹이면 자동으로 포커스
         if (radioGroups.isEmpty()) {
@@ -393,16 +375,6 @@ public class RadioButtonGroupSystem {
             return radioGroups.get(focusedGroupIndex);
         }
         return null;
-    }
-    
-    /**
-     * 화면 크기에 따른 스케일을 설정합니다.
-     */
-    public void setScale(double scale) {
-        this.scale = scale;
-        for (RadioButtonGroupWrapper<?> group : radioGroups) {
-            group.setScale(scale);
-        }
     }
     
     /**

@@ -73,15 +73,34 @@ public class ScorePanel extends VBox {
         timerText.setVisible(false);
 
         getChildren().addAll(title, scoreText, linesLevelRow, modeDifficultyRow, timerText);
-        setStyle("-fx-background-color: #333;");
-        
-        // 가로 크기 변경 감지 - 가로 크기 기준으로 폰트 조정
-        widthProperty().addListener((obs, oldVal, newVal) -> {
-            double newWidth = newVal.doubleValue();
-            if (newWidth > 0) {
-                adjustFontSizeByWidth(newWidth);
-            }
-        });
+        getStyleClass().add("panel-score");
+
+        // // 크기 변경 시 폰트 크기 자동 조정
+        // widthProperty().addListener((_, _, newWidth) -> {
+        //     if (newWidth.doubleValue() > 0) {
+        //         adjustFontSizeByWidth(newWidth.doubleValue());
+        //     }
+        // });
+
+        // 생성 시 폰트 크기 초기화
+        updateFontSize();
+    }
+
+    /**
+     * ScorePanel의 크기에 맞게 폰트 크기를 조정합니다. (외부에서 명시적으로 호출)
+     */
+    public void updateFontSize() {
+        double currentWidth = getWidth();
+        if (currentWidth > 0) {
+            adjustFontSizeByWidth(currentWidth);
+        }
+    }
+
+    /**
+     * 일시정지 해제(resume) 시 반드시 updateFontSize()를 호출해야 함
+     */
+    public void onResume() {
+        updateFontSize();
     }
     
     /**
@@ -94,14 +113,14 @@ public class ScorePanel extends VBox {
         if (availableWidth <= 0) return;
         
         // 가로 크기에 비례하여 폰트 크기 조정
-        baseFontSize = Math.max(11, Math.min(18, availableWidth / 7));
+        baseFontSize = Math.max(13, availableWidth / 7);
         
-        title.setFont(Font.font(baseFontSize * 1.3));
+        title.setFont(Font.font(baseFontSize + 2));
         scoreText.setFont(Font.font(baseFontSize));
-        linesText.setFont(Font.font(baseFontSize * 0.9));
-        levelText.setFont(Font.font(baseFontSize * 0.9));
-        modeText.setFont(Font.font(baseFontSize * 0.85));
-        difficultyText.setFont(Font.font(baseFontSize * 0.85));
+        linesText.setFont(Font.font(baseFontSize));
+        levelText.setFont(Font.font(baseFontSize));
+        modeText.setFont(Font.font(baseFontSize));
+        difficultyText.setFont(Font.font(baseFontSize));
         timerText.setFont(Font.font(baseFontSize));
     }
 

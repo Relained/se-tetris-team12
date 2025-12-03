@@ -3,11 +3,7 @@ package org.example.view;
 
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 /**
@@ -17,6 +13,7 @@ import javafx.scene.text.Text;
 public class P2PGameOverView extends GameOverView {
     public P2PGameOverView() {
         super();
+        buttonSystem.setStylePrefix("nav-button");
     }
 
     /**
@@ -41,12 +38,11 @@ public class P2PGameOverView extends GameOverView {
                             Runnable onExit) {
         VBox root = new VBox(25);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(Color.DARKSLATEBLUE, null, null)));
+        root.getStyleClass().add("game-over-root");
 
         String resultText = determineResultText(myScore, opponentScore, gameOverStatus);
         Text winnerDisplay = new Text(resultText);
-        winnerDisplay.setFill(Color.GOLD);
-        winnerDisplay.setFont(Font.font("Arial", 48));
+        winnerDisplay.getStyleClass().addAll("text-gold", "text-title-large");
 
         Text myScoreText = createText("Your Score: " + myScore);
         Text opponentScoreText = createText("Opponent Score: " + opponentScore);
