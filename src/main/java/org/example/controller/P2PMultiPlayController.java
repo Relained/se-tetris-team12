@@ -262,12 +262,14 @@ public class P2PMultiPlayController extends BaseController {
             myScore, opponentScore, gameOverStatus,
             netManager.getSocket(), isServer, gameMode, tetrisSystem.getDifficulty()
         );
-        setState(new P2PGameOverController(result));
+        popToP2PPlayState();
+        swapState(new P2PGameOverController(result));
     }
 
     private void handleOpponentGoWaitingRoom() {
         gameTimer.stop();
-        setState(new WaitingRoomController(netManager.getSocket(), isServer));
+        popToP2PPlayState();
+        swapState(new WaitingRoomController(netManager.getSocket(), isServer));
     }
 
     private void handleAdderBoardReceived(int[][] addedLines) {
@@ -281,7 +283,8 @@ public class P2PMultiPlayController extends BaseController {
         alert.setHeaderText("Connection Lost");
         alert.setContentText("The other person's connection has been lost");
         alert.showAndWait();
-        setState(new StartController());
+        popToP2PPlayState();
+        popState();
     }
     
     private void handlePause() {

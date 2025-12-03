@@ -99,4 +99,30 @@ public abstract class BaseController {
         }
         stackState(newState);
     }
+
+    public static void swapState(BaseController newState) {
+        if (!stateStack.empty()) {
+            stateStack.pop().exit();
+        }
+
+        Scene scene = newState.createScene();
+        primaryStage.setScene(scene);
+
+        stateStack.push(newState);
+    }
+
+    public static void popToP2PPlayState() {
+        if (stateStack.isEmpty() || stateStack.peek() instanceof P2PMultiPlayController) {
+            return;
+        }
+        while (true) {
+            stateStack.pop().exit();
+            if (stateStack.isEmpty()) {
+                break;
+            }
+            if (stateStack.peek() instanceof P2PMultiPlayController) {
+                break;
+            }
+        }
+    }
 }

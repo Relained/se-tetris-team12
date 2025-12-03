@@ -47,7 +47,8 @@ public class P2PPauseController extends BaseController {
     
     public void handleGoWaitingRoom() {
         Pair<Socket, Boolean> playerData = onGoWaitingRoom.get();
-        setState(new WaitingRoomController(playerData.getKey(), playerData.getValue()));
+        popToP2PPlayState();
+        swapState(new WaitingRoomController(playerData.getKey(), playerData.getValue()));
     }
 
     public void handleSettings() {
