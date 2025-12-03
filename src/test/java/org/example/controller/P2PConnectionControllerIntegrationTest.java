@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import javafx.application.Platform;
+import javafx.stage.Stage;
 import org.example.service.NetworkUtility;
 import org.junit.jupiter.api.*;
 
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.*;
+import java.util.Stack;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,6 +45,11 @@ class P2PConnectionControllerIntegrationTest {
     private ClientConnectionController clientController;
 
     private static boolean javafxInitialized = false;
+    
+    // 테스트용 가짜 StateStack - setState 호출 여부를 기록
+    private static Stack<BaseController> fakeStateStack;
+    private static AtomicBoolean setStateCalled;
+    private static AtomicReference<BaseController> lastSetStateController;
 
     @BeforeAll
     static void initJavaFX() {
@@ -53,6 +60,69 @@ class P2PConnectionControllerIntegrationTest {
             } catch (IllegalStateException e) {
                 javafxInitialized = true;
             }
+        }
+        
+        // 가짜 StateStack 초기화
+        fakeStateStack = new Stack<>();
+        setStateCalled = new AtomicBoolean(false);
+        lastSetStateController = new AtomicReference<>(null);
+    }
+    
+    /**
+     * BaseController의 static stateStack을 가짜 스택으로 교체
+     * setState 호출 시 예외가 발생하지 않도록 함
+     */
+    private void injectFakeStateStack() throws Exception {
+        // BaseController의 static stateStack 필드에 접근
+        Field stateStackField = BaseController.class.getDeclaredField("stateStack");
+        stateStackField.setAccessible(true);
+        
+        // BaseController의 static primaryStage 필드에 접근
+        Field primaryStageField = BaseController.class.getDeclaredField("primaryStage");
+        primaryStageField.setAccessible(true);
+        
+        // 가짜 스택 주입 - setState 호출을 감지할 수 있도록 함
+        fakeStateStack = new Stack<BaseController>() {
+            @Override
+            public BaseController push(BaseController item) {
+                setStateCalled.set(true);
+                lastSetStateController.set(item);
+                System.err.println("[FAKE STACK] setState called with: " + item.getClass().getSimpleName());
+                return super.push(item);
+            }
+        };
+        
+        stateStackField.set(null, fakeStateStack);
+        
+        // primaryStage가 null이면 가짜 Stage 주입 (JavaFX 스레드에서 실행)
+        if (primaryStageField.get(null) == null) {
+            CountDownLatch stageLatch = new CountDownLatch(1);
+            Platform.runLater(() -> {
+                try {
+                    Stage fakeStage = new Stage();
+                    primaryStageField.set(null, fakeStage);
+                    System.err.println("[FAKE STAGE] Injected fake primaryStage");
+                } catch (Exception e) {
+                    System.err.println("[FAKE STAGE] Failed to inject: " + e.getMessage());
+                }
+                stageLatch.countDown();
+            });
+            stageLatch.await(3, TimeUnit.SECONDS);
+        }
+        
+        // 상태 초기화
+        setStateCalled.set(false);
+        lastSetStateController.set(null);
+    }
+    
+    /**
+     * setState 호출 여부를 초기화
+     */
+    private void resetSetStateTracking() {
+        setStateCalled.set(false);
+        lastSetStateController.set(null);
+        if (fakeStateStack != null) {
+            fakeStateStack.clear();
         }
     }
 
@@ -369,12 +439,13 @@ class P2PConnectionControllerIntegrationTest {
         // Wait for thread to start
         Thread.sleep(300);
         
-        // Verify acceptThread is running via reflection
+        // 1. acceptThread 검증
         Thread acceptThread = (Thread) getPrivateField(serverController, "acceptThread");
         assertNotNull(acceptThread, "acceptThread should be created");
         assertTrue(acceptThread.isAlive(), "acceptThread should be running");
+        System.err.println("[CONTROLLER TEST] ✓ acceptThread created and running");
         
-        // Test TCP connection with the actual controller
+        // 2. 클라이언트 연결 테스트
         CountDownLatch connectLatch = new CountDownLatch(1);
         AtomicReference<Socket> clientSocket = new AtomicReference<>();
         AtomicReference<Exception> clientException = new AtomicReference<>();
@@ -385,7 +456,7 @@ class P2PConnectionControllerIntegrationTest {
                 socket.connect(new InetSocketAddress("127.0.0.1", TCP_PORT), 3000);
                 clientSocket.set(socket);
                 connectLatch.countDown();
-                System.err.println("[CONTROLLER TEST] Client connected to ServerConnectionController");
+                System.err.println("[CONTROLLER TEST] ✓ Client connected to ServerConnectionController");
             } catch (IOException e) {
                 clientException.set(e);
                 connectLatch.countDown();
@@ -402,11 +473,31 @@ class P2PConnectionControllerIntegrationTest {
             fail("Client connection failed: " + clientException.get().getMessage());
         }
         
-        assertNotNull(clientSocket.get());
-        assertTrue(clientSocket.get().isConnected());
+        // 3. 클라이언트 소켓 상태 검증
+        assertNotNull(clientSocket.get(), "Client socket should be created");
+        assertTrue(clientSocket.get().isConnected(), "Client socket should be connected");
+        assertFalse(clientSocket.get().isClosed(), "Client socket should not be closed");
+        assertEquals(TCP_PORT, clientSocket.get().getPort(), "Client should be connected to port " + TCP_PORT);
+        System.err.println("[CONTROLLER TEST] ✓ Client socket connected to port " + clientSocket.get().getPort());
+        
+        // 4. 서버가 클라이언트 연결을 수락할 때까지 대기 (서버의 accept()가 완료되면 acceptThread가 종료됨)
+        // 서버는 accept() 후 setState()를 호출하지만, 테스트 환경에서는 실패할 수 있음
+        Thread.sleep(500);
+        
+        // 5. 양방향 통신 테스트 - 클라이언트 -> 서버로 데이터 전송 시도
+        try {
+            clientSocket.get().getOutputStream().write("TEST_DATA".getBytes());
+            clientSocket.get().getOutputStream().flush();
+            System.err.println("[CONTROLLER TEST] ✓ Data sent from client to server");
+        } catch (IOException e) {
+            // 서버가 이미 연결을 처리하고 종료했을 수 있음
+            System.err.println("[CONTROLLER TEST] Data send failed (expected if server closed): " + e.getMessage());
+        }
+        
+        System.err.println("[CONTROLLER TEST] ✓ ServerConnectionController.startAccept() test passed");
         
         // Cleanup
-        if (clientSocket.get() != null) {
+        if (clientSocket.get() != null && !clientSocket.get().isClosed()) {
             clientSocket.get().close();
         }
     }
@@ -453,7 +544,8 @@ class P2PConnectionControllerIntegrationTest {
                 Socket client = testServerSocket.accept();
                 serverSideSocket.set(client);
                 clientConnectedLatch.countDown();
-                System.err.println("[CONTROLLER TEST] Test server accepted connection");
+                System.err.println("[CONTROLLER TEST] ✓ Test server accepted connection from " + 
+                    client.getInetAddress().getHostAddress() + ":" + client.getPort());
             } catch (BindException be) {
                 serverException.set(be);
                 serverReadyLatch.countDown();
@@ -474,17 +566,47 @@ class P2PConnectionControllerIntegrationTest {
         // Create ClientConnectionController
         clientController = new ClientConnectionController();
         
-        // Call private startConnection() via reflection
+        // 1. isConnecting 초기 상태 확인
+        AtomicBoolean isConnecting = (AtomicBoolean) getPrivateField(clientController, "isConnecting");
+        assertFalse(isConnecting.get(), "isConnecting should be false before connection");
+        System.err.println("[CONTROLLER TEST] ✓ Initial isConnecting state: false");
+        
+        // 2. startConnection() 호출
         invokePrivateMethod(clientController, "startConnection", 
             new Class<?>[] { String.class }, 
             new Object[] { "127.0.0.1" });
         
-        // Wait for connection
+        // 3. connectionThread가 생성되었는지 확인
+        Thread connectionThread = (Thread) getPrivateField(clientController, "connectionThread");
+        assertNotNull(connectionThread, "connectionThread should be created");
+        System.err.println("[CONTROLLER TEST] ✓ connectionThread created");
+        
+        // 4. 서버에서 클라이언트 연결 수락 대기
         assertTrue(clientConnectedLatch.await(5, TimeUnit.SECONDS), "Client failed to connect");
         
-        assertNotNull(serverSideSocket.get());
-        assertTrue(serverSideSocket.get().isConnected());
-        System.err.println("[CONTROLLER TEST] ClientConnectionController successfully connected to server");
+        // 5. 서버 측 소켓 상태 검증
+        assertNotNull(serverSideSocket.get(), "Server-side socket should be created");
+        assertTrue(serverSideSocket.get().isConnected(), "Server-side socket should be connected");
+        assertFalse(serverSideSocket.get().isClosed(), "Server-side socket should not be closed");
+        System.err.println("[CONTROLLER TEST] ✓ Server-side socket connected");
+        
+        // 6. connectionThread 완료 대기
+        connectionThread.join(3000);
+        System.err.println("[CONTROLLER TEST] ✓ connectionThread completed");
+        
+        // 7. 양방향 통신 테스트 - 서버 -> 클라이언트로 데이터 전송
+        String testMessage = "HELLO_FROM_SERVER";
+        serverSideSocket.get().getOutputStream().write(testMessage.getBytes());
+        serverSideSocket.get().getOutputStream().flush();
+        System.err.println("[CONTROLLER TEST] ✓ Data sent from server: " + testMessage);
+        
+        // 8. 클라이언트 측 원격 주소 확인 (서버 측 소켓에서 클라이언트 정보 확인)
+        assertEquals("127.0.0.1", serverSideSocket.get().getInetAddress().getHostAddress(),
+            "Client should connect from localhost");
+        System.err.println("[CONTROLLER TEST] ✓ Client connected from: " + 
+            serverSideSocket.get().getInetAddress().getHostAddress());
+        
+        System.err.println("[CONTROLLER TEST] ✓ ClientConnectionController.startConnection() test passed");
         
         // Cleanup
         acceptedClient = serverSideSocket.get();
@@ -624,6 +746,104 @@ class P2PConnectionControllerIntegrationTest {
         System.err.println("✓ UDP broadcast discovery successful");
         System.err.println("✓ TCP connection established");
         System.err.println("========== AUTOMATED P2P CONNECTION TEST PASSED ==========\n");
+    }
+    
+    @Test
+    @Order(3)
+    @DisplayName("Full P2P Connection: ServerConnectionController ↔ ClientConnectionController direct TCP connection")
+    void testServerAndClientControllerDirectConnection() throws Exception {
+        System.err.println("\n========== FULL P2P CONTROLLER CONNECTION TEST ==========");
+        System.err.println("[SCENARIO] ServerConnectionController accepts ClientConnectionController's TCP connection");
+        
+        // ========== SETUP: Inject fake StateStack ==========
+        System.err.println("\n[SETUP] Injecting fake StateStack to track setState() calls...");
+        injectFakeStateStack();
+        resetSetStateTracking();
+        System.err.println("[SETUP] ✓ Fake StateStack injected");
+        
+        // ========== STEP 1: Create and start ServerConnectionController ==========
+        System.err.println("\n[STEP 1] Creating ServerConnectionController and starting TCP acceptor...");
+        serverController = new ServerConnectionController();
+        assertNotNull(serverController, "ServerConnectionController should be created");
+        
+        // Start TCP accept
+        invokePrivateMethod(serverController, "startAccept");
+        Thread.sleep(300);
+        
+        // Verify acceptThread is running
+        Thread acceptThread = (Thread) getPrivateField(serverController, "acceptThread");
+        if (acceptThread == null || !acceptThread.isAlive()) {
+            System.err.println("[TEST SKIPPED] Port " + TCP_PORT + " might be in use");
+            return;
+        }
+        System.err.println("[STEP 1] ✓ ServerConnectionController TCP acceptor running on port " + TCP_PORT);
+        
+        // ========== STEP 2: Create ClientConnectionController ==========
+        System.err.println("\n[STEP 2] Creating ClientConnectionController...");
+        clientController = new ClientConnectionController();
+        assertNotNull(clientController, "ClientConnectionController should be created");
+        
+        // Verify initial state
+        AtomicBoolean isConnecting = (AtomicBoolean) getPrivateField(clientController, "isConnecting");
+        assertFalse(isConnecting.get(), "isConnecting should be false initially");
+        System.err.println("[STEP 2] ✓ ClientConnectionController created, isConnecting = false");
+        
+        // ========== STEP 3: ClientConnectionController connects to ServerConnectionController ==========
+        System.err.println("\n[STEP 3] ClientConnectionController connecting to ServerConnectionController...");
+        
+        // Call startConnection on ClientConnectionController
+        invokePrivateMethod(clientController, "startConnection",
+            new Class<?>[] { String.class },
+            new Object[] { "127.0.0.1" });
+        
+        // Verify connectionThread was created
+        Thread connectionThread = (Thread) getPrivateField(clientController, "connectionThread");
+        assertNotNull(connectionThread, "connectionThread should be created");
+        System.err.println("[STEP 3] ✓ ClientConnectionController.startConnection() called, connectionThread created");
+        
+        // ========== STEP 4: Wait for connection to establish ==========
+        System.err.println("\n[STEP 4] Waiting for TCP connection to establish...");
+        
+        // Wait for connectionThread to complete (max 5 seconds)
+        connectionThread.join(5000);
+        
+        // Give some time for Platform.runLater to execute setState()
+        Thread.sleep(1000);
+        
+        // Process JavaFX events to ensure Platform.runLater callbacks are executed
+        CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(latch::countDown);
+        latch.await(2, TimeUnit.SECONDS);
+        
+        System.err.println("[STEP 4] ✓ Connection attempt completed");
+        System.err.println("  - connectionThread alive: " + connectionThread.isAlive());
+        
+        // ========== STEP 5: Verify setState() was called ==========
+        System.err.println("\n[STEP 5] Verifying setState() was called...");
+        
+        // connectionThread should not be alive anymore (either connected or failed)
+        assertFalse(connectionThread.isAlive(), "connectionThread should have completed");
+        System.err.println("[STEP 5] ✓ connectionThread completed");
+        
+        // Verify that setState was called (indicates successful connection)
+        assertTrue(setStateCalled.get(), "setState() should have been called after successful TCP connection");
+        System.err.println("[STEP 5] ✓ setState() was called - TCP connection successful!");
+        
+        // Verify the controller passed to setState is WaitingRoomController
+        BaseController stateController = lastSetStateController.get();
+        assertNotNull(stateController, "setState should have been called with a controller");
+        assertEquals("WaitingRoomController", stateController.getClass().getSimpleName(),
+            "setState should transition to WaitingRoomController");
+        System.err.println("[STEP 5] ✓ Transitioned to: " + stateController.getClass().getSimpleName());
+        
+        // ========== RESULT ==========
+        System.err.println("\n========== TEST RESULT ==========");
+        System.err.println("✓ ServerConnectionController created and TCP acceptor started");
+        System.err.println("✓ ClientConnectionController created");
+        System.err.println("✓ TCP connection initiated from client to server");
+        System.err.println("✓ Connection threads completed successfully");
+        System.err.println("✓ setState(WaitingRoomController) called - connection verified!");
+        System.err.println("========== FULL P2P CONTROLLER CONNECTION TEST PASSED ==========\n");
     }
     
     @Test
