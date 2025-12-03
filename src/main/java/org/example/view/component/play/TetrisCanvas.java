@@ -14,10 +14,11 @@ import org.example.model.TetrominoPosition;
  */
 public class TetrisCanvas extends Canvas {
     private double cellSize = 30;
-    private static final Color BORDER_COLOR = Color.WHITE;
     private final ColorManager colorManager;
-    private final Color BACKGROUND_COLOR;
+
+    private static final Color BORDER_COLOR = Color.WHITE;
     private static final Color GHOST_COLOR = Color.GRAY;
+    private final Color BACKGROUND_COLOR;
 
     private GameBoard board;
     private TetrominoPosition currentPiece;
