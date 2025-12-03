@@ -75,12 +75,12 @@ public class ScorePanel extends VBox {
         getChildren().addAll(title, scoreText, linesLevelRow, modeDifficultyRow, timerText);
         getStyleClass().add("panel-score");
 
-        // 크기 변경 시 폰트 크기 자동 조정
-        widthProperty().addListener((_, _, newWidth) -> {
-            if (newWidth.doubleValue() > 0) {
-                adjustFontSizeByWidth(newWidth.doubleValue());
-            }
-        });
+        // // 크기 변경 시 폰트 크기 자동 조정
+        // widthProperty().addListener((_, _, newWidth) -> {
+        //     if (newWidth.doubleValue() > 0) {
+        //         adjustFontSizeByWidth(newWidth.doubleValue());
+        //     }
+        // });
 
         // 생성 시 폰트 크기 초기화
         updateFontSize();
