@@ -14,6 +14,7 @@ public class LocalMultiGameOverView extends GameOverView {
 
     public LocalMultiGameOverView() {
         super();
+        buttonSystem.setStylePrefix("nav-button");
     }
 
     /**

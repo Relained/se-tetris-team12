@@ -13,6 +13,7 @@ import javafx.scene.text.Text;
 public class P2PGameOverView extends GameOverView {
     public P2PGameOverView() {
         super();
+        buttonSystem.setStylePrefix("nav-button");
     }
 
     /**
