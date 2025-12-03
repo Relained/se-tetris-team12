@@ -30,6 +30,7 @@ public class LocalMultiPlayController extends BaseController {
 
     private long lastDropTime1;
     private long lastDropTime2;
+    private long lastKeyProcessTime;
     
     // AdderBoard for each player
     private AdderBoard player1AdderBoard;
@@ -206,6 +207,13 @@ public class LocalMultiPlayController extends BaseController {
                 return;
             }
         }
+
+        if (currentTime - lastKeyProcessTime >= 50) {
+            handleInputs();
+            player1JustPressedKeys.clear();
+            player2JustPressedKeys.clear();
+            lastKeyProcessTime = currentTime;
+        }
         
         // Player 1 업데이트
         if (currentTime - lastDropTime1 >= player1System.getDropInterval()) {
@@ -307,10 +315,6 @@ public class LocalMultiPlayController extends BaseController {
             }
             player2PressedKeys.add(key);
         }
-        
-        handleInputs();
-        player1JustPressedKeys.clear();
-        player2JustPressedKeys.clear();
     }
 
     /**
