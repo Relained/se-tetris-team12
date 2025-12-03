@@ -269,54 +269,6 @@ class WaitingRoomNetworkManagerTest {
     }
 
     @Test
-    @DisplayName("양방향 채팅 메시지 전송 테스트")
-    void testChatMessageExchange() {
-        AtomicReference<String> serverReceivedMessage = new AtomicReference<>();
-        AtomicReference<String> clientReceivedMessage = new AtomicReference<>();
-
-        serverManager = new WaitingRoomNetworkManager(
-            serverSideSocket,
-            true,
-            () -> {},
-            () -> {},
-            mode -> {},
-            ready -> {},
-            msg -> serverReceivedMessage.set(msg),
-            diff -> {}
-        );
-
-        clientManager = new WaitingRoomNetworkManager(
-            clientSideSocket,
-            false,
-            () -> {},
-            () -> {},
-            mode -> {},
-            ready -> {},
-            msg -> clientReceivedMessage.set(msg),
-            diff -> {}
-        );
-
-        // 클라이언트 -> 서버 채팅 메시지
-        String clientMessage = "Hello from client!";
-        clientManager.sendChatMessage(clientMessage);
-
-        await()
-            .atMost(3, TimeUnit.SECONDS)
-            .until(() -> clientMessage.equals(serverReceivedMessage.get()));
-
-        // 서버 -> 클라이언트 채팅 메시지
-        String serverMessage = "Hello from server!";
-        serverManager.sendChatMessage(serverMessage);
-
-        await()
-            .atMost(3, TimeUnit.SECONDS)
-            .until(() -> serverMessage.equals(clientReceivedMessage.get()));
-
-        assertEquals(clientMessage, serverReceivedMessage.get());
-        assertEquals(serverMessage, clientReceivedMessage.get());
-    }
-
-    @Test
     @DisplayName("서버에서 클라이언트로 난이도 변경 메시지 전송 테스트")
     void testDifficultyChangeFromServerToClient() {
         AtomicInteger receivedDifficulty = new AtomicInteger(-1);

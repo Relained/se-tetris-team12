@@ -89,7 +89,7 @@ class ScoreInputViewTest {
     void testRootBackground() {
         VBox root = view.createView(1, 10000, 50, 5, () -> {}, () -> {});
         
-        assertNotNull(root.getBackground());
+        assertTrue(root.getStyleClass().contains("score-input-container"));
     }
     
     @Test

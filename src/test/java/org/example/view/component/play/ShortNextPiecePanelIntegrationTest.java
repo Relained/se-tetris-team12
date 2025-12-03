@@ -178,12 +178,11 @@ class ShortNextPiecePanelIntegrationTest {
         
         Platform.runLater(() -> {
             holder[0] = new ShortNextPiecePanel();
-            styleHolder[0] = holder[0].getStyle();
         });
         WaitForAsyncUtils.waitForFxEvents();
         
-        assertNotNull(styleHolder[0]);
-        assertTrue(styleHolder[0].contains("#333"));
+        assertNotNull(holder[0]);
+        assertTrue(holder[0].getStyleClass().contains("panel-hold"));
     }
 
     @Test

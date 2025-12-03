@@ -389,7 +389,7 @@ class PauseViewTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         VBox vbox = (VBox) result[0];
-        assertNotNull(vbox.getBackground());
+        assertTrue(vbox.getStyleClass().contains("root-dark"));
     }
 
     @Test

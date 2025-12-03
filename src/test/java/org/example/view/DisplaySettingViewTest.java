@@ -143,7 +143,7 @@ class DisplaySettingViewTest {
             () -> {}
         );
         
-        assertNotNull(root.getBackground());
+        assertTrue(root.getStyleClass().contains("root-dark"));
     }
     
     @Test

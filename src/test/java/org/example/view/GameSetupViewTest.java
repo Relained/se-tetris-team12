@@ -65,7 +65,7 @@ class GameSetupViewTest {
         
         // Then: Root가 생성되어야 함
         assertNotNull(root, "Root should be created");
-        assertNotNull(root.getBackground(), "Background should be set");
+        assertTrue(root.getStyleClass().contains("root-dark"), "Background CSS class should be set");
         assertTrue(root.getChildren().size() > 0, "Root should have children");
     }
     

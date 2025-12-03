@@ -251,12 +251,11 @@ class NextPiecePanelIntegrationTest {
         
         Platform.runLater(() -> {
             holder[0] = new NextPiecePanel();
-            styleHolder[0] = holder[0].getStyle();
         });
         WaitForAsyncUtils.waitForFxEvents();
         
-        assertNotNull(styleHolder[0]);
-        assertTrue(styleHolder[0].contains("#444"));
+        assertNotNull(holder[0]);
+        assertTrue(holder[0].getStyleClass().contains("panel-next-piece"));
     }
 
     @Test

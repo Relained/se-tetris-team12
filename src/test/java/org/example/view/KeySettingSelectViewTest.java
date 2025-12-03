@@ -145,8 +145,7 @@ class KeySettingSelectViewTest {
         
         // Then: Background가 설정되어야 함
         assertNotNull(root);
-        assertNotNull(root.getBackground());
-        assertFalse(root.getBackground().isEmpty());
+        assertTrue(root.getStyleClass().contains("root-dark"));
     }
     
     @Test

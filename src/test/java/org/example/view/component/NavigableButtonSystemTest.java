@@ -620,9 +620,10 @@ class NavigableButtonSystemTest {
         
         buttonSystem.unfocusAll();
         
-        // 모든 버튼이 기본 스타일을 가져야 함
+        // 모든 버튼이 기본 스타일 클래스를 가져야 함
         for (Button button : buttonSystem.getButtons()) {
-            assertTrue(button.getStyle().contains("#4a4a4a"));
+            assertTrue(button.getStyleClass().contains("nav-button"));
+            assertFalse(button.getStyleClass().contains("nav-button--selected"));
         }
     }
     

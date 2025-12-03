@@ -406,18 +406,6 @@ class RadioButtonGroupSystemTest {
     }
 
     @Test
-    void testSetScale() throws Exception {
-        Platform.runLater(() -> {
-            system.createRadioButtonGroup(Arrays.asList("A", "B", "C"), 0);
-            system.setScale(1.5);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-        
-        // Scale should be applied (verification through visual inspection or style)
-        assertNotNull(system.getRadioGroups());
-    }
-
-    @Test
     void testSetFocusedGroup_Invalid() throws Exception {
         Platform.runLater(() -> {
             system.createRadioButtonGroup(Arrays.asList("A", "B"), 0);
@@ -659,23 +647,6 @@ class RadioButtonGroupSystemTest {
         
         // Just verify it doesn't throw exception
         assertNotNull(groupHolder.get());
-    }
-
-    @Test
-    void testSetScale_OnGroup() throws Exception {
-        final AtomicReference<RadioButtonGroupSystem.RadioButtonGroupWrapper<String>> groupHolder = new AtomicReference<>();
-        
-        Platform.runLater(() -> {
-            groupHolder.set(system.createRadioButtonGroup(Arrays.asList("A", "B"), 0));
-            groupHolder.get().setScale(2.0);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-        
-        // Verify buttons have updated styles
-        for (RadioButton button : groupHolder.get().getButtons()) {
-            assertNotNull(button.getStyle());
-            assertTrue(button.getStyle().contains("36")); // BASE_FONT_SIZE * 2
-        }
     }
 
     @Test

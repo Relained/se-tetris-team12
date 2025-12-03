@@ -127,11 +127,6 @@ class BaseViewIntegrationTest {
     }
     
     @Test
-    void testStaticFontManagerInitialization() {
-        assertNotNull(BaseView.fontManager);
-    }
-    
-    @Test
     void testButtonSystemScaleUpdatesWithViewScale() {
         viewWithButton.updateScale(ScreenSize.SMALL);
         assertEquals(0.9, viewWithButton.lastScaleChanged, 0.001);

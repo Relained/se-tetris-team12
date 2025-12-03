@@ -62,7 +62,7 @@ class ScoreNotEligibleViewTest {
     void testRootBackground() {
         StackPane root = view.createView(5000, () -> {});
         
-        assertNotNull(root.getBackground());
+        assertTrue(root.getStyleClass().contains("root-dark"));
     }
     
     @Test

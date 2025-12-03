@@ -101,7 +101,7 @@ class ScoreboardViewTest {
     void testRootBackground() {
         BorderPane root = view.createView(() -> {}, () -> {});
         
-        assertNotNull(root.getBackground());
+        assertTrue(root.getStyleClass().contains("root-dark"));
     }
     
     @Test

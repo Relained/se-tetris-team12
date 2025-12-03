@@ -80,16 +80,6 @@ class BaseControllerTest {
     }
     
     @Test
-    void testCreateDefaultSceneWithColorManager() {
-        VBox root = new VBox();
-        controller1.createDefaultScene(root);
-        
-        ColorManager colorManager = ColorManager.getInstance();
-        assertEquals(colorManager.getBackgroundColor(), controller1.scene.getFill(),
-            "Scene fill should match ColorManager background color");
-    }
-    
-    @Test
     void testCreateSceneIsAbstract() {
         // createScene이 추상 메서드인지 확인
         TestController controller = new TestController();

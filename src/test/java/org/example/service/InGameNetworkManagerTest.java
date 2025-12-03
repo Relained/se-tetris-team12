@@ -131,7 +131,8 @@ class InGameNetworkManagerTest {
                 serverReceiveLatch.countDown();
             },
             () -> serverBoardData,
-            () -> serverScore
+            () -> serverScore,
+            delay -> {}
         );
 
         clientManager = new InGameNetworkManager(
@@ -145,7 +146,8 @@ class InGameNetworkManagerTest {
                 clientReceiveLatch.countDown();
             },
             () -> clientBoardData,
-            () -> clientScore
+            () -> clientScore,
+            delay -> {}
         );
 
         // Wait for UDP board synchronization to start (40ms tick)
@@ -182,7 +184,8 @@ class InGameNetworkManagerTest {
             adderBoard -> {},
             board -> {},
             () -> serverBoardData,
-            () -> serverScore
+            () -> serverScore,
+            delay -> {}
         );
 
         clientManager = new InGameNetworkManager(
@@ -196,7 +199,8 @@ class InGameNetworkManagerTest {
             },
             board -> {},
             () -> clientBoardData,
-            () -> clientScore
+            () -> clientScore,
+            delay -> {}
         );
 
         // Send Adder Board from server to client (added board when line is cleared)
@@ -239,7 +243,8 @@ class InGameNetworkManagerTest {
             adderBoard -> {},
             board -> {},
             () -> serverBoardData,
-            () -> serverScore
+            () -> serverScore,
+            delay -> {}
         );
 
         clientManager = new InGameNetworkManager(
@@ -250,7 +255,8 @@ class InGameNetworkManagerTest {
             adderBoard -> {},
             board -> {},
             () -> clientBoardData,
-            () -> clientScore
+            () -> clientScore,
+            delay -> {}
         );
 
         // Wait for network managers to fully initialize
@@ -287,7 +293,8 @@ class InGameNetworkManagerTest {
             adderBoard -> {},
             board -> {},
             () -> serverBoardData,
-            () -> serverScore
+            () -> serverScore,
+            delay -> {}
         );
 
         clientManager = new InGameNetworkManager(
@@ -298,7 +305,8 @@ class InGameNetworkManagerTest {
             adderBoard -> {},
             board -> {},
             () -> clientBoardData,
-            () -> clientScore
+            () -> clientScore,
+            delay -> {}
         );
 
         // Wait for network managers to fully initialize
@@ -327,7 +335,8 @@ class InGameNetworkManagerTest {
             adderBoard -> {},
             board -> serverUpdateCount.incrementAndGet(),
             () -> serverBoardData,
-            () -> serverScore
+            () -> serverScore,
+            delay -> {}
         );
 
         clientManager = new InGameNetworkManager(
@@ -338,7 +347,8 @@ class InGameNetworkManagerTest {
             adderBoard -> {},
             board -> clientUpdateCount.incrementAndGet(),
             () -> clientBoardData,
-            () -> clientScore
+            () -> clientScore,
+            delay -> {}
         );
 
         // 1초 동안 대기 (40ms 틱이므로 약 25개의 업데이트 예상)
@@ -367,7 +377,8 @@ class InGameNetworkManagerTest {
             adderBoard -> {},
             board -> {},
             () -> serverBoardData,
-            () -> serverScore
+            () -> serverScore,
+            delay -> {}
         );
 
         clientManager = new InGameNetworkManager(
@@ -378,7 +389,8 @@ class InGameNetworkManagerTest {
             adderBoard -> {},
             board -> clientReceivedBoard.set(deepCopy(board)),
             () -> clientBoardData,
-            () -> clientScore
+            () -> clientScore,
+            delay -> {}
         );
 
         // Wait for initial board reception
@@ -429,7 +441,8 @@ class InGameNetworkManagerTest {
             adderBoard -> serverReceivedAdderBoard.set(deepCopy(adderBoard)),
             board -> {},
             () -> serverBoardData,
-            () -> 5000 // 서버 점수
+            () -> 5000, // 서버 점수
+            delay -> {}
         );
 
         clientManager = new InGameNetworkManager(
@@ -440,7 +453,8 @@ class InGameNetworkManagerTest {
             adderBoard -> {},
             board -> clientReceivedBoard.set(deepCopy(board)),
             () -> clientBoardData,
-            () -> 3000 // 클라이언트 점수
+            () -> 3000, // 클라이언트 점수
+            delay -> {}
         );
 
         // 1. 보드 동기화 확인

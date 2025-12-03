@@ -182,12 +182,11 @@ class StartViewTest {
         // Given: View 생성
         VBox root = startView.createView(() -> {}, () -> {}, () -> {}, () -> {}, () -> {});
         
-        // When: Background 확인
-        var background = root.getBackground();
+        // When: CSS 클래스 확인
+        var styleClasses = root.getStyleClass();
         
-        // Then: Background가 설정되어야 함
-        assertNotNull(background, "Background should be set");
-        assertFalse(background.isEmpty(), "Background should not be empty");
+        // Then: Background CSS 클래스가 설정되어야 함
+        assertTrue(styleClasses.contains("root-dark"), "Background CSS class should be set");
     }
     
     @Test

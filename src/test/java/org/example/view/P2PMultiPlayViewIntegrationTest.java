@@ -62,8 +62,8 @@ class P2PMultiPlayViewIntegrationTest {
             HBox root = view.createView("NORMAL", "Easy");
             
             assertNotNull(root);
-            // Should have 3 children: opponent canvas, my canvas, widgets container
-            assertEquals(3, root.getChildren().size());
+            // Should have 4 children: opponent canvas, canvas spacer, my canvas, widgets container
+            assertEquals(4, root.getChildren().size());
         });
         WaitForAsyncUtils.waitForFxEvents();
     }

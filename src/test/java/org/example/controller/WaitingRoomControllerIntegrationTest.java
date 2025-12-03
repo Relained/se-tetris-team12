@@ -326,34 +326,6 @@ class WaitingRoomControllerIntegrationTest {
     }
     
     @Test
-    @DisplayName("handleChatSubmit processes messages")
-    void testHandleChatSubmitReflection() throws Exception {
-        setupSocketConnection();
-        
-        Platform.runLater(() -> {
-            serverController = new WaitingRoomController(serverSideSocket, true);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-        Thread.sleep(300);
-        
-        Platform.runLater(() -> {
-            try {
-                // Set lastChatSubmitTime to past to bypass cooldown
-                Field lastChatField = WaitingRoomController.class.getDeclaredField("lastChatSubmitTime");
-                lastChatField.setAccessible(true);
-                lastChatField.setLong(serverController, 0L);
-                
-                var method = WaitingRoomController.class.getDeclaredMethod("handleChatSubmit", String.class);
-                method.setAccessible(true);
-                method.invoke(serverController, "Hello!");
-            } catch (Exception e) {
-                fail("handleChatSubmit should work: " + e.getMessage());
-            }
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-    
-    @Test
     @DisplayName("handleGameModeReceived updates game mode")
     void testHandleGameModeReceivedReflection() throws Exception {
         setupSocketConnection();

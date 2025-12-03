@@ -45,11 +45,7 @@ class BaseViewTest {
         Field colorManagerField = BaseView.class.getDeclaredField("colorManager");
         colorManagerField.setAccessible(true);
         
-        Field fontManagerField = BaseView.class.getDeclaredField("fontManager");
-        fontManagerField.setAccessible(true);
-        
         assertNotNull(colorManagerField.get(null), "ColorManager should be initialized");
-        assertNotNull(fontManagerField.get(null), "FontManager should be initialized");
     }
     
     @Test
@@ -162,17 +158,6 @@ class BaseViewTest {
         Object colorManager2 = colorManagerField.get(viewWithoutButtons);
         
         assertSame(colorManager1, colorManager2, "ColorManager should be static");
-    }
-    
-    @Test
-    void testFontManagerIsStatic() throws Exception {
-        Field fontManagerField = BaseView.class.getDeclaredField("fontManager");
-        fontManagerField.setAccessible(true);
-        
-        Object fontManager1 = fontManagerField.get(viewWithButtons);
-        Object fontManager2 = fontManagerField.get(viewWithoutButtons);
-        
-        assertSame(fontManager1, fontManager2, "FontManager should be static");
     }
     
     @Test

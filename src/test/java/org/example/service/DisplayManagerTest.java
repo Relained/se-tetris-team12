@@ -105,10 +105,9 @@ class DisplayManagerTest {
     
     @Test
     void testGetWidthForSmall() {
-        // getWidth 메서드의 switch문에 break가 없어서 항상 MEDIUM_WIDTH를 반환
         int width = displayManager.getWidth(ScreenSize.SMALL);
         assertTrue(width > 0);
-        assertEquals(576, width); // MEDIUM_WIDTH가 반환됨
+        assertEquals(512, width); // SMALL_WIDTH
     }
     
     @Test
@@ -120,10 +119,9 @@ class DisplayManagerTest {
     
     @Test
     void testGetWidthForLarge() {
-        // getWidth 메서드의 switch문에 break가 없어서 항상 MEDIUM_WIDTH를 반환
         int width = displayManager.getWidth(ScreenSize.LARGE);
         assertTrue(width > 0);
-        assertEquals(576, width); // MEDIUM_WIDTH가 반환됨
+        assertEquals(640, width); // LARGE_WIDTH
     }
     
     @Test

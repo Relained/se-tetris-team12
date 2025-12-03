@@ -190,56 +190,6 @@ class WaitingRoomViewIntegrationTest {
     }
 
     @Test
-    void testChatSectionExists() {
-        WaitForAsyncUtils.waitForFxEvents();
-        
-        AtomicBoolean hasChatInput = new AtomicBoolean(false);
-        Platform.runLater(() -> {
-            boolean found = serverRoot.getChildren().stream()
-                .flatMap(node -> {
-                    if (node instanceof VBox) {
-                        return ((VBox)node).getChildren().stream();
-                    }
-                    return java.util.stream.Stream.empty();
-                })
-                .anyMatch(child -> child instanceof TextField);
-            hasChatInput.set(found);
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-        
-        assertTrue(hasChatInput.get());
-    }
-
-    @Test
-    void testAddChatMessage() {
-        WaitForAsyncUtils.waitForFxEvents();
-        
-        Platform.runLater(() -> {
-            serverView.addChatMessage("Test message 1");
-            serverView.addChatMessage("Test message 2");
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-        
-        AtomicInteger messageCount = new AtomicInteger(0);
-        Platform.runLater(() -> {
-            VBox chatContainer = (VBox) serverRoot.getChildren().stream()
-                .filter(node -> node instanceof VBox)
-                .flatMap(node -> ((VBox)node).getChildren().stream())
-                .filter(child -> child instanceof ScrollPane)
-                .findFirst()
-                .map(sp -> (VBox)((ScrollPane)sp).getContent())
-                .orElse(null);
-            
-            if (chatContainer != null) {
-                messageCount.set(chatContainer.getChildren().size());
-            }
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-        
-        assertEquals(2, messageCount.get());
-    }
-
-    @Test
     void testGameModeChangeCallback() {
         WaitForAsyncUtils.waitForFxEvents();
         
@@ -322,43 +272,6 @@ class WaitingRoomViewIntegrationTest {
         WaitForAsyncUtils.waitForFxEvents();
         
         assertTrue(readyClicked.get());
-    }
-
-    @Test
-    void testChatSubmitCallback() {
-        WaitForAsyncUtils.waitForFxEvents();
-        
-        AtomicReference<String> submittedMessage = new AtomicReference<>();
-        
-        WaitingRoomView testView = new WaitingRoomView(true);
-        VBox testRoot = testView.createView(
-            "127.0.0.1",
-            mode -> {},
-            difficulty -> {},
-            () -> {},
-            submittedMessage::set,
-            () -> {}
-        );
-        
-        Platform.runLater(() -> {
-            // Chat section is index 4 in root
-            VBox chatSection = (VBox) testRoot.getChildren().get(4);
-            TextField chatInput = (TextField) chatSection.getChildren().get(1);
-            
-            if (chatInput != null) {
-                chatInput.setText("Hello World");
-                chatInput.fireEvent(new javafx.scene.input.KeyEvent(
-                    javafx.scene.input.KeyEvent.KEY_PRESSED,
-                    "", "",
-                    javafx.scene.input.KeyCode.ENTER,
-                    false, false, false, false
-                ));
-                chatInput.getOnAction().handle(null);
-            }
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-        
-        assertEquals("Hello World", submittedMessage.get());
     }
 
     @Test

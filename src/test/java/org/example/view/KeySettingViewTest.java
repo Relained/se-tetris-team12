@@ -202,7 +202,6 @@ class KeySettingViewTest {
         
         // Then: Background 설정
         assertNotNull(root);
-        assertNotNull(root.getBackground());
-        assertFalse(root.getBackground().isEmpty());
+        assertTrue(root.getStyleClass().contains("root-dark"));
     }
 }
