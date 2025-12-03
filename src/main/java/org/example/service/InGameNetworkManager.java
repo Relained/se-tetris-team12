@@ -52,7 +52,7 @@ public class InGameNetworkManager {
 
     // ----------- 상수 -----------
     private static final int TICK_TIME = 40;
-    private static final int CONNECTION_LOST_TIME = 3000;
+    private static final int CONNECTION_LOST_TIME = 5000;
     private static final int MAX_PACKET_SIZE = 1024; // 1KB
 
     public InGameNetworkManager(
@@ -247,13 +247,12 @@ public class InGameNetworkManager {
     //UDP 보드 동기화 송신 루프 (NIO)
     private void boardSyncSendLoop() {
         int[][] data;
-        int sendTick = 0;
         final ByteBuffer sendDataBuffer = ByteBuffer.allocate(MAX_PACKET_SIZE);
 
         while (true) {
             data = boardDataProvider.get();
             sendDataBuffer.clear();
-            sendDataBuffer.putInt(sendTick++);
+            sendDataBuffer.putLong(System.currentTimeMillis());
             for (int i = 0; i < GameBoard.HEIGHT; i++) {
                 for (int j = 0; j < GameBoard.WIDTH; j++) {
                     sendDataBuffer.putInt(data[i][j]);
@@ -263,7 +262,7 @@ public class InGameNetworkManager {
             try {
                 udpChannel.write(sendDataBuffer);
             } catch (java.net.PortUnreachableException e) {
-                // 상대방 UDP 닫힘 or NAT 문제 - 무시하고 계속 (3초 타임아웃으로 최종 판단)
+                // 상대방 UDP 닫힘 or NAT 문제 - 무시하고 계속 (타임아웃으로 최종 판단)
             } catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.err.println("(BoardSync)[Send thread interrupted - graceful shutdown]");
@@ -282,40 +281,20 @@ public class InGameNetworkManager {
             }
         }
     }
-
+    
     // UDP 보드 동기화 수신 루프 (NIO)
     private void boardSyncReceiveLoop() {
-        int lastReceivedTick = -1;
-        int expectedLength = GameBoard.HEIGHT * GameBoard.WIDTH * 4 + 4;
-        long lastPacketTime = System.currentTimeMillis();
+        final int expectedLength = GameBoard.HEIGHT * GameBoard.WIDTH * 4 + 8;
         final int[][] decodeBuffer = new int[GameBoard.HEIGHT][GameBoard.WIDTH];
         final ByteBuffer receiveByteBuffer = ByteBuffer.allocate(MAX_PACKET_SIZE);
-
-        // 딜레이 평균 계산용 변수
+        
         long delaySum = 0;
         int delayCount = 0;
         long lastDelayDisplayTime = System.currentTimeMillis();
+        long lastPacketTransmitTime = System.currentTimeMillis() - TICK_TIME;
 
         while (true) {
             long loopStart = System.currentTimeMillis();
-
-            long delay = Math.max(0, loopStart - lastPacketTime - TICK_TIME);
-            delaySum += delay;
-            delayCount++;
-            
-            if (loopStart - lastDelayDisplayTime >= 1000) {
-                long avgDelay = delayCount > 0 ? delaySum / delayCount : 0;
-                Platform.runLater(() -> displayDelay.accept(avgDelay));
-                delaySum = 0;
-                delayCount = 0;
-                lastDelayDisplayTime = loopStart;
-            }
-            
-            if (delay > CONNECTION_LOST_TIME) {
-                System.err.println("[Connection lost detected (>3000ms)]");
-                releaseResources(true);
-                return;
-            }
 
             try {
                 int readyChannels = selector.select(TICK_TIME);
@@ -333,13 +312,11 @@ public class InGameNetworkManager {
                             continue;
                         }
                         
-                        int receivedTick = receiveByteBuffer.getInt();
-                        if (receivedTick <= lastReceivedTick) {
+                        long receivedTimestamp = receiveByteBuffer.getLong();
+                        if (receivedTimestamp <= lastPacketTransmitTime) {
                             continue;
                         }
-                        lastReceivedTick = receivedTick;
-
-                        lastPacketTime = System.currentTimeMillis();
+                        lastPacketTransmitTime = receivedTimestamp;
                         
                         for (int i = 0; i < GameBoard.HEIGHT; i++) {
                             for (int j = 0; j < GameBoard.WIDTH; j++) {
@@ -350,7 +327,7 @@ public class InGameNetworkManager {
                     }
                 }
             } catch (java.net.PortUnreachableException e) {
-                // 상대방 UDP 닫힘 or NAT 문제 - 무시하고 계속 (3초 타임아웃으로 최종 판단)
+                // 상대방 UDP 닫힘 or NAT 문제 - 무시하고 계속 (타임아웃으로 최종 판단)
             } catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.err.println("(BoardSync)[Receive thread interrupted - graceful shutdown]");
@@ -358,6 +335,30 @@ public class InGameNetworkManager {
                 }
                 System.err.println("[Error while reading data]");
                 System.err.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
+                releaseResources(true);
+                return;
+            }
+
+            long currentTime = System.currentTimeMillis();
+            // 딜레이 계산:
+            // 현재 시간 - 마지막으로 패킷이 전송될 때의 시간
+            // 만약 패킷이 통째로 밀린다면 밀린 시간만큼 차이가 생기고,
+            // 패킷이 유실되면 마지막으로 제대로 받은 패킷의 전송 시점의 시간이 들어가므로 
+            // 유실에 대한 딜레이도 구할 수 있음.
+            long delay = currentTime - lastPacketTransmitTime;
+            delaySum += delay;
+            delayCount++;
+            
+            if (currentTime - lastDelayDisplayTime >= 1000) {
+                long avgDelay = delayCount > 0 ? delaySum / delayCount : 0;
+                Platform.runLater(() -> displayDelay.accept(avgDelay));
+                delaySum = 0;
+                delayCount = 0;
+                lastDelayDisplayTime = currentTime;
+            }
+            
+            if (delay > CONNECTION_LOST_TIME) {
+                System.err.println("[Connection lost detected (>5000ms)]");
                 releaseResources(true);
                 return;
             }
