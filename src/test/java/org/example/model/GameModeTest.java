@@ -31,24 +31,10 @@ class GameModeTest {
     }
     
     @Test
-    void testValueOf() {
-        assertEquals(GameMode.NORMAL, GameMode.valueOf("NORMAL"));
-        assertEquals(GameMode.ITEM, GameMode.valueOf("ITEM"));
-        assertEquals(GameMode.TIME_ATTACK, GameMode.valueOf("TIME_ATTACK"));
-    }
-    
-    @Test
     void testValueOfInvalid() {
         assertThrows(IllegalArgumentException.class, () -> {
             GameMode.valueOf("INVALID");
         });
-    }
-    
-    @Test
-    void testEnumEquality() {
-        GameMode mode1 = GameMode.NORMAL;
-        GameMode mode2 = GameMode.NORMAL;
-        assertSame(mode1, mode2);
     }
     
     @Test

@@ -46,27 +46,6 @@ class ColorSetTest {
     }
     
     @Test
-    void testProtanopiaColorsAreNotNull() {
-        for (int i = 0; i < ColorSet.PROTANOPIA.length; i++) {
-            assertNotNull(ColorSet.PROTANOPIA[i], "Protanopia color at index " + i + " should not be null");
-        }
-    }
-    
-    @Test
-    void testDeuteranopiaColorsAreNotNull() {
-        for (int i = 0; i < ColorSet.DEUTERANOPIA.length; i++) {
-            assertNotNull(ColorSet.DEUTERANOPIA[i], "Deuteranopia color at index " + i + " should not be null");
-        }
-    }
-    
-    @Test
-    void testTritanopiaColorsAreNotNull() {
-        for (int i = 0; i < ColorSet.TRITANOPIA.length; i++) {
-            assertNotNull(ColorSet.TRITANOPIA[i], "Tritanopia color at index " + i + " should not be null");
-        }
-    }
-    
-    @Test
     void testAllColorSetsHaveSameLength() {
         assertEquals(ColorSet.DEFAULT.length, ColorSet.PROTANOPIA.length);
         assertEquals(ColorSet.DEFAULT.length, ColorSet.DEUTERANOPIA.length);

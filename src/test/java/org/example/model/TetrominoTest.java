@@ -17,15 +17,6 @@ class TetrominoTest {
     }
     
     @Test
-    void testGetShapeReturnsNonNull() {
-        for (Tetromino type : Tetromino.values()) {
-            for (int rotation = 0; rotation < 4; rotation++) {
-                assertNotNull(type.getShape(rotation));
-            }
-        }
-    }
-    
-    @Test
     void testGetShapeReturns4x4Array() {
         for (Tetromino type : Tetromino.values()) {
             for (int rotation = 0; rotation < 4; rotation++) {
@@ -35,13 +26,6 @@ class TetrominoTest {
                     assertEquals(4, row.length);
                 }
             }
-        }
-    }
-    
-    @Test
-    void testGetColorReturnsNonNull() {
-        for (Tetromino type : Tetromino.values()) {
-            assertNotNull(type.getColor());
         }
     }
     

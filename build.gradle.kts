@@ -50,18 +50,29 @@ javafx {
 dependencies {
     implementation("org.apache.groovy:groovy:4.0.21")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
     testImplementation("org.mockito:mockito-core:5.14.2")
     testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")
     testImplementation("org.testfx:testfx-core:4.0.18")
     testImplementation("org.testfx:testfx-junit5:4.0.18")
     testImplementation("org.hamcrest:hamcrest:2.2")
+    testImplementation("org.awaitility:awaitility:4.2.0")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
     maxParallelForks = 4  // 4개의 병렬 프로세스로 실행
     forkEvery = 100  // 100개 테스트마다 새 JVM 프로세스 시작
+    
+    // 테스트 실행 중 표준 출력/에러를 즉시 표시 (필요 시 활성화)
+    // testLogging {
+    //     events("passed", "skipped", "failed", "standardOut", "standardError")
+    //     showStandardStreams = true
+    //     showExceptions = true
+    //     showCauses = true
+    //     showStackTraces = true
+    // }
     
     finalizedBy(tasks.jacocoTestReport) // 테스트 후 자동으로 리포트 생성
 }

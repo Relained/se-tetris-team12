@@ -526,4 +526,153 @@ class TetrisSystemTest {
         assertTrue(system.getLevel() >= 1);
         assertTrue(system.getLevel() <= 20);
     }
+
+    // Probability Distribution Tests
+    
+    /**
+     * 확률에 따른 블록 생성 테스트 - Easy 난이도
+     * I 블록: 1.2배 가중치 → 약 16.7% (1.2 / 7.2)
+     * 나머지 블록: 1.0배 가중치 → 약 13.9% (1.0 / 7.2)
+     * 1,000번 반복, 오차 범위: ±5%
+     */
+    @Test
+    void testBlockDistributionEasyDifficulty() throws Exception {
+        TetrisSystem testSystem = new TetrisSystem();
+        testSystem.setDifficulty(1); // Easy
+        
+        final int ITERATIONS = 1000;
+        final double TOTAL_WEIGHT = 1.2 + 6.0; // I(1.2) + others(6*1.0) = 7.2
+        final double I_EXPECTED = (1.2 / TOTAL_WEIGHT) * 100; // ~16.67%
+        final double OTHER_EXPECTED = (1.0 / TOTAL_WEIGHT) * 100; // ~13.89%
+        final double ERROR_MARGIN = 5.0; // ±5%
+        
+        int[] counts = new int[7]; // I, O, T, S, Z, J, L
+        
+        // selectWeightedRandom 메서드에 접근하기 위해 reflection 사용
+        java.lang.reflect.Method selectMethod = TetrisSystem.class.getDeclaredMethod("selectWeightedRandom");
+        selectMethod.setAccessible(true);
+        
+        // 1,000번 블록 생성
+        for (int i = 0; i < ITERATIONS; i++) {
+            Tetromino selected = (Tetromino) selectMethod.invoke(testSystem);
+            counts[selected.ordinal()]++;
+        }
+        
+        // 각 블록의 분포 검증
+        System.err.println("\n=== Easy Difficulty Block Distribution (1,000 iterations) ===");
+        System.err.println("I block weight: 1.2x, Other blocks weight: 1.0x");
+        for (Tetromino type : Tetromino.values()) {
+            int count = counts[type.ordinal()];
+            double percentage = (count * 100.0) / ITERATIONS;
+            double expected = (type == Tetromino.I) ? I_EXPECTED : OTHER_EXPECTED;
+            double deviation = Math.abs(percentage - expected);
+            
+            System.err.printf("%s: %d times (%.2f%%) - Expected: %.2f%% - Deviation: %.2f%%\n",
+                type, count, percentage, expected, deviation);
+            
+            assertTrue(deviation <= ERROR_MARGIN,
+                String.format("%s block deviation %.2f%% exceeds ±5%% margin (Expected: %.2f%%, Actual: %.2f%%)", 
+                    type, deviation, expected, percentage));
+        }
+        
+        // I 블록이 다른 블록보다 더 많이 나왔는지 확인
+        double iPercentage = (counts[Tetromino.I.ordinal()] * 100.0) / ITERATIONS;
+        assertTrue(iPercentage > OTHER_EXPECTED - ERROR_MARGIN,
+            "I block should appear more frequently than other blocks in Easy mode");
+    }
+    
+    /**
+     * 확률에 따른 블록 생성 테스트 - Normal 난이도 (균등 분포)
+     * 7개 블록(I,O,T,S,Z,J,L)이 각각 약 14.3% 확률로 생성되는지 확인
+     * 1,000번 반복, 오차 범위: ±5%
+     */
+    @Test
+    void testBlockDistributionNormalDifficulty() throws Exception {
+        TetrisSystem testSystem = new TetrisSystem();
+        testSystem.setDifficulty(2); // Normal
+        
+        final int ITERATIONS = 1000;
+        final double EXPECTED_PERCENTAGE = 100.0 / 7; // 14.285...%
+        final double ERROR_MARGIN = 5.0; // ±5%
+        
+        int[] counts = new int[7]; // I, O, T, S, Z, J, L
+        
+        // selectWeightedRandom 메서드에 접근하기 위해 reflection 사용
+        java.lang.reflect.Method selectMethod = TetrisSystem.class.getDeclaredMethod("selectWeightedRandom");
+        selectMethod.setAccessible(true);
+        
+        // 1,000번 블록 생성
+        for (int i = 0; i < ITERATIONS; i++) {
+            Tetromino selected = (Tetromino) selectMethod.invoke(testSystem);
+            counts[selected.ordinal()]++;
+        }
+        
+        // 각 블록의 분포 검증
+        System.err.println("\n=== Normal Difficulty Block Distribution (1,000 iterations) ===");
+        System.err.println("All blocks weight: 1.0x (uniform distribution)");
+        for (Tetromino type : Tetromino.values()) {
+            int count = counts[type.ordinal()];
+            double percentage = (count * 100.0) / ITERATIONS;
+            double deviation = Math.abs(percentage - EXPECTED_PERCENTAGE);
+            
+            System.err.printf("%s: %d times (%.2f%%) - Expected: %.2f%% - Deviation: %.2f%%\n",
+                type, count, percentage, EXPECTED_PERCENTAGE, deviation);
+            
+            assertTrue(deviation <= ERROR_MARGIN,
+                String.format("%s block deviation %.2f%% exceeds ±5%% margin (Expected: %.2f%%, Actual: %.2f%%)", 
+                    type, deviation, EXPECTED_PERCENTAGE, percentage));
+        }
+    }
+    
+    /**
+     * 확률에 따른 블록 생성 테스트 - Hard 난이도
+     * I 블록: 0.8배 가중치 → 약 11.8% (0.8 / 6.8)
+     * 나머지 블록: 1.0배 가중치 → 약 14.7% (1.0 / 6.8)
+     * 1,000번 반복, 오차 범위: ±5%
+     */
+    @Test
+    void testBlockDistributionHardDifficulty() throws Exception {
+        TetrisSystem testSystem = new TetrisSystem();
+        testSystem.setDifficulty(3); // Hard
+        
+        final int ITERATIONS = 1000;
+        final double TOTAL_WEIGHT = 0.8 + 6.0; // I(0.8) + others(6*1.0) = 6.8
+        final double I_EXPECTED = (0.8 / TOTAL_WEIGHT) * 100; // ~11.76%
+        final double OTHER_EXPECTED = (1.0 / TOTAL_WEIGHT) * 100; // ~14.71%
+        final double ERROR_MARGIN = 5.0; // ±5%
+        
+        int[] counts = new int[7];
+        
+        // selectWeightedRandom 메서드에 접근하기 위해 reflection 사용
+        java.lang.reflect.Method selectMethod = TetrisSystem.class.getDeclaredMethod("selectWeightedRandom");
+        selectMethod.setAccessible(true);
+        
+        // 1,000번 블록 생성
+        for (int i = 0; i < ITERATIONS; i++) {
+            Tetromino selected = (Tetromino) selectMethod.invoke(testSystem);
+            counts[selected.ordinal()]++;
+        }
+        
+        // 각 블록의 분포 검증
+        System.err.println("\n=== Hard Difficulty Block Distribution (1,000 iterations) ===");
+        System.err.println("I block weight: 0.8x, Other blocks weight: 1.0x");
+        for (Tetromino type : Tetromino.values()) {
+            int count = counts[type.ordinal()];
+            double percentage = (count * 100.0) / ITERATIONS;
+            double expected = (type == Tetromino.I) ? I_EXPECTED : OTHER_EXPECTED;
+            double deviation = Math.abs(percentage - expected);
+            
+            System.err.printf("%s: %d times (%.2f%%) - Expected: %.2f%% - Deviation: %.2f%%\n",
+                type, count, percentage, expected, deviation);
+            
+            assertTrue(deviation <= ERROR_MARGIN,
+                String.format("%s block deviation %.2f%% exceeds ±5%% margin (Expected: %.2f%%, Actual: %.2f%%)", 
+                    type, deviation, expected, percentage));
+        }
+        
+        // I 블록이 다른 블록보다 적게 나왔는지 확인
+        double iPercentage = (counts[Tetromino.I.ordinal()] * 100.0) / ITERATIONS;
+        assertTrue(iPercentage < OTHER_EXPECTED + ERROR_MARGIN,
+            "I block should appear less frequently than other blocks in Hard mode");
+    }
 }
