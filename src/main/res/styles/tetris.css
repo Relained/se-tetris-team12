@@ -219,6 +219,19 @@
     -fx-font-size: 12px;
 }
 
+/* ========== BOLD TEXT STYLES ========== */
+.text-title-small-bold {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.text-body-small-bold {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
 /* ========== MONOSPACE TEXT STYLES ========== */
 .text-mono {
     -fx-font-family: "Courier New", "Consolas", monospace;
@@ -229,6 +242,40 @@
     -fx-font-family: "Courier New", "Consolas", monospace;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
+}
+
+/* Screen size variants for bold styles */
+.screen-small .text-title-small-bold {
+    -fx-font-size: 22px;
+}
+
+.screen-small .text-body-small-bold {
+    -fx-font-size: 12px;
+}
+
+.screen-large .text-title-small-bold {
+    -fx-font-size: 27px;
+}
+
+.screen-large .text-body-small-bold {
+    -fx-font-size: 15px;
+}
+
+/* Screen size variants for monospace styles */
+.screen-small .text-mono {
+    -fx-font-size: 11px;
+}
+
+.screen-small .text-mono-bold {
+    -fx-font-size: 11px;
+}
+
+.screen-large .text-mono {
+    -fx-font-size: 14px;
+}
+
+.screen-large .text-mono-bold {
+    -fx-font-size: 14px;
 }
 
 /* ========== SCOREBOARD SPECIFIC STYLES ========== */

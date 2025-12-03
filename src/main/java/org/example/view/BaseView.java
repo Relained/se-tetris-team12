@@ -3,7 +3,6 @@ package org.example.view;
 import org.example.model.SettingData.ScreenSize;
 import org.example.service.ColorManager;
 import org.example.service.DisplayManager;
-import org.example.service.FontManager;
 import org.example.view.component.NavigableButtonSystem;
 
 /**
@@ -13,12 +12,10 @@ public abstract class BaseView {
     
     protected NavigableButtonSystem buttonSystem;
     protected static ColorManager colorManager;
-    protected static FontManager fontManager;
     protected double currentScale = 1.0; // 기본값: MEDIUM
     
     public static void Initialize(ColorManager colorManager) {
         BaseView.colorManager = colorManager;
-        BaseView.fontManager = FontManager.getInstance();
     }
     
     /**

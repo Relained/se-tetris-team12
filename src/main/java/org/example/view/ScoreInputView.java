@@ -8,7 +8,6 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import org.example.service.FontManager;
 
 /**
  * Score Input 화면의 UI를 담당하는 View 클래스
@@ -39,14 +38,6 @@ public class ScoreInputView extends BaseView {
             return;
         }
         
-        // 스케일에 맞춰 폰트 크기 조정
-        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_MEDIUM * scale));
-        rankText.setFont(fontManager.getFont(FontManager.SIZE_BODY_LARGE * scale));
-        scoreText.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM * scale));
-        instructionText.setFont(fontManager.getFont(FontManager.SIZE_BODY_SMALL * scale));
-        nameInput.setFont(fontManager.getFont(FontManager.SIZE_BODY_SMALL * scale));
-        keyHintText.setFont(fontManager.getFont(FontManager.SIZE_CAPTION * scale));
-        
         // 컨테이너 크기 조정
         root.setMaxWidth(BASE_MAX_WIDTH * scale);
         root.setMaxHeight(BASE_MAX_HEIGHT * scale);
@@ -74,25 +65,25 @@ public class ScoreInputView extends BaseView {
         
         title = new Text("NEW HIGH SCORE!");
         title.setFill(Color.GOLD);
-        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_MEDIUM * currentScale));
+        title.getStyleClass().add("text-title-medium");
         
         rankText = new Text(String.format("Rank: #%d", rank));
         rankText.setFill(Color.YELLOW);
-        rankText.setFont(fontManager.getFont(FontManager.SIZE_BODY_LARGE * currentScale));
+        rankText.getStyleClass().add("text-body-large");
         
         scoreText = new Text(String.format("Score: %,d  |  Lines: %d  |  Level: %d", 
                                           score, lines, level));
         scoreText.setFill(Color.WHITE);
-        scoreText.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM * currentScale));
+        scoreText.getStyleClass().add("text-body-medium");
         
         instructionText = new Text("Enter your name (max 3 characters):");
         instructionText.setFill(Color.LIGHTGRAY);
-        instructionText.setFont(fontManager.getFont(FontManager.SIZE_BODY_SMALL * currentScale));
+        instructionText.getStyleClass().add("text-body-small");
         
         nameInput = new TextField();
         nameInput.setPromptText("ABC");
         nameInput.setMaxWidth(BASE_INPUT_WIDTH * currentScale);
-        nameInput.setFont(fontManager.getFont(FontManager.SIZE_BODY_SMALL * currentScale));
+        nameInput.getStyleClass().add("text-body-small");
         nameInput.setStyle("-fx-background-color: white; -fx-text-fill: black;");
         
         nameInput.textProperty().addListener((_, _, newText) -> {
@@ -118,7 +109,7 @@ public class ScoreInputView extends BaseView {
         // Key instructions
         keyHintText = new Text("Press ENTER to submit  |  Press ESC to cancel");
         keyHintText.setFill(Color.LIGHTGREEN);
-        keyHintText.setFont(fontManager.getFont(FontManager.SIZE_CAPTION * currentScale));
+        keyHintText.getStyleClass().add("text-caption");
         
         root.getChildren().addAll(title, rankText, scoreText, instructionText, nameInput, keyHintText);
         
