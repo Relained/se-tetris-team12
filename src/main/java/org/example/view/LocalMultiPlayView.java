@@ -203,7 +203,7 @@ public class LocalMultiPlayView extends BaseView {
         player1HoldPanel.updateHoldPiece(holdPiece);
         player1NextPanel.updateNextPiece(nextPiece);
         if (adderBoard != null) {
-            player1AdderCanvas.updateBoard(adderBoard);
+            player1AdderCanvas.updateBoard(adderBoard.getLines());
         }
         player1ScorePanel.updateStats(score, lines, level);
         
@@ -228,7 +228,7 @@ public class LocalMultiPlayView extends BaseView {
         player2HoldPanel.updateHoldPiece(holdPiece);
         player2NextPanel.updateNextPiece(nextPiece);
         if (adderBoard != null) {
-            player2AdderCanvas.updateBoard(adderBoard);
+            player2AdderCanvas.updateBoard(adderBoard.getLines());
         }
         player2ScorePanel.updateStats(score, lines, level);
         
@@ -242,7 +242,7 @@ public class LocalMultiPlayView extends BaseView {
      */
     public void updatePlayer1AdderBoard(org.example.model.AdderBoard adderBoard) {
         if (adderBoard != null) {
-            player1AdderCanvas.updateBoard(adderBoard);
+            player1AdderCanvas.updateBoard(adderBoard.getLines());
         }
     }
     
@@ -251,7 +251,7 @@ public class LocalMultiPlayView extends BaseView {
      */
     public void updatePlayer2AdderBoard(org.example.model.AdderBoard adderBoard) {
         if (adderBoard != null) {
-            player2AdderCanvas.updateBoard(adderBoard);
+            player2AdderCanvas.updateBoard(adderBoard.getLines());
         }
     }
     

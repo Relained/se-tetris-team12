@@ -13,7 +13,6 @@ import org.example.service.DisplayManager;
 public class App extends Application {
 
     private SettingManager settingManager;
-    private DisplayManager displayManager;
 
     @Override
     public void start(Stage primaryStage) {
@@ -23,10 +22,9 @@ public class App extends Application {
         
         // Initialize managers
         settingManager = new SettingManager();
-        displayManager = settingManager.getDisplayManager();
         
         // DisplayManager에 Stage 참조 설정
-        displayManager.setPrimaryStage(primaryStage);
+        DisplayManager.getInstance().setPrimaryStage(primaryStage);
         
         // Base 초기화 (static 의존성 주입)
         BaseController.Initialize(primaryStage, settingManager);

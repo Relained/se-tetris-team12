@@ -58,7 +58,7 @@ public class ColorManager {
         if (index == 'L') return Color.GOLD;      // LINE_CLEAR
         if (index == 'I') return Color.SILVER;    // COLUMN_CLEAR
         if (index == 'X') return Color.HOTPINK;   // CROSS_CLEAR
-        if (index == 'W') return Color.BROWN;     // WEIGHT
+        if (index == 'W') return Color.GOLD;     // WEIGHT
         if (index == 'B') return Color.DARKRED;   // BOMB
 
         // 8번 인덱스는 AdderBoard용 회색

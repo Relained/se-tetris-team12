@@ -5,7 +5,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 import org.example.service.ColorManager;
-import org.example.model.AdderBoard;
 
 /**
  * AdderBoard의 내용을 표시하는 캔버스 컴포넌트입니다.
@@ -23,7 +22,7 @@ public class AdderCanvas extends Canvas {
     private static final int HEIGHT = 10;  // 최대 10줄
     private static final double BORDER_PADDING = 4; // 테두리 안쪽 패딩
     
-    private AdderBoard adderBoard;
+    private int[][] adderBoardLines;
     
     public AdderCanvas() {
         super(WIDTH * 30, HEIGHT * 30);
@@ -54,12 +53,12 @@ public class AdderCanvas extends Canvas {
         draw();
     }
     
-    public void updateBoard(AdderBoard adderBoard) {
-        this.adderBoard = adderBoard;
+    public void updateBoard(int[][] adderBoardLines) {
+        this.adderBoardLines = adderBoardLines;
         draw();
     }
-    
-    private void draw() {
+
+    public void draw() {
         GraphicsContext gc = getGraphicsContext2D();
         gc.clearRect(0, 0, getWidth(), getHeight());
         
@@ -69,9 +68,10 @@ public class AdderCanvas extends Canvas {
         gc.setStroke(Color.web("#666"));
         gc.setLineWidth(2);
         gc.strokeRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 5, 5);
-        
-        if (adderBoard == null) return;
-        
+
+        if (adderBoardLines == null) 
+            return;
+                
         // 테두리 패딩을 고려한 셀 크기 계산
         double usableWidth = getWidth() - (BORDER_PADDING * 2);
         double usableHeight = getHeight() - (BORDER_PADDING * 2);
@@ -80,10 +80,9 @@ public class AdderCanvas extends Canvas {
         // Draw AdderBoard blocks
         // getLines()가 아래부터 채워서 반환하므로 그대로 그림
         // result[0] = 화면 위쪽, result[9] = 화면 아래쪽 (가장 최근 라인)
-        int[][] lines = adderBoard.getLines();
         for (int row = 0; row < HEIGHT; row++) {
             for (int col = 0; col < WIDTH; col++) {
-                int colorIndex = lines[row][col];
+                int colorIndex = adderBoardLines[row][col];
                 if (colorIndex != 0) {
                     drawCell(gc, row, col, colorIndex, drawCellSize);
                 }

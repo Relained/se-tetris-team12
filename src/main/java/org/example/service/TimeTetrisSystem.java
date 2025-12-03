@@ -31,15 +31,6 @@ public class TimeTetrisSystem extends TetrisSystem {
     }
     
     /**
-     * 타이머 시작 (게임 시작 시 호출)
-     */
-    public void startTimer() {
-        this.startTime = System.currentTimeMillis();
-        this.isPaused = false;
-        this.timeUp = false;
-    }
-    
-    /**
      * 타이머 일시정지
      */
     public void pauseTimer() {
@@ -62,6 +53,7 @@ public class TimeTetrisSystem extends TetrisSystem {
     /**
      * 남은 시간 반환 (밀리초)
      */
+    @Override
     public long getRemainingTime() {
         if (isPaused) {
             return pausedRemainingTime;
@@ -86,14 +78,6 @@ public class TimeTetrisSystem extends TetrisSystem {
         }
         
         return false;
-    }
-    
-    /**
-     * 게임 오버 체크 (시간 종료 또는 기본 게임 오버)
-     */
-    @Override
-    public boolean isGameOver() {
-        return super.isGameOver() || isTimeUp();
     }
     
     /**

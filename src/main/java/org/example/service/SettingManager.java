@@ -65,14 +65,6 @@ public class SettingManager {
         displayManager.setDisplayMode(currentSettings.screenSize);
     }
 
-    /**
-     * DisplayManager 인스턴스를 반환합니다.
-     * @return DisplayManager 인스턴스
-     */
-    public DisplayManager getDisplayManager() {
-        return displayManager;
-    }
-
     public void saveSettingData() {
         try (var fos = new FileOutputStream(SETTING_SAVE_PATH);
              var bos = new BufferedOutputStream(fos);

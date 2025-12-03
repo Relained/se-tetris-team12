@@ -27,7 +27,7 @@ public class StartView extends BaseView {
         }
         
         // 스케일에 맞춰 폰트 크기 조정
-        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * scale));
+        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_XLARGE * scale));
         subtitle.setFont(fontManager.getFont(FontManager.SIZE_BODY_MEDIUM * scale));
         controls.setFont(fontManager.getFont(FontManager.SIZE_BODY_SMALL * scale));
     }
@@ -50,7 +50,7 @@ public class StartView extends BaseView {
 
         title = new Text("TETRIS");
         title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * currentScale));
+        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_XLARGE * currentScale));
 
         subtitle = new Text("Team 12 Edition");
         subtitle.setFill(colorManager.getSecondaryTextColor());

@@ -56,7 +56,7 @@ public class StartController extends BaseController {
     public void handleMultiPlay() {
         stackState(new MultiPlayModeController());
     }
-
+    
     /**
      * View Scoreboard 버튼 클릭 시 처리
      */
