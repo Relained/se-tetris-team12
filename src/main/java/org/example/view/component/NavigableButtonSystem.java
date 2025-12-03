@@ -23,9 +23,20 @@ public class NavigableButtonSystem {
     
     // 순환 네비게이션 활성화 여부 (기본: true)
     private boolean wrapNavigation = true;
+    
+    // 버튼 스타일 접두사 (기본: "nav-button")
+    private String stylePrefix = "nav-button";
 
     public NavigableButtonSystem() {
         buttons = new ArrayList<>();
+    }
+    
+    /**
+     * 버튼 스타일 접두사를 설정합니다.
+     * @param prefix 스타일 접두사 (예: "nav-button", "nav-button-red")
+     */
+    public void setStylePrefix(String prefix) {
+        this.stylePrefix = prefix;
     }
     
     /**
@@ -311,16 +322,18 @@ public class NavigableButtonSystem {
     }
 
     private void setSelectedStyle(Button button) {
-        button.getStyleClass().remove("nav-button");
-        if (!button.getStyleClass().contains("nav-button--selected")) {
-            button.getStyleClass().add("nav-button--selected");
+        button.getStyleClass().remove(stylePrefix);
+        String selectedClass = stylePrefix + "--selected";
+        if (!button.getStyleClass().contains(selectedClass)) {
+            button.getStyleClass().add(selectedClass);
         }
     }
 
     private void setDefaultStyle(Button button) {
-        button.getStyleClass().remove("nav-button--selected");
-        if (!button.getStyleClass().contains("nav-button")) {
-            button.getStyleClass().add("nav-button");
+        String selectedClass = stylePrefix + "--selected";
+        button.getStyleClass().remove(selectedClass);
+        if (!button.getStyleClass().contains(stylePrefix)) {
+            button.getStyleClass().add(stylePrefix);
         }
     }
 

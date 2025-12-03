@@ -349,11 +349,12 @@
 
 /* ========== SCORE INPUT SPECIFIC STYLES ========== */
 .score-input-container {
-    -fx-background-color: linear-gradient(to bottom, #00008b 0%, #000066 100%);
+    -fx-background-color: linear-gradient(to bottom, rgba(40,40,60,0.98) 0%, rgba(25,25,45,0.98) 100%);
     -fx-background-radius: 12;
     -fx-border-radius: 12;
     -fx-border-color: #4444aa;
     -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(255,215,0,0.3), 15, 0, 0, 0);
 }
 
 /* ========== SMALL SCREEN (scale 0.85) ========== */
@@ -762,4 +763,62 @@
 /* ========== GAME OVER STYLES ========== */
 .game-over-root {
     -fx-background-color: linear-gradient(to bottom, #2c3e50 0%, #1a252f 50%, #0f1922 100%);
+}
+
+/* Game Over Red Button Styles */
+.nav-button-red {
+    -fx-background-color: linear-gradient(to bottom, #5c3a3a 0%, #4a2a2a 100%);
+    -fx-text-fill: #d1b8b8;
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #6a4a4a;
+    -fx-border-width: 1px;
+    -fx-padding: 12 28;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 4);
+}
+
+.nav-button-red:hover {
+    -fx-background-color: linear-gradient(to bottom, #6c4a4a 0%, #5a3a3a 100%);
+    -fx-text-fill: #ffe0e0;
+}
+
+.nav-button-red--selected {
+    -fx-background-color: linear-gradient(to bottom, #9a4a4a 0%, #8a3a3a 50%, #7a2a2a 100%);
+    -fx-text-fill: #ffcccc;
+    -fx-border-color: #ff6666;
+    -fx-border-width: 2px;
+    -fx-padding: 11 27;
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(255,102,102,0.5), 15, 0, 0, 0),
+                innershadow(gaussian, rgba(255,102,102,0.2), 10, 0, 0, 0);
+}
+
+/* Screen size variants for red buttons */
+.screen-small .nav-button-red {
+    -fx-font-size: 15px;
+    -fx-padding: 9 22;
+}
+
+.screen-small .nav-button-red--selected {
+    -fx-padding: 8 21;
+    -fx-font-size: 15px;
+}
+
+.screen-large .nav-button-red {
+    -fx-font-size: 19px;
+    -fx-padding: 13 30;
+}
+
+.screen-large .nav-button-red--selected {
+    -fx-padding: 12 29;
+    -fx-font-size: 19px;
 }

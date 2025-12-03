@@ -13,6 +13,7 @@ public class GameOverView extends BaseView {
 
     public GameOverView() {
         super(true); // NavigableButtonSystem 사용
+        buttonSystem.setStylePrefix("nav-button-red");
     }
 
     /**
