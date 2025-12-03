@@ -25,7 +25,7 @@ public class ServerConnectionView extends BaseView {
 
         title = new Text("Waiting for Client...");
         title.setTextAlignment(TextAlignment.CENTER);
-        title.getStyleClass().addAll("text-primary", "text-title-large");
+        title.getStyleClass().addAll("text-primary", "text-title-medium");
         var dm = DisplayManager.getInstance();
         title.setWrappingWidth(dm.getWidth(dm.getCurrentSize()) * 0.8);
 

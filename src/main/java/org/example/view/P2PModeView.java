@@ -18,7 +18,7 @@ public class P2PModeView extends BaseView {
         root.getStyleClass().add("root-dark");
 
         Text title = new Text("Select Connection Type");
-        title.getStyleClass().addAll("text-primary", "text-title-large");
+        title.getStyleClass().addAll("text-title-medium", "text-primary");
 
         var created = buttonSystem.createNavigableButtonFromList(
             List.of("Server", "Client", "Go Back"),
