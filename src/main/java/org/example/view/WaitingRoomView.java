@@ -53,7 +53,7 @@ public class WaitingRoomView extends BaseView {
             isServer ? createGameModeSelection(onGameModeChange) : createGameModeDisplay(),
             isServer ? createDifficultySelection(onDifficultyChange) : new VBox(),
             createReadyButton(onReadyToggle),
-            // createChatSection(onChatSubmit),
+            createChatSection(onChatSubmit),
             createLeaveButton(onLeave)
         );
 
