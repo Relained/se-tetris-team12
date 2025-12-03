@@ -630,7 +630,7 @@
 .color-item-line-clear { -fx-fill: #FFD700; } /* Gold */
 .color-item-column-clear { -fx-fill: #C0C0C0; } /* Silver */
 .color-item-cross-clear { -fx-fill: #FF69B4; } /* Hot Pink */
-.color-item-weight { -fx-fill: #A52A2A; } /* Brown */
+.color-item-weight { -fx-fill: #FFD700; } /* Gold */
 .color-item-bomb { -fx-fill: #8B0000; } /* Dark Red */
 
 /* Special Colors */

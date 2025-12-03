@@ -81,7 +81,7 @@ public class ColorManager {
         cssColors.put("item-line-clear", Color.GOLD);
         cssColors.put("item-column-clear", Color.SILVER);
         cssColors.put("item-cross-clear", Color.HOTPINK);
-        cssColors.put("item-weight", Color.BROWN);
+        cssColors.put("item-weight", Color.GOLD);
         cssColors.put("item-bomb", Color.DARKRED);
 
         // Special colors
