@@ -112,8 +112,8 @@ public class ScorePanel extends VBox {
         
         if (availableWidth <= 0) return;
         
-        // 가로 크기에 비례하여 폰트 크기 조정 (최소값을 9로 낮춤)
-        baseFontSize = Math.max(13, Math.min(18, availableWidth / 8));
+        // 가로 크기에 비례하여 폰트 크기 조정
+        baseFontSize = Math.max(13, availableWidth / 7);
         
         title.setFont(Font.font(baseFontSize + 2));
         scoreText.setFont(Font.font(baseFontSize));
