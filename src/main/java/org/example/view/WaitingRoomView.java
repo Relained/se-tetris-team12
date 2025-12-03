@@ -4,8 +4,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
+// import javafx.scene.control.TextField;
+// import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -31,7 +31,7 @@ public class WaitingRoomView extends BaseView {
     private int currentFocusIndex = READY_BUTTON_INDEX;
     private VBox chatMessagesBox;
     private ScrollPane chatScrollPane;
-    private TextField chatInputField;
+    // private TextField chatInputField;
 
     public WaitingRoomView(boolean isServer) {
         super(false);
@@ -205,41 +205,41 @@ public class WaitingRoomView extends BaseView {
         return readyButton;
     }
 
-    private VBox createChatSection(Consumer<String> onChatSubmit) {
-        VBox container = new VBox(10);
-        container.setAlignment(Pos.CENTER);
-        container.setMaxWidth(500);
+    // private VBox createChatSection(Consumer<String> onChatSubmit) {
+    //     VBox container = new VBox(10);
+    //     container.setAlignment(Pos.CENTER);
+    //     container.setMaxWidth(500);
 
-        chatMessagesBox = new VBox(5);
-        chatMessagesBox.setPadding(new javafx.geometry.Insets(10));
-        chatMessagesBox.getStyleClass().add("chat-messages");
+    //     chatMessagesBox = new VBox(5);
+    //     chatMessagesBox.setPadding(new javafx.geometry.Insets(10));
+    //     chatMessagesBox.getStyleClass().add("chat-messages");
 
-        chatScrollPane = new ScrollPane(chatMessagesBox);
-        chatScrollPane.setPrefHeight(200);
-        chatScrollPane.setMaxHeight(200);
-        chatScrollPane.setFitToWidth(true);
-        chatScrollPane.getStyleClass().add("chat-scroll-pane");
-        chatScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        chatScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+    //     chatScrollPane = new ScrollPane(chatMessagesBox);
+    //     chatScrollPane.setPrefHeight(200);
+    //     chatScrollPane.setMaxHeight(200);
+    //     chatScrollPane.setFitToWidth(true);
+    //     chatScrollPane.getStyleClass().add("chat-scroll-pane");
+    //     chatScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+    //     chatScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
-        chatInputField = new TextField();
-        chatInputField.setPromptText("Type a message...");
-        chatInputField.setPrefWidth(500);
-        chatInputField.setPrefHeight(40);
-        chatInputField.getStyleClass().add("chat-input");
-        chatInputField.setTextFormatter(new TextFormatter<String>(change -> 
-            change.getControlNewText().length() <= 70 ? change : null));
-        chatInputField.setOnAction(event -> {
-            String message = chatInputField.getText().trim();
-            if (!message.isEmpty()) {
-                onChatSubmit.accept(message);
-                chatInputField.clear();
-            }
-        });
+    //     chatInputField = new TextField();
+    //     chatInputField.setPromptText("Type a message...");
+    //     chatInputField.setPrefWidth(500);
+    //     chatInputField.setPrefHeight(40);
+    //     chatInputField.getStyleClass().add("chat-input");
+    //     chatInputField.setTextFormatter(new TextFormatter<String>(change -> 
+    //         change.getControlNewText().length() <= 70 ? change : null));
+    //     chatInputField.setOnAction(event -> {
+    //         String message = chatInputField.getText().trim();
+    //         if (!message.isEmpty()) {
+    //             onChatSubmit.accept(message);
+    //             chatInputField.clear();
+    //         }
+    //     });
 
-        container.getChildren().addAll(chatScrollPane, chatInputField);
-        return container;
-    }
+    //     container.getChildren().addAll(chatScrollPane, chatInputField);
+    //     return container;
+    // }
 
     private Button createLeaveButton(Runnable onLeave) {
         Button leaveButton = new Button("Leave Room");
