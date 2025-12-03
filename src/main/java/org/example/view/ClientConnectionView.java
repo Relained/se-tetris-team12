@@ -3,14 +3,11 @@ package org.example.view;
 import java.util.function.Consumer;
 
 import org.example.service.DisplayManager;
-import org.example.service.FontManager;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -41,8 +38,7 @@ public class ClientConnectionView extends BaseView {
             Runnable onClearHistory) {
         VBox root = new VBox(20);
         root.setAlignment(Pos.TOP_LEFT);
-        root.setBackground(new Background(
-            new BackgroundFill(colorManager.getBackgroundColor(), null, null)));
+        root.getStyleClass().add("root-dark");
         root.setPadding(new javafx.geometry.Insets(40));
 
         HBox ipInputSection = createIpInputSection(onIpSubmit);
@@ -61,10 +57,8 @@ public class ClientConnectionView extends BaseView {
         spacer3.setMinHeight(15);
 
         goBackButton = new Button("Go Back");
+        goBackButton.getStyleClass().addAll("secondary-button", "text-body-medium");
         goBackButton.setPrefSize(150 * currentScale, 40 * currentScale);
-        goBackButton.setStyle(String.format(
-                "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
-                (int) (16 * currentScale)));
         goBackButton.setOnAction(event -> onGoBack.run());
 
         root.getChildren().addAll(
@@ -84,8 +78,7 @@ public class ClientConnectionView extends BaseView {
 
     private HBox createIpInputSection(Consumer<String> onIpSubmit) {
         title = new Text("Please enter server's IP address:");
-        title.setFill(colorManager.getPrimaryTextColor());
-        title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_MEDIUM * currentScale));
+        title.getStyleClass().addAll("text-primary", "text-title-medium");
         var dm = DisplayManager.getInstance();
         title.setWrappingWidth(dm.getWidth(dm.getCurrentSize()) * 0.8);
 
@@ -96,17 +89,14 @@ public class ClientConnectionView extends BaseView {
         ipAddressField.setMinWidth(fieldWidth);
         ipAddressField.setMaxWidth(fieldWidth);
         ipAddressField.setAlignment(Pos.CENTER);
-        ipAddressField.setFont(fontManager.getMonospaceBoldFont(FontManager.SIZE_BODY_LARGE * currentScale));
-        ipAddressField.setStyle("-fx-padding: 10px;");
+        ipAddressField.getStyleClass().addAll("text-input", "text-body-large");
         ipAddressField.setOnAction(event -> {
             onIpSubmit.accept(ipAddressField.getText().trim());
         });
 
         submitButton = new Button("Connect");
+        submitButton.getStyleClass().addAll("secondary-button", "text-body-medium");
         submitButton.setPrefSize(150 * currentScale, 40 * currentScale);
-        submitButton.setStyle(String.format(
-                "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
-                (int) (16 * currentScale)));
         submitButton.setOnAction(event -> {
             onIpSubmit.accept(ipAddressField.getText().trim());
         });
@@ -120,9 +110,7 @@ public class ClientConnectionView extends BaseView {
 
     private HBox createSearchedUsersSection(Consumer<String> onSearchedUserSelect, Runnable onRefresh) {
         searchedUsersTitle = new Text("Discovered users on local network");
-        searchedUsersTitle.setFill(colorManager.getPrimaryTextColor());
-        searchedUsersTitle.setFont(
-                fontManager.getFont(FontManager.SIZE_BODY_LARGE * currentScale));
+        searchedUsersTitle.getStyleClass().addAll("text-primary", "text-body-large");
         searchedUsersTitle.setTextAlignment(javafx.scene.text.TextAlignment.LEFT);
 
         var dm = DisplayManager.getInstance();
@@ -131,11 +119,7 @@ public class ClientConnectionView extends BaseView {
         searchedUsersList.setMinWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
         searchedUsersList.setPrefWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
         searchedUsersList.setMaxWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
-        searchedUsersList.setStyle(String.format(
-                "-fx-font-family: '%s'; -fx-font-size: %dpx; -fx-font-weight: bold; -fx-cell-size: %dpx;",
-                fontManager.getMonospaceFontFamily(),
-                (int) (16 * currentScale),
-                (int) (40 * currentScale)));
+        searchedUsersList.getStyleClass().add("list-view");
         searchedUsersList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 1) {
                 String selectedIp = searchedUsersList.getSelectionModel().getSelectedItem();
@@ -146,9 +130,8 @@ public class ClientConnectionView extends BaseView {
         });
 
         refreshButton = new Button("↻");
+        refreshButton.getStyleClass().addAll("secondary-button", "text-body-large");
         refreshButton.setPrefSize(40 * currentScale, 40 * currentScale);
-        refreshButton.setStyle("-fx-background-color: #4a4a4a; -fx-text-fill: white;");
-        refreshButton.setFont(fontManager.getFont(FontManager.SIZE_BODY_LARGE * currentScale));
         refreshButton.setOnAction(event -> onRefresh.run());
 
         HBox searchedUsersBox = new HBox(10);
@@ -160,9 +143,7 @@ public class ClientConnectionView extends BaseView {
 
     private HBox createConnectionHistorySection(Consumer<String> onHistorySelect, Runnable onClearHistory) {
         connectionHistoryTitle = new Text("IP connection history");
-        connectionHistoryTitle.setFill(colorManager.getPrimaryTextColor());
-        connectionHistoryTitle.setFont(
-                fontManager.getFont(FontManager.SIZE_BODY_LARGE * currentScale));
+        connectionHistoryTitle.getStyleClass().addAll("text-primary", "text-body-large");
         connectionHistoryTitle.setTextAlignment(javafx.scene.text.TextAlignment.LEFT);
 
         var dm = DisplayManager.getInstance();
@@ -171,11 +152,7 @@ public class ClientConnectionView extends BaseView {
         connectionHistoryList.setMinWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
         connectionHistoryList.setPrefWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
         connectionHistoryList.setMaxWidth(dm.getWidth(dm.getCurrentSize()) * 0.5);
-        connectionHistoryList.setStyle(String.format(
-                "-fx-font-family: '%s'; -fx-font-size: %dpx; -fx-font-weight: bold; -fx-cell-size: %dpx;",
-                fontManager.getMonospaceFontFamily(),
-                (int) (16 * currentScale),
-                (int) (40 * currentScale)));
+        connectionHistoryList.getStyleClass().add("list-view");
         connectionHistoryList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 1) {
                 String selectedIp = connectionHistoryList.getSelectionModel().getSelectedItem();
@@ -186,10 +163,8 @@ public class ClientConnectionView extends BaseView {
         });
 
         clearHistoryButton = new Button("Clear History");
+        clearHistoryButton.getStyleClass().addAll("danger-button", "text-body-medium");
         clearHistoryButton.setPrefSize(150 * currentScale, 40 * currentScale);
-        clearHistoryButton.setStyle(String.format(
-                "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
-                (int) (16 * currentScale)));
         clearHistoryButton.setOnAction(event -> onClearHistory.run());
 
         HBox historyBox = new HBox(10);
@@ -239,35 +214,18 @@ public class ClientConnectionView extends BaseView {
     protected void onScaleChanged(double scale) {
         var dm = DisplayManager.getInstance();
         
-        if (searchedUsersTitle != null) {
-            searchedUsersTitle.setFont(
-                    fontManager.getFont(FontManager.SIZE_BODY_LARGE * scale));
-        }
         if (searchedUsersList != null) {
             searchedUsersList.setMaxHeight(dm.getHeight(dm.getCurrentSize()) * 0.15);
             searchedUsersList.setMaxWidth(dm.getWidth(dm.getCurrentSize()) * 0.4);
         }
         if (refreshButton != null) {
             refreshButton.setPrefSize(150 * scale, 40 * scale);
-            refreshButton.setStyle(String.format(
-                    "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
-                    (int) (16 * scale)));
         }
         if (submitButton != null) {
             submitButton.setPrefSize(150 * scale, 40 * scale);
-            submitButton.setStyle(String.format(
-                    "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
-                    (int) (16 * scale)));
         }
         if (goBackButton != null) {
             goBackButton.setPrefSize(150 * scale, 40 * scale);
-            goBackButton.setStyle(String.format(
-                    "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
-                    (int) (16 * scale)));
-        }
-        if (connectionHistoryTitle != null) {
-            connectionHistoryTitle.setFont(
-                    fontManager.getFont(FontManager.SIZE_BODY_LARGE * scale));
         }
         if (connectionHistoryList != null) {
             connectionHistoryList.setMaxHeight(dm.getHeight(dm.getCurrentSize()) * 0.15);
@@ -275,12 +233,8 @@ public class ClientConnectionView extends BaseView {
         }
         if (clearHistoryButton != null) {
             clearHistoryButton.setPrefSize(150 * scale, 40 * scale);
-            clearHistoryButton.setStyle(String.format(
-                    "-fx-font-size: %dpx; -fx-background-color: #4a4a4a; -fx-text-fill: white;",
-                    (int) (16 * scale)));
         }
         if (title != null) {
-            title.setFont(fontManager.getFont(FontManager.SIZE_TITLE_LARGE * scale));
             title.setWrappingWidth(dm.getWidth(dm.getCurrentSize()) * 0.8);
         }
         if (ipAddressField != null) {
@@ -288,8 +242,6 @@ public class ClientConnectionView extends BaseView {
             ipAddressField.setPrefWidth(fieldWidth);
             ipAddressField.setMinWidth(fieldWidth);
             ipAddressField.setMaxWidth(fieldWidth);
-            ipAddressField.setFont(
-                    fontManager.getMonospaceBoldFont(FontManager.SIZE_BODY_LARGE * scale));
         }
     }
 }

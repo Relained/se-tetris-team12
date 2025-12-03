@@ -7,15 +7,11 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
 import org.example.model.GameMode;
-import org.example.service.FontManager;
 
 import java.util.function.Consumer;
 
@@ -50,7 +46,7 @@ public class WaitingRoomView extends BaseView {
                         Runnable onLeave) {
         VBox root = new VBox(50);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(colorManager.getBackgroundColor(), null, null)));
+        root.getStyleClass().add("root-dark");
 
         root.getChildren().addAll(
             createConnectionText(ipAddress),
@@ -77,8 +73,7 @@ public class WaitingRoomView extends BaseView {
     private Text createConnectionText(String ipAddress) {
         Text text = new Text("Connected to:\n" + ipAddress);
         text.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
-        text.setFill(colorManager.getPrimaryTextColor());
-        text.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_LARGE));
+        text.getStyleClass().addAll("text-primary", "text-title-medium");
         return text;
     }
 
@@ -133,8 +128,7 @@ public class WaitingRoomView extends BaseView {
         leftBox.setMinWidth(150);
 
         gameModeClientText = new Text(GameMode.NORMAL.toString());
-        gameModeClientText.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
-        gameModeClientText.setFill(Color.web("#FF6B6B")); // Default: Normal color (Red)
+        gameModeClientText.getStyleClass().addAll("text-title-medium", "text-red");
         leftBox.getChildren().add(gameModeClientText);
 
         // Center: Separator (always in center)
@@ -144,8 +138,7 @@ public class WaitingRoomView extends BaseView {
         centerBox.setMinWidth(100);
 
         Text separator = new Text("|");
-        separator.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
-        separator.setFill(colorManager.getPrimaryTextColor());
+        separator.getStyleClass().addAll("text-primary", "text-title-medium");
         centerBox.getChildren().add(separator);
 
         // Right side: Difficulty (with left alignment in its region)
@@ -155,8 +148,7 @@ public class WaitingRoomView extends BaseView {
         rightBox.setMinWidth(150);
 
         difficultyClientText = new Text("Easy");
-        difficultyClientText.setFont(FontManager.getInstance().getFont(FontManager.SIZE_TITLE_MEDIUM));
-        difficultyClientText.setFill(Color.web("#4CAF50")); // Default: Easy color (Green)
+        difficultyClientText.getStyleClass().addAll("text-title-medium", "text-easy");
         rightBox.getChildren().add(difficultyClientText);
 
         displayBox.getChildren().addAll(leftBox, centerBox, rightBox);
@@ -203,7 +195,7 @@ public class WaitingRoomView extends BaseView {
 
     private Button createReadyButton(Runnable onReadyToggle) {
         readyButton = new Button("Ready");
-        readyButton.setFont(FontManager.getInstance().getFont(FontManager.SIZE_BODY_LARGE));
+        readyButton.getStyleClass().addAll("success-button--inactive", "text-body-large");
         readyButton.setPrefWidth(200);
         readyButton.setPrefHeight(50);
         readyButton.setFocusTraversable(false);
@@ -220,13 +212,13 @@ public class WaitingRoomView extends BaseView {
 
         chatMessagesBox = new VBox(5);
         chatMessagesBox.setPadding(new javafx.geometry.Insets(10));
-        chatMessagesBox.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 5;");
+        chatMessagesBox.getStyleClass().add("chat-messages");
 
         chatScrollPane = new ScrollPane(chatMessagesBox);
         chatScrollPane.setPrefHeight(200);
         chatScrollPane.setMaxHeight(200);
         chatScrollPane.setFitToWidth(true);
-        chatScrollPane.setStyle("-fx-background: #2a2a2a; -fx-background-color: transparent;");
+        chatScrollPane.getStyleClass().add("chat-scroll-pane");
         chatScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         chatScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
@@ -234,7 +226,7 @@ public class WaitingRoomView extends BaseView {
         chatInputField.setPromptText("Type a message...");
         chatInputField.setPrefWidth(500);
         chatInputField.setPrefHeight(40);
-        chatInputField.setStyle("-fx-font-size: 18px; -fx-padding: 8px;");
+        chatInputField.getStyleClass().add("chat-input");
         chatInputField.setTextFormatter(new TextFormatter<String>(change -> 
             change.getControlNewText().length() <= 70 ? change : null));
         chatInputField.setOnAction(event -> {
@@ -251,34 +243,10 @@ public class WaitingRoomView extends BaseView {
 
     private Button createLeaveButton(Runnable onLeave) {
         Button leaveButton = new Button("Leave Room");
-        leaveButton.setFont(FontManager.getInstance().getFont(FontManager.SIZE_BODY_LARGE));
+        leaveButton.getStyleClass().addAll("danger-button", "text-body-large");
         leaveButton.setPrefWidth(200);
         leaveButton.setPrefHeight(50);
         leaveButton.setFocusTraversable(false);
-        leaveButton.setStyle(
-            "-fx-background-color: #d32f2f;" +
-            "-fx-text-fill: white;" +
-            "-fx-font-weight: bold;" +
-            "-fx-background-radius: 5;" +
-            "-fx-focus-color: transparent;" +
-            "-fx-faint-focus-color: transparent;"
-        );
-        leaveButton.setOnMouseEntered(e -> leaveButton.setStyle(
-            "-fx-background-color: #b71c1c;" +
-            "-fx-text-fill: white;" +
-            "-fx-font-weight: bold;" +
-            "-fx-background-radius: 5;" +
-            "-fx-focus-color: transparent;" +
-            "-fx-faint-focus-color: transparent;"
-        ));
-        leaveButton.setOnMouseExited(e -> leaveButton.setStyle(
-            "-fx-background-color: #d32f2f;" +
-            "-fx-text-fill: white;" +
-            "-fx-font-weight: bold;" +
-            "-fx-background-radius: 5;" +
-            "-fx-focus-color: transparent;" +
-            "-fx-faint-focus-color: transparent;"
-        ));
         leaveButton.setOnAction(event -> onLeave.run());
         return leaveButton;
     }
@@ -320,23 +288,12 @@ public class WaitingRoomView extends BaseView {
     public void updateToggleButtonStyle(boolean isSelected) {
         if (readyButton == null) return;
         
-        String bgColor = isSelected ? "#4CAF50" : "#757575";
-        String borderColor = (currentFocusIndex == READY_BUTTON_INDEX) ? "yellow" : "transparent";
-        String borderWidth = (currentFocusIndex == READY_BUTTON_INDEX) ? "3" : "0";
-        
-        readyButton.setStyle(
-            "-fx-background-color: " + bgColor + ";" +
-            "-fx-text-fill: white;" +
-            "-fx-font-weight: bold;" +
-            "-fx-font-size: " + FontManager.SIZE_BODY_LARGE + "px;" +
-            "-fx-background-radius: 5;" +
-            "-fx-border-color: " + borderColor + ";" +
-            "-fx-border-width: " + borderWidth + ";" +
-            "-fx-border-radius: 5;" +
-            "-fx-background-insets: 0;" +
-            "-fx-focus-color: transparent;" +
-            "-fx-faint-focus-color: transparent;"
-        );
+        readyButton.getStyleClass().removeAll("success-button", "success-button--inactive");
+        if (isSelected) {
+            readyButton.getStyleClass().add("success-button");
+        } else {
+            readyButton.getStyleClass().add("success-button--inactive");
+        }
         readyButton.setText(isSelected ? "Ready ✓" : "Ready");
     }
 
@@ -368,8 +325,7 @@ public class WaitingRoomView extends BaseView {
         if (chatMessagesBox == null) return;
 
         Text messageText = new Text(message);
-        messageText.setFill(Color.WHITE);
-        messageText.setFont(FontManager.getInstance().getFont(FontManager.SIZE_BODY_MEDIUM));
+        messageText.getStyleClass().addAll("text-white", "text-body-medium");
         messageText.setWrappingWidth(460);
 
         chatMessagesBox.getChildren().add(messageText);
@@ -392,24 +348,26 @@ public class WaitingRoomView extends BaseView {
 
     private void updateGameModeClientColor(String mode) {
         if (gameModeClientText == null) return;
-        String color = switch (mode.toUpperCase()) {
-            case "NORMAL" -> "#FF6B6B";         // Red
-            case "ITEM" -> "#4ECDC4";           // Teal
-            case "TIME ATTACK" -> "#FFE66D";    // Yellow
-            default -> "#FFFFFF";
+        gameModeClientText.getStyleClass().removeAll("text-red", "text-orange", "text-yellow");
+        String styleClass = switch (mode.toUpperCase()) {
+            case "NORMAL" -> "text-red";
+            case "ITEM" -> "text-orange";
+            case "TIME ATTACK" -> "text-yellow";
+            default -> "text-primary";
         };
-        gameModeClientText.setFill(Color.web(color));
+        gameModeClientText.getStyleClass().add(styleClass);
     }
 
     private void updateDifficultyClientColor(String difficulty) {
         if (difficultyClientText == null) return;
-        String color = switch (difficulty.toUpperCase()) {
-            case "EASY" -> "#4CAF50";   // Green
-            case "NORMAL" -> "#2196F3"; // Blue
-            case "HARD" -> "#F44336";   // Red
-            default -> "#FFFFFF";
+        difficultyClientText.getStyleClass().removeAll("text-easy", "text-normal", "text-hard");
+        String styleClass = switch (difficulty.toUpperCase()) {
+            case "EASY" -> "text-easy";
+            case "NORMAL" -> "text-normal";
+            case "HARD" -> "text-hard";
+            default -> "text-primary";
         };
-        difficultyClientText.setFill(Color.web(color));
+        difficultyClientText.getStyleClass().add(styleClass);
     }
 
 }
