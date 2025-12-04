@@ -247,12 +247,13 @@ public class InGameNetworkManager {
     //UDP 보드 동기화 송신 루프 (NIO)
     private void boardSyncSendLoop() {
         int[][] data;
+        int tick = 0;
         final ByteBuffer sendDataBuffer = ByteBuffer.allocate(MAX_PACKET_SIZE);
 
         while (true) {
             data = boardDataProvider.get();
             sendDataBuffer.clear();
-            sendDataBuffer.putLong(System.currentTimeMillis());
+            sendDataBuffer.putInt(tick++);
             for (int i = 0; i < GameBoard.HEIGHT; i++) {
                 for (int j = 0; j < GameBoard.WIDTH; j++) {
                     sendDataBuffer.putInt(data[i][j]);
@@ -284,14 +285,15 @@ public class InGameNetworkManager {
     
     // UDP 보드 동기화 수신 루프 (NIO)
     private void boardSyncReceiveLoop() {
-        final int expectedLength = GameBoard.HEIGHT * GameBoard.WIDTH * 4 + 8;
+        final int expectedLength = GameBoard.HEIGHT * GameBoard.WIDTH * 4 + 4;
         final int[][] decodeBuffer = new int[GameBoard.HEIGHT][GameBoard.WIDTH];
         final ByteBuffer receiveByteBuffer = ByteBuffer.allocate(MAX_PACKET_SIZE);
         
         long delaySum = 0;
         int delayCount = 0;
         long lastDelayDisplayTime = System.currentTimeMillis();
-        long lastPacketTransmitTime = System.currentTimeMillis() - TICK_TIME;
+        int lastTick = -1;
+        long lastPacketTime = System.currentTimeMillis();
 
         while (true) {
             long loopStart = System.currentTimeMillis();
@@ -312,11 +314,12 @@ public class InGameNetworkManager {
                             continue;
                         }
                         
-                        long receivedTimestamp = receiveByteBuffer.getLong();
-                        if (receivedTimestamp <= lastPacketTransmitTime) {
+                        int receivedTick = receiveByteBuffer.getInt();
+                        if (receivedTick <= lastTick) {
                             continue;
                         }
-                        lastPacketTransmitTime = receivedTimestamp;
+                        lastTick = receivedTick;
+                        lastPacketTime = System.currentTimeMillis();
                         
                         for (int i = 0; i < GameBoard.HEIGHT; i++) {
                             for (int j = 0; j < GameBoard.WIDTH; j++) {
@@ -345,7 +348,7 @@ public class InGameNetworkManager {
             // 만약 패킷이 통째로 밀린다면 밀린 시간만큼 차이가 생기고,
             // 패킷이 유실되면 마지막으로 제대로 받은 패킷의 전송 시점의 시간이 들어가므로 
             // 유실에 대한 딜레이도 구할 수 있음.
-            long delay = Math.max(0, currentTime - lastPacketTransmitTime);
+            long delay = Math.max(0, currentTime - lastPacketTime - TICK_TIME);
             delaySum += delay;
             delayCount++;
             
