@@ -345,7 +345,7 @@ public class InGameNetworkManager {
             // 만약 패킷이 통째로 밀린다면 밀린 시간만큼 차이가 생기고,
             // 패킷이 유실되면 마지막으로 제대로 받은 패킷의 전송 시점의 시간이 들어가므로 
             // 유실에 대한 딜레이도 구할 수 있음.
-            long delay = currentTime - lastPacketTransmitTime;
+            long delay = Math.max(0, currentTime - lastPacketTransmitTime);
             delaySum += delay;
             delayCount++;
             
